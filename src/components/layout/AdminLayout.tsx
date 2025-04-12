@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { 
   Home, 
@@ -12,10 +12,13 @@ import {
   Menu,
   X
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
 
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
@@ -27,6 +30,11 @@ const AdminLayout = () => {
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/");
   };
 
   return (
@@ -79,7 +87,11 @@ const AdminLayout = () => {
         </nav>
 
         <div className="p-4 border-t border-pfcu-purple">
-          <Button variant="outline" className="w-full flex items-center space-x-2 text-white border-white hover:bg-pfcu-purple">
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center space-x-2 text-white border-white hover:bg-pfcu-purple"
+            onClick={handleLogout}
+          >
             <LogOut className="h-4 w-4" />
             <span>Logout</span>
           </Button>
