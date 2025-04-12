@@ -1,0 +1,145 @@
+
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Menu, X, ChevronDown } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+const Navbar = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [mobileDropdownOpen, setMobileDropdownOpen] = useState("");
+
+  const toggleMenu = () => {
+    setIsOpen(!isOpen);
+    if (isOpen) setMobileDropdownOpen("");
+  };
+
+  const toggleMobileDropdown = (name: string) => {
+    setMobileDropdownOpen(mobileDropdownOpen === name ? "" : name);
+  };
+
+  const navLinks = [
+    { name: "Home", path: "/" },
+    { 
+      name: "About", 
+      children: [
+        { name: "Our History", path: "/history" },
+        { name: "Leadership", path: "/leadership" },
+        { name: "Alumni", path: "/alumni" }
+      ]
+    },
+    { name: "Units", path: "/units" },
+    { name: "Events", path: "/events" },
+    { name: "Contact", path: "/contact" },
+  ];
+
+  return (
+    <nav className="bg-white shadow-md sticky top-0 z-50">
+      <div className="container flex items-center justify-between py-4">
+        <div className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2">
+            <span className="text-pfcu-purple font-display text-2xl font-bold">PFCU</span>
+          </Link>
+        </div>
+
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center space-x-8">
+          {navLinks.map((link) => (
+            link.children ? (
+              <div key={link.name} className="relative group">
+                <button className="flex items-center gap-1 text-gray-700 hover:text-pfcu-purple font-medium">
+                  {link.name}
+                  <ChevronDown size={16} />
+                </button>
+                <div className="absolute left-0 mt-2 w-48 bg-white shadow-lg rounded-md overflow-hidden transform scale-0 group-hover:scale-100 opacity-0 group-hover:opacity-100 transition-all duration-200 origin-top-left z-50">
+                  {link.children.map((child) => (
+                    <Link
+                      key={child.name}
+                      to={child.path}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-pfcu-light hover:text-pfcu-purple"
+                    >
+                      {child.name}
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <Link
+                key={link.name}
+                to={link.path}
+                className="text-gray-700 hover:text-pfcu-purple font-medium"
+              >
+                {link.name}
+              </Link>
+            )
+          ))}
+        </div>
+
+        <div className="hidden lg:block">
+          <Button className="bg-pfcu-purple hover:bg-pfcu-dark text-white">
+            Join Fellowship
+          </Button>
+        </div>
+
+        {/* Mobile menu button */}
+        <div className="lg:hidden">
+          <button
+            onClick={toggleMenu}
+            className="text-gray-700 hover:text-pfcu-purple focus:outline-none"
+          >
+            {isOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Navigation */}
+      {isOpen && (
+        <div className="lg:hidden bg-white border-t py-4 px-4 animate-fade-in">
+          <div className="flex flex-col space-y-3">
+            {navLinks.map((link) => (
+              link.children ? (
+                <div key={link.name} className="border-b border-gray-100 pb-2">
+                  <button
+                    onClick={() => toggleMobileDropdown(link.name)}
+                    className="w-full flex justify-between items-center text-gray-700 py-2"
+                  >
+                    <span>{link.name}</span>
+                    <ChevronDown size={16} className={`transition-transform duration-200 ${mobileDropdownOpen === link.name ? 'rotate-180' : ''}`} />
+                  </button>
+                  
+                  {mobileDropdownOpen === link.name && (
+                    <div className="pl-4 pt-2 flex flex-col space-y-2 animate-fade-in">
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.name}
+                          to={child.path}
+                          className="text-gray-600 py-1 hover:text-pfcu-purple"
+                          onClick={toggleMenu}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className="text-gray-700 hover:text-pfcu-purple border-b border-gray-100 py-2 block"
+                  onClick={toggleMenu}
+                >
+                  {link.name}
+                </Link>
+              )
+            ))}
+            <Button className="bg-pfcu-purple hover:bg-pfcu-dark text-white w-full mt-4">
+              Join Fellowship
+            </Button>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+};
+
+export default Navbar;
