@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 
@@ -17,7 +16,7 @@ const Footer = () => {
               <a href="#" className="hover:text-pfcu-gold transition-colors">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="hover:text-pfcu-gold transition-colors">
+              <a href="https://www.instagram.com/pfcu_/" target="_blank" rel="noopener noreferrer" className="hover:text-pfcu-gold transition-colors">
                 <Instagram size={20} />
               </a>
               <a href="#" className="hover:text-pfcu-gold transition-colors">
