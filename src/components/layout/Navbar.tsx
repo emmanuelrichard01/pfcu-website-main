@@ -36,7 +36,12 @@ const Navbar = () => {
     <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container flex items-center justify-between py-4">
         <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/542ae7a7-6ae0-4459-954e-0edf20905847.png" 
+              alt="PFCU Logo" 
+              className="h-12 w-12"
+            />
             <span className="text-pfcu-purple font-display text-2xl font-bold">PFCU</span>
           </Link>
         </div>

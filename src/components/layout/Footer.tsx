@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin } from "lucide-react";
 
@@ -7,7 +8,14 @@ const Footer = () => {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
-            <h3 className="text-2xl font-display font-bold text-pfcu-gold mb-6">PFCU</h3>
+            <div className="flex items-center gap-3 mb-6">
+              <img 
+                src="/lovable-uploads/542ae7a7-6ae0-4459-954e-0edf20905847.png" 
+                alt="PFCU Logo" 
+                className="h-12 w-12 bg-white rounded-full p-1"
+              />
+              <h3 className="text-2xl font-display font-bold text-pfcu-gold">PFCU</h3>
+            </div>
             <p className="text-gray-300 mb-6">
               The Pentecostal Fellowship of Caritas University, fostering spiritual growth and
               community since 2005.
