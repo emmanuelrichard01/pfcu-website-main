@@ -9,6 +9,16 @@ export interface Donation {
   paymentMethod: "Bank Transfer" | "Cash" | "Online Payment";
   email?: string;
   phone?: string;
+  paymentReference?: string;
+  paymentGateway?: "Paystack" | "Flutterwave" | "Direct Deposit";
 }
 
 export type NewDonation = Omit<Donation, "id">;
+
+export interface PaymentOption {
+  id: string;
+  title: string;
+  description: string;
+  icon: JSX.Element;
+}
+

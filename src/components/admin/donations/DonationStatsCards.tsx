@@ -9,6 +9,11 @@ interface DonationStatsCardsProps {
 }
 
 const DonationStatsCards = ({ donations, filteredDonations, totalAmount }: DonationStatsCardsProps) => {
+  // Calculate payment method stats
+  const bankTransfers = donations.filter(d => d.paymentMethod === "Bank Transfer").length;
+  const onlinePayments = donations.filter(d => d.paymentMethod === "Online Payment").length;
+  const cashDonations = donations.filter(d => d.paymentMethod === "Cash").length;
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <Card>
