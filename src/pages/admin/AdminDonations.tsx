@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { 
   Card, 
@@ -51,7 +50,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { DatePicker } from "@/components/ui/calendar";
+import { DatePicker } from "@/components/ui/date-picker";
 import { format } from "date-fns";
 
 interface Donation {
@@ -76,7 +75,6 @@ const AdminDonations = () => {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [totalAmount, setTotalAmount] = useState(0);
   
-  // Form state for adding new donation
   const [newDonation, setNewDonation] = useState<Omit<Donation, "id">>({
     donorName: "",
     amount: 0,
@@ -88,9 +86,7 @@ const AdminDonations = () => {
   
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  // Mock donation data
   useEffect(() => {
-    // In a real app, this would fetch from an API
     const storedDonations = localStorage.getItem("pfcu_donations");
     
     if (storedDonations) {
@@ -166,11 +162,9 @@ const AdminDonations = () => {
     }
   }, []);
   
-  // Filter and calculate total amount whenever donations or filters change
   useEffect(() => {
     let filtered = [...donations];
     
-    // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -181,17 +175,14 @@ const AdminDonations = () => {
       );
     }
     
-    // Apply status filter
     if (statusFilter !== "all") {
       filtered = filtered.filter(d => d.status === statusFilter);
     }
     
-    // Apply purpose filter
     if (purposeFilter !== "all") {
       filtered = filtered.filter(d => d.purpose === purposeFilter);
     }
     
-    // Apply date filter
     if (date) {
       const dateStr = format(date, "yyyy-MM-dd");
       filtered = filtered.filter(d => d.date === dateStr);
@@ -199,7 +190,6 @@ const AdminDonations = () => {
     
     setFilteredDonations(filtered);
     
-    // Calculate total amount from filtered donations
     const total = filtered.reduce((sum, donation) => {
       return donation.status === "completed" ? sum + donation.amount : sum;
     }, 0);
@@ -231,7 +221,6 @@ const AdminDonations = () => {
       description: "The new donation has been added successfully.",
     });
     
-    // Reset form
     setNewDonation({
       donorName: "",
       amount: 0,
@@ -245,13 +234,11 @@ const AdminDonations = () => {
   };
   
   const handleExport = () => {
-    // In a real app, this would generate a CSV/Excel file
     toast({
       title: "Export started",
       description: "Your donations data is being prepared for download.",
     });
     
-    // Simulate download delay
     setTimeout(() => {
       toast({
         title: "Export complete",
@@ -445,7 +432,6 @@ const AdminDonations = () => {
         </div>
       </div>
       
-      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
@@ -510,7 +496,6 @@ const AdminDonations = () => {
         </Card>
       </div>
       
-      {/* Filters */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Filters</CardTitle>
@@ -552,43 +537,11 @@ const AdminDonations = () => {
               </SelectContent>
             </Select>
             
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left"
-                >
-                  <Calendar className="mr-2 h-4 w-4" />
-                  {date ? format(date, "PPP") : "Filter by date"}
-                  {date && (
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="ml-auto h-6 w-6"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setDate(undefined);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <DatePicker
-                  mode="single"
-                  selected={date}
-                  onSelect={setDate}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
+            <DatePicker date={date} setDate={setDate} placeholder="Filter by date" />
           </div>
         </CardContent>
       </Card>
       
-      {/* Donations table */}
       <Card>
         <CardHeader>
           <CardTitle>Donations</CardTitle>
