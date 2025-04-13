@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminSermons from "./pages/admin/AdminSermons";
 import AdminEvents from "./pages/admin/AdminEvents";
+import AdminLeadership from "./pages/admin/AdminLeadership";
 import AdminLogin from "./pages/admin/AdminLogin";
 import Giving from "./pages/Giving";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -79,6 +80,7 @@ const App = () => {
                 <Route index element={<AdminDashboard />} />
                 <Route path="sermons" element={<AdminSermons />} />
                 <Route path="events" element={<AdminEvents />} />
+                <Route path="leadership" element={<AdminLeadership />} />
               </Route>
               
               {/* Catch-all route */}

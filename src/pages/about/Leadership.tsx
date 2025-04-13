@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -7,7 +8,7 @@ import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 interface LeaderProps {
   name: string;
   role: string;
-  bio: string;
+  bio?: string;
   initial: string;
   socialMedia?: {
     facebook?: string;
@@ -15,6 +16,11 @@ interface LeaderProps {
     instagram?: string;
     linkedin?: string;
   };
+}
+
+interface TenureData {
+  year: string;
+  slogan: string;
 }
 
 const LeaderCard = ({ name, role, bio, initial, socialMedia }: LeaderProps) => {
@@ -30,7 +36,7 @@ const LeaderCard = ({ name, role, bio, initial, socialMedia }: LeaderProps) => {
           </Avatar>
           <h3 className="text-xl font-bold mb-1">{name}</h3>
           <p className="text-pfcu-purple font-medium mb-3">{role}</p>
-          <p className="text-gray-600 text-sm mb-4">{bio}</p>
+          {bio && <p className="text-gray-600 text-sm mb-4">{bio}</p>}
           
           {socialMedia && (
             <div className="flex gap-3">
@@ -63,84 +69,59 @@ const LeaderCard = ({ name, role, bio, initial, socialMedia }: LeaderProps) => {
 };
 
 const Leadership = () => {
-  const executiveTeam = [
-    {
-      name: "John Doe",
-      role: "Pastor/President",
-      bio: "John has been leading the fellowship with vision and passion since 2022. He is completing his degree in Theology.",
-      initial: "JD",
-      socialMedia: {
-        facebook: "https://facebook.com",
-        instagram: "https://instagram.com/pfcu_"
-      }
-    },
-    {
-      name: "Sarah Johnson",
-      role: "Vice President",
-      bio: "Sarah oversees the daily operations of the fellowship and coordinates between different units.",
-      initial: "SJ",
-      socialMedia: {
-        instagram: "https://instagram.com/pfcu_"
-      }
-    },
-    {
-      name: "Michael Okafor",
-      role: "General Secretary",
-      bio: "Michael handles all administrative tasks and maintains records for the fellowship.",
-      initial: "MO",
-      socialMedia: {
-        instagram: "https://instagram.com/pfcu_"
-      }
-    },
-    {
-      name: "Grace Adebayo",
-      role: "Treasurer",
-      bio: "Grace manages the financial affairs of the fellowship with integrity and transparency.",
-      initial: "GA",
-      socialMedia: {
-        instagram: "https://instagram.com/pfcu_"
-      }
-    }
-  ];
+  const [leaders, setLeaders] = useState<LeaderProps[]>([]);
+  const [tenureInfo, setTenureInfo] = useState<TenureData>({
+    year: "2024/2025",
+    slogan: "Many but one in Christ"
+  });
 
-  const unitLeaders = [
-    {
-      name: "David Nwachukwu",
-      role: "Choir Director",
-      bio: "David leads the choir unit with his exceptional musical talent and organizational skills.",
-      initial: "DN"
-    },
-    {
-      name: "Esther Obi",
-      role: "Prayer Coordinator",
-      bio: "Esther coordinates prayer activities and leads the prayer warriors unit.",
-      initial: "EO"
-    },
-    {
-      name: "James Eke",
-      role: "Evangelism Leader",
-      bio: "James leads outreach efforts both on campus and in surrounding communities.",
-      initial: "JE"
-    },
-    {
-      name: "Blessing Nwosu",
-      role: "Welfare Coordinator",
-      bio: "Blessing ensures the well-being of fellowship members through various support initiatives.",
-      initial: "BN"
-    },
-    {
-      name: "Joshua Okoro",
-      role: "Technical Lead",
-      bio: "Joshua manages all technical aspects of fellowship services and events.",
-      initial: "JO"
-    },
-    {
-      name: "Faith Uzodinma",
-      role: "Bible Study Coordinator",
-      bio: "Faith organizes and facilitates Bible study sessions for spiritual growth.",
-      initial: "FU"
+  useEffect(() => {
+    // Fetch leadership data from localStorage (in real app, this would be an API call)
+    const storedLeaders = localStorage.getItem("pfcu_leaders");
+    const storedTenure = localStorage.getItem("pfcu_tenure");
+    
+    if (storedLeaders) {
+      const leaderData = JSON.parse(storedLeaders);
+      // Map the data structure if needed
+      const formattedLeaders = leaderData.map((leader: any) => ({
+        name: leader.name,
+        role: leader.position,
+        initial: leader.initial,
+        bio: "",
+        socialMedia: {
+          instagram: "https://instagram.com/pfcu_"
+        }
+      }));
+      setLeaders(formattedLeaders);
+    } else {
+      // Fallback data if none exists
+      setLeaders([
+        {
+          name: "Emmanuel R.C. Moghalu",
+          role: "Pastor/President",
+          bio: "Leading the fellowship with vision and passion since 2024.",
+          initial: "EM",
+          socialMedia: {
+            instagram: "https://instagram.com/pfcu_"
+          }
+        },
+        {
+          name: "Chisom C. Mbagwu",
+          role: "Assistant Pastor/VP",
+          bio: "Assists in overseeing the daily operations of the fellowship.",
+          initial: "CM",
+          socialMedia: {
+            instagram: "https://instagram.com/pfcu_"
+          }
+        },
+        // ... and so on for other leaders
+      ]);
     }
-  ];
+    
+    if (storedTenure) {
+      setTenureInfo(JSON.parse(storedTenure));
+    }
+  }, []);
 
   return (
     <MainLayout>
@@ -155,16 +136,13 @@ const Leadership = () => {
 
       <section className="py-16">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-display font-bold mb-8 text-center">Executive Team</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-            {executiveTeam.map((leader) => (
-              <LeaderCard key={leader.name} {...leader} />
-            ))}
-          </div>
+          <h2 className="text-3xl font-display font-bold mb-8 text-center">Current Leadership Team</h2>
+          <p className="text-center max-w-2xl mx-auto mb-8">
+            <strong>{tenureInfo.year} Tenure</strong> - <em>{tenureInfo.slogan}</em>
+          </p>
           
-          <h2 className="text-3xl font-display font-bold mb-8 text-center mt-16">Unit Leaders</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {unitLeaders.map((leader) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+            {leaders.map((leader) => (
               <LeaderCard key={leader.name} {...leader} />
             ))}
           </div>

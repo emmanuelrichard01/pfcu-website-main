@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import {
   FileText, 
   Calendar, 
   DollarSign, 
+  Users,
   LogOut,
   Menu,
   X
@@ -24,6 +24,7 @@ const AdminLayout = () => {
     { name: "Dashboard", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
     { name: "Sermons", path: "/admin/sermons", icon: <FileText className="h-5 w-5" /> },
     { name: "Events", path: "/admin/events", icon: <Calendar className="h-5 w-5" /> },
+    { name: "Leadership", path: "/admin/leadership", icon: <Users className="h-5 w-5" /> },
     { name: "Giving", path: "/admin/giving", icon: <DollarSign className="h-5 w-5" /> },
     { name: "Main Site", path: "/", icon: <Home className="h-5 w-5" /> },
   ];

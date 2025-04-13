@@ -1,6 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar, UserPlus, DollarSign } from "lucide-react";
+import { FileText, Calendar, UserPlus, DollarSign, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const AdminDashboard = () => {
   const stats = [
@@ -8,25 +10,29 @@ const AdminDashboard = () => {
       title: "Total Sermons",
       value: "24",
       icon: <FileText className="h-8 w-8 text-pfcu-purple" />,
-      description: "Sermons uploaded"
+      description: "Sermons uploaded",
+      link: "/admin/sermons"
     },
     {
       title: "Upcoming Events",
       value: "5",
       icon: <Calendar className="h-8 w-8 text-pfcu-purple" />,
-      description: "Events scheduled"
+      description: "Events scheduled",
+      link: "/admin/events"
     },
     {
-      title: "New Members",
-      value: "18",
-      icon: <UserPlus className="h-8 w-8 text-pfcu-purple" />,
-      description: "In the last month"
+      title: "Leadership",
+      value: "6",
+      icon: <Users className="h-8 w-8 text-pfcu-purple" />,
+      description: "Current leaders",
+      link: "/admin/leadership"
     },
     {
       title: "Total Donations",
       value: "₦185,000",
       icon: <DollarSign className="h-8 w-8 text-pfcu-purple" />,
-      description: "Recent donations"
+      description: "Recent donations",
+      link: "/admin/giving"
     }
   ];
 
@@ -37,18 +43,23 @@ const AdminDashboard = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat) => (
-          <Card key={stat.title}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                {stat.title}
-              </CardTitle>
-              {stat.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-            </CardContent>
-          </Card>
+          <Link to={stat.link} key={stat.title} className="block">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
+              <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-sm font-medium text-gray-500">
+                  {stat.title}
+                </CardTitle>
+                {stat.icon}
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                <Button variant="link" className="mt-2 p-0 h-auto text-pfcu-purple">
+                  Manage {stat.title}
+                </Button>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
 
@@ -68,6 +79,9 @@ const AdminDashboard = () => {
                 <FileText className="h-5 w-5 text-gray-400" />
               </div>
             ))}
+            <Link to="/admin/sermons">
+              <Button variant="outline" className="w-full mt-2">View All Sermons</Button>
+            </Link>
           </CardContent>
         </Card>
 
@@ -91,6 +105,9 @@ const AdminDashboard = () => {
                 <Calendar className="h-5 w-5 text-gray-400" />
               </div>
             ))}
+            <Link to="/admin/events">
+              <Button variant="outline" className="w-full mt-2">View All Events</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
