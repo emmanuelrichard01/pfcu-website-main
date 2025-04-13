@@ -32,7 +32,7 @@ const AdminDashboard = () => {
       value: "₦185,000",
       icon: <DollarSign className="h-8 w-8 text-pfcu-purple" />,
       description: "Recent donations",
-      link: "/admin/giving"
+      link: "/admin/donations"
     }
   ];
 

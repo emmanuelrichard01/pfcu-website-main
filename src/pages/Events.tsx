@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Filter, Calendar as CalIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Link } from "react-router-dom";
 import {
   Select,
   SelectContent,
@@ -23,7 +24,7 @@ interface EventProps {
   isFeatured?: boolean;
 }
 
-const EventCard = ({ title, description, date, time, location, category, isFeatured }: EventProps) => {
+const EventCard = ({ title, description, date, time, location, category, isFeatured, index }: EventProps & { index: number }) => {
   const categoryColors = {
     Service: "bg-blue-100 text-blue-800",
     "Bible Study": "bg-green-100 text-green-800",
@@ -67,9 +68,11 @@ const EventCard = ({ title, description, date, time, location, category, isFeatu
           </div>
           
           <div className="mt-6">
-            <Button className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-white">
-              View Details
-            </Button>
+            <Link to={`/event/${index}`}>
+              <Button className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-white">
+                View Details
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>
@@ -173,7 +176,11 @@ const Events = () => {
             <h2 className="text-3xl font-display font-bold mb-8 text-center">Featured Events</h2>
             <div className="grid md:grid-cols-2 gap-8">
               {featuredEvents.map((event, index) => (
-                <EventCard key={index} {...event} />
+                <EventCard 
+                  key={index} 
+                  {...event} 
+                  index={events.findIndex(e => e.title === event.title)}
+                />
               ))}
             </div>
           </div>
@@ -207,7 +214,11 @@ const Events = () => {
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event, index) => (
-              <EventCard key={index} {...event} />
+              <EventCard 
+                key={index} 
+                {...event} 
+                index={events.findIndex(e => e.title === event.title)}
+              />
             ))}
           </div>
           
