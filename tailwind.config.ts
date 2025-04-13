@@ -68,10 +68,10 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				pfcu: {
-					purple: '#5B2C91',
+					purple: '#7D1935', // Changed to maroon red
 					gold: '#D4AF37',
-					light: '#F5F0FF',
-					dark: '#2D1846'
+					light: '#F9F4F5', // Updated to complement maroon
+					dark: '#4A0D1F'  // Darker shade of maroon
 				}
 			},
 			borderRadius: {

@@ -7,65 +7,65 @@
 
 @layer base {
   :root {
-    --background: 260 33% 98%;
-    --foreground: 260 10% 20%;
+    --background: 345 33% 98%;
+    --foreground: 345 10% 20%;
 
     --card: 0 0% 100%;
-    --card-foreground: 260 10% 20%;
+    --card-foreground: 345 10% 20%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 260 10% 20%;
+    --popover-foreground: 345 10% 20%;
 
-    --primary: 260 55% 37%;
+    --primary: 345 55% 30%; /* Maroon red */
     --primary-foreground: 0 0% 98%;
 
     --secondary: 45 60% 52%;
-    --secondary-foreground: 260 10% 20%;
+    --secondary-foreground: 345 10% 20%;
 
-    --muted: 260 10% 95%;
-    --muted-foreground: 260 10% 50%;
+    --muted: 345 10% 95%;
+    --muted-foreground: 345 10% 50%;
 
-    --accent: 260 30% 90%;
-    --accent-foreground: 260 55% 37%;
+    --accent: 345 30% 90%;
+    --accent-foreground: 345 55% 30%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 260 10% 90%;
-    --input: 260 10% 90%;
-    --ring: 260 55% 37%;
+    --border: 345 10% 90%;
+    --input: 345 10% 90%;
+    --ring: 345 55% 30%;
 
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 260 20% 10%;
-    --foreground: 260 10% 95%;
+    --background: 345 20% 10%;
+    --foreground: 345 10% 95%;
 
-    --card: 260 20% 14%;
-    --card-foreground: 260 10% 95%;
+    --card: 345 20% 14%;
+    --card-foreground: 345 10% 95%;
 
-    --popover: 260 20% 14%;
-    --popover-foreground: 260 10% 95%;
+    --popover: 345 20% 14%;
+    --popover-foreground: 345 10% 95%;
 
-    --primary: 260 55% 50%;
+    --primary: 345 55% 40%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 45 60% 52%;
-    --secondary-foreground: 260 10% 20%;
+    --secondary-foreground: 345 10% 20%;
 
-    --muted: 260 20% 20%;
-    --muted-foreground: 260 10% 70%;
+    --muted: 345 20% 20%;
+    --muted-foreground: 345 10% 70%;
 
-    --accent: 260 20% 20%;
-    --accent-foreground: 260 10% 95%;
+    --accent: 345 20% 20%;
+    --accent-foreground: 345 10% 95%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 260 10% 95%;
+    --destructive-foreground: 345 10% 95%;
 
-    --border: 260 20% 25%;
-    --input: 260 20% 25%;
-    --ring: 260 55% 50%;
+    --border: 345 20% 25%;
+    --input: 345 20% 25%;
+    --ring: 345 55% 40%;
   }
 }
 
@@ -91,7 +91,7 @@
   }
 
   .hero-background {
-    background: linear-gradient(rgba(91, 44, 145, 0.9), rgba(45, 24, 70, 0.9)), url('/hero-bg.jpg');
+    background: linear-gradient(rgba(125, 25, 53, 0.9), rgba(74, 13, 31, 0.9)), url('/hero-bg.jpg');
     @apply bg-cover bg-center;
   }
 
@@ -101,5 +101,94 @@
 
   .section-subtitle {
     @apply text-xl md:text-2xl font-medium text-pfcu-gold mb-10;
+  }
+  
+  /* Animation classes */
+  .animate-slide-up {
+    animation: slideUp 0.6s ease forwards;
+  }
+  
+  .animate-slide-down {
+    animation: slideDown 0.6s ease forwards;
+  }
+  
+  .animate-slide-left {
+    animation: slideLeft 0.6s ease forwards;
+  }
+  
+  .animate-slide-right {
+    animation: slideRight 0.6s ease forwards;
+  }
+  
+  .animate-fade {
+    animation: fade 0.6s ease forwards;
+  }
+  
+  .animate-scale {
+    animation: scale 0.6s ease forwards;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideRight {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
