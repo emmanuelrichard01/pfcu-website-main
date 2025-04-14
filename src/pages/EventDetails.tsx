@@ -35,7 +35,8 @@ const EventDetails = () => {
         const eventIndex = parseInt(id || "0");
         
         if (!isNaN(eventIndex) && eventIndex >= 0 && eventIndex < events.length) {
-          setEvent(events[eventIndex]);
+          // Cast to ensure it matches the Event type
+          setEvent(events[eventIndex] as Event);
         } else {
           // Handle event not found
           navigate("/events");
@@ -60,7 +61,7 @@ const EventDetails = () => {
     fetchEvent();
   }, [id, navigate, toast]);
 
-  const categoryColors = {
+  const categoryColors: Record<string, string> = {
     Service: "bg-blue-100 text-blue-800",
     "Bible Study": "bg-green-100 text-green-800",
     Prayer: "bg-purple-100 text-purple-800",
@@ -140,7 +141,7 @@ const EventDetails = () => {
             <div className="p-6 md:p-8">
               <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                 <div>
-                  <Badge className={categoryColors[event.category]}>{event.category}</Badge>
+                  <Badge className={categoryColors[event.category] || "bg-gray-100 text-gray-800"}>{event.category}</Badge>
                   <h1 className="text-3xl md:text-4xl font-display font-bold mt-2">{event.title}</h1>
                 </div>
                 
@@ -238,6 +239,30 @@ const EventDetails = () => {
       </div>
     </MainLayout>
   );
+
+  function handleShare() {
+    if (navigator.share) {
+      navigator.share({
+        title: event?.title,
+        text: event?.description,
+        url: window.location.href,
+      })
+      .catch((error) => console.log("Error sharing:", error));
+    } else {
+      navigator.clipboard.writeText(window.location.href);
+      toast({
+        title: "Link copied!",
+        description: "The event link has been copied to your clipboard."
+      });
+    }
+  }
+
+  function handleAddCalendar() {
+    toast({
+      title: "Calendar link generated",
+      description: "The event has been added to your calendar (simulated)."
+    });
+  }
 };
 
 export default EventDetails;

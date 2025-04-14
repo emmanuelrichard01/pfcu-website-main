@@ -7,7 +7,7 @@ export interface Event {
   date: string;
   time: string;
   location: string;
-  category: "Service" | "Bible Study" | "Prayer" | "Outreach" | "Social" | "Conference";
+  category: string; // Changed from union type to string to match Supabase data
   organizer?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;

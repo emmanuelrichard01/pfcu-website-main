@@ -1,22 +1,15 @@
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { Event } from "@/types/events";
+import EventCard from "@/components/events/EventCard";
+import { Card, CardContent } from "@/components/ui/card";
+import { Calendar } from "lucide-react";
 
-interface EventCardProps {
-  title: string;
-  date: string;
-  time: string;
-  location: string;
-  index: number;
-}
-
-const EventCard = ({ title, date, time, location, index }: EventCardProps) => {
+const HomeEventCard = ({ title, date, time, location, index }: { title: string; date: string; time: string; location: string; index: number }) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -71,8 +64,7 @@ const EventsSection = () => {
         }
         
         // Cast the data to ensure it matches the Event type
-        const typedData = data as Event[];
-        setEvents(typedData);
+        setEvents(data as Event[]);
       } catch (error) {
         console.error("Error fetching events:", error);
       } finally {
@@ -82,6 +74,10 @@ const EventsSection = () => {
 
     fetchEvents();
   }, []);
+
+  const getEventIndex = (eventId: string): number => {
+    return events.findIndex(e => e.id === eventId);
+  };
 
   return (
     <section className="section-padding bg-pfcu-light" id="events">
@@ -104,13 +100,13 @@ const EventsSection = () => {
         ) : (
           <div className="grid md:grid-cols-3 gap-6">
             {events.map((event, index) => (
-              <EventCard 
+              <HomeEventCard 
                 key={event.id} 
                 title={event.title} 
                 date={event.date} 
                 time={event.time} 
                 location={event.location} 
-                index={index} 
+                index={getEventIndex(event.id)} 
               />
             ))}
           </div>
