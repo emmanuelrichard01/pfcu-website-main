@@ -6,6 +6,13 @@ interface GoogleMapProps {
   height?: string;
 }
 
+declare global {
+  interface Window {
+    initMap: () => void;
+    google?: any;
+  }
+}
+
 const GoogleMap = ({ 
   address = "Caritas University, Enugu, Nigeria", 
   height = "400px" 
@@ -34,7 +41,7 @@ const GoogleMap = ({
     
     // Function to initialize the map
     const initializeMap = () => {
-      if (!mapRef.current) return;
+      if (!mapRef.current || !window.google) return;
       
       // Default to Caritas University coordinates (approximate)
       const defaultPosition = { lat: 6.4698, lng: 7.5101 };
@@ -42,45 +49,45 @@ const GoogleMap = ({
       const mapOptions = {
         zoom: 15,
         center: defaultPosition,
-        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        mapTypeId: window.google.maps.MapTypeId.ROADMAP,
         mapTypeControl: true,
       };
       
-      const map = new google.maps.Map(mapRef.current, mapOptions);
+      const map = new window.google.maps.Map(mapRef.current, mapOptions);
       
       // If address is provided, try to geocode it
       if (address) {
-        const geocoder = new google.maps.Geocoder();
-        geocoder.geocode({ address }, (results, status) => {
-          if (status === google.maps.GeocoderStatus.OK && results && results[0]) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ address }, (results: any, status: any) => {
+          if (status === window.google.maps.GeocoderStatus.OK && results && results[0]) {
             const position = results[0].geometry.location;
             map.setCenter(position);
             
-            new google.maps.Marker({
+            new window.google.maps.Marker({
               map,
               position,
               title: address,
-              animation: google.maps.Animation.DROP,
+              animation: window.google.maps.Animation.DROP,
             });
           } else {
             console.warn(`Geocoding failed for address: ${address}`);
             // Fall back to default position
             map.setCenter(defaultPosition);
-            new google.maps.Marker({
+            new window.google.maps.Marker({
               map,
               position: defaultPosition,
               title: "Caritas University",
-              animation: google.maps.Animation.DROP,
+              animation: window.google.maps.Animation.DROP,
             });
           }
         });
       } else {
         // Use default position if no address
-        new google.maps.Marker({
+        new window.google.maps.Marker({
           map,
           position: defaultPosition,
           title: "Caritas University",
-          animation: google.maps.Animation.DROP,
+          animation: window.google.maps.Animation.DROP,
         });
       }
     };
@@ -114,13 +121,5 @@ const GoogleMap = ({
     />
   );
 };
-
-// Define the global initMap property on window object
-declare global {
-  interface Window {
-    initMap: () => void;
-    google?: any;
-  }
-}
 
 export default GoogleMap;
