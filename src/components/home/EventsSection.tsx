@@ -70,7 +70,9 @@ const EventsSection = () => {
           throw error;
         }
         
-        setEvents(data || []);
+        // Cast the data to ensure it matches the Event type
+        const typedData = data as Event[];
+        setEvents(typedData);
       } catch (error) {
         console.error("Error fetching events:", error);
       } finally {
