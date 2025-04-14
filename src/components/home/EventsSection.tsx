@@ -1,9 +1,12 @@
 
+import { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { Event } from "@/types/events";
 
 interface EventCardProps {
   title: string;
@@ -50,26 +53,33 @@ const EventCard = ({ title, date, time, location, index }: EventCardProps) => {
 };
 
 const EventsSection = () => {
-  const events = [
-    {
-      title: "Sunday Service",
-      date: "Every Sunday",
-      time: "9:00 AM - 12:00 PM",
-      location: "Main Fellowship Hall",
-    },
-    {
-      title: "Bible Study",
-      date: "Every Wednesday",
-      time: "6:00 PM - 8:00 PM",
-      location: "Meeting Room 2",
-    },
-    {
-      title: "Annual Retreat",
-      date: "October 15-17, 2025",
-      time: "All Day",
-      location: "Caritas Retreat Center",
-    },
-  ];
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        // Fetch featured events first, then add regular events up to 3 total
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('is_featured', { ascending: false })
+          .limit(3);
+        
+        if (error) {
+          throw error;
+        }
+        
+        setEvents(data || []);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   return (
     <section className="section-padding bg-pfcu-light" id="events">
@@ -85,11 +95,24 @@ const EventsSection = () => {
           <p className="section-subtitle">Join us for fellowship and spiritual growth</p>
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-6">
-          {events.map((event, index) => (
-            <EventCard key={event.title} {...event} index={index} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pfcu-purple"></div>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-3 gap-6">
+            {events.map((event, index) => (
+              <EventCard 
+                key={event.id} 
+                title={event.title} 
+                date={event.date} 
+                time={event.time} 
+                location={event.location} 
+                index={index} 
+              />
+            ))}
+          </div>
+        )}
 
         <div className="text-center mt-12">
           <Link to="/events">

@@ -7,99 +7,54 @@ import { Calendar, Clock, MapPin, ArrowLeft, Calendar as CalIcon, Share2, Heart 
 import { Badge } from "@/components/ui/badge";
 import { motion } from "framer-motion";
 import { useToast } from "@/hooks/use-toast";
-
-interface EventData {
-  title: string;
-  description: string;
-  fullDescription?: string;
-  date: string;
-  time: string;
-  location: string;
-  category: "Service" | "Bible Study" | "Prayer" | "Outreach" | "Social" | "Conference";
-  isFeatured?: boolean;
-  organizer?: string;
-  contactEmail?: string;
-  contactPhone?: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { Event } from "@/types/events";
 
 const EventDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [event, setEvent] = useState<EventData | null>(null);
+  const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, this would fetch from an API
-    // For now, we'll use localStorage or hardcoded events
-    const fetchEvent = () => {
+    const fetchEvent = async () => {
       setLoading(true);
-      const storedEvents = localStorage.getItem("pfcu_events");
-      let events: EventData[] = [];
       
-      if (storedEvents) {
-        events = JSON.parse(storedEvents);
-      } else {
-        // Default events if none are stored
-        events = [
-          {
-            title: "Sunday Fellowship Service",
-            description: "Join us for a spirit-filled time of worship, prayer, and the Word. All students are welcome!",
-            fullDescription: "Our Sunday service is the highlight of our week. We gather to worship God, hear His Word, and fellowship with one another. The service includes praise and worship, prayer, testimonies, and a sermon from our Pastor or guest speaker. Everyone is welcome to attend, regardless of background or faith.",
-            date: "Every Sunday",
-            time: "9:00 AM - 12:00 PM",
-            location: "Main Fellowship Hall",
-            category: "Service",
-            organizer: "PFCU Worship Team",
-            contactEmail: "worship@pfcu.org",
-            contactPhone: "+234 801 234 5678",
-            isFeatured: true
-          },
-          {
-            title: "Midweek Bible Study",
-            description: "Deepen your understanding of the Word through interactive study and discussions.",
-            fullDescription: "Our midweek Bible study offers an opportunity to dive deeper into God's Word in a more intimate setting. We explore Scripture together, ask questions, and discuss how to apply biblical principles in our daily lives as students and young professionals.",
-            date: "Every Wednesday",
-            time: "6:00 PM - 8:00 PM",
-            location: "Meeting Room 2",
-            category: "Bible Study",
-            organizer: "PFCU Teaching Unit",
-            contactEmail: "teaching@pfcu.org",
-            contactPhone: "+234 802 345 6789"
-          },
-          {
-            title: "Annual PFCU Conference",
-            description: "Our flagship event featuring powerful speakers, workshops, and impactful ministry sessions.",
-            fullDescription: "The Annual PFCU Conference is our largest event of the year. It brings together current students, alumni, and guest ministers for three days of spiritual renewal, worship, and fellowship. The conference includes general sessions, workshops tailored to various interests, prayer sessions, and social activities to build relationships within the fellowship.",
-            date: "October 15-17, 2025",
-            time: "All Day",
-            location: "Caritas Retreat Center",
-            category: "Conference",
-            organizer: "PFCU Executive Committee",
-            contactEmail: "conference@pfcu.org",
-            contactPhone: "+234 803 456 7890",
-            isFeatured: true
-          }
-        ];
-        localStorage.setItem("pfcu_events", JSON.stringify(events));
-      }
-      
-      // Find the event by index since we're using index as ID in the URL
-      const eventIndex = parseInt(id || "0");
-      
-      if (!isNaN(eventIndex) && eventIndex >= 0 && eventIndex < events.length) {
-        setEvent(events[eventIndex]);
-      } else {
-        // Handle event not found
-        navigate("/events");
+      try {
+        // Fetch all events first
+        const { data: events, error } = await supabase
+          .from('events')
+          .select('*');
+        
+        if (error) {
+          throw error;
+        }
+        
+        // Find the event by index since we're using index as ID in the URL
+        const eventIndex = parseInt(id || "0");
+        
+        if (!isNaN(eventIndex) && eventIndex >= 0 && eventIndex < events.length) {
+          setEvent(events[eventIndex]);
+        } else {
+          // Handle event not found
+          navigate("/events");
+          toast({
+            title: "Event not found",
+            description: "The requested event could not be found.",
+            variant: "destructive"
+          });
+        }
+      } catch (error: any) {
         toast({
-          title: "Event not found",
-          description: "The requested event could not be found.",
+          title: "Error loading event",
+          description: error.message,
           variant: "destructive"
         });
+        navigate("/events");
+      } finally {
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
     
     fetchEvent();
@@ -176,7 +131,7 @@ const EventDetails = () => {
             transition={{ duration: 0.5 }}
             className="bg-white rounded-lg shadow-lg overflow-hidden"
           >
-            {event.isFeatured && (
+            {event.is_featured && (
               <div className="bg-pfcu-gold text-white py-2 px-4 text-sm font-bold text-center">
                 FEATURED EVENT
               </div>
@@ -214,7 +169,7 @@ const EventDetails = () => {
                 <div className="md:col-span-2">
                   <div className="prose max-w-none">
                     <p className="text-lg mb-4">{event.description}</p>
-                    <p className="mb-6">{event.fullDescription || "Join us for this special event. More details will be provided closer to the date."}</p>
+                    <p className="mb-6">{event.full_description || "Join us for this special event. More details will be provided closer to the date."}</p>
                     
                     {event.organizer && (
                       <div className="mt-6">
@@ -267,11 +222,11 @@ const EventDetails = () => {
                       </div>
                     </div>
                     
-                    {(event.contactEmail || event.contactPhone) && (
+                    {(event.contact_email || event.contact_phone) && (
                       <div className="border-t pt-4 mt-4">
                         <h4 className="font-bold mb-2">Contact Information</h4>
-                        {event.contactEmail && <p>{event.contactEmail}</p>}
-                        {event.contactPhone && <p>{event.contactPhone}</p>}
+                        {event.contact_email && <p>{event.contact_email}</p>}
+                        {event.contact_phone && <p>{event.contact_phone}</p>}
                       </div>
                     )}
                   </div>

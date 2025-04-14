@@ -1,6 +1,6 @@
 
 import MainLayout from "@/components/layout/MainLayout";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Calendar, Clock, MapPin, Filter, Calendar as CalIcon } from "lucide-react";
@@ -13,18 +13,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { Event } from "@/types/events";
 
-interface EventProps {
-  title: string;
-  description: string;
-  date: string;
-  time: string;
-  location: string;
-  category: "Service" | "Bible Study" | "Prayer" | "Outreach" | "Social" | "Conference";
-  isFeatured?: boolean;
-}
-
-const EventCard = ({ title, description, date, time, location, category, isFeatured, index }: EventProps & { index: number }) => {
+const EventCard = ({ title, description, date, time, location, category, isFeatured, index }: Event & { index: number }) => {
   const categoryColors = {
     Service: "bg-blue-100 text-blue-800",
     "Bible Study": "bg-green-100 text-green-800",
@@ -82,81 +74,40 @@ const EventCard = ({ title, description, date, time, location, category, isFeatu
 
 const Events = () => {
   const [filter, setFilter] = useState<string>("all");
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   
-  const events: EventProps[] = [
-    {
-      title: "Sunday Fellowship Service",
-      description: "Join us for a spirit-filled time of worship, prayer, and the Word. All students are welcome!",
-      date: "Every Sunday",
-      time: "9:00 AM - 12:00 PM",
-      location: "Main Fellowship Hall",
-      category: "Service",
-      isFeatured: true
-    },
-    {
-      title: "Midweek Bible Study",
-      description: "Deepen your understanding of the Word through interactive study and discussions.",
-      date: "Every Wednesday",
-      time: "6:00 PM - 8:00 PM",
-      location: "Meeting Room 2",
-      category: "Bible Study"
-    },
-    {
-      title: "Prayer Rally",
-      description: "A time of intense intercession for the campus, nation, and personal needs.",
-      date: "Last Friday of Each Month",
-      time: "10:00 PM - 1:00 AM",
-      location: "Main Fellowship Hall",
-      category: "Prayer"
-    },
-    {
-      title: "Campus Outreach",
-      description: "Join us as we share the love of Christ with fellow students through evangelism and acts of kindness.",
-      date: "April 20, 2025",
-      time: "2:00 PM - 5:00 PM",
-      location: "Campus Quadrangle",
-      category: "Outreach"
-    },
-    {
-      title: "Fellowship Games Night",
-      description: "A night of fun, games, and fellowship. Come network with other believers in a relaxed setting.",
-      date: "April 25, 2025",
-      time: "5:00 PM - 8:00 PM",
-      location: "Student Union Building",
-      category: "Social"
-    },
-    {
-      title: "Annual PFCU Conference",
-      description: "Our flagship event featuring powerful speakers, workshops, and impactful ministry sessions.",
-      date: "October 15-17, 2025",
-      time: "All Day",
-      location: "Caritas Retreat Center",
-      category: "Conference",
-      isFeatured: true
-    },
-    {
-      title: "Freshman Welcome Service",
-      description: "Special service to welcome and integrate new students into the fellowship.",
-      date: "September 10, 2025",
-      time: "4:00 PM - 6:00 PM",
-      location: "Main Fellowship Hall",
-      category: "Service"
-    },
-    {
-      title: "Academic Excellence Seminar",
-      description: "Learn strategies for excelling in your studies while maintaining a vibrant spiritual life.",
-      date: "May 5, 2025",
-      time: "2:00 PM - 4:00 PM",
-      location: "Lecture Hall 3",
-      category: "Bible Study"
-    }
-  ];
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('events')
+          .select('*')
+          .order('is_featured', { ascending: false });
+        
+        if (error) {
+          throw error;
+        }
+        
+        setEvents(data || []);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
 
   const filteredEvents = filter === "all" 
     ? events 
     : events.filter(event => event.category === filter);
 
-  const featuredEvents = events.filter(event => event.isFeatured);
+  const featuredEvents = events.filter(event => event.is_featured);
+  
+  // Get list of unique categories from the events
+  const categories = [...new Set(events.map(event => event.category))];
 
   return (
     <MainLayout>
@@ -169,67 +120,82 @@ const Events = () => {
         </div>
       </div>
 
-      {/* Featured Events Section */}
-      {featuredEvents.length > 0 && (
-        <section className="py-16 bg-white">
-          <div className="container mx-auto">
-            <h2 className="text-3xl font-display font-bold mb-8 text-center">Featured Events</h2>
-            <div className="grid md:grid-cols-2 gap-8">
-              {featuredEvents.map((event, index) => (
-                <EventCard 
-                  key={index} 
-                  {...event} 
-                  index={events.findIndex(e => e.title === event.title)}
-                />
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* All Events Section */}
-      <section className="py-16 bg-pfcu-light">
-        <div className="container mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
-            <h2 className="text-3xl font-display font-bold">All Upcoming Events</h2>
-            
-            <div className="flex items-center space-x-2 mt-4 md:mt-0">
-              <Filter className="h-5 w-5 text-pfcu-purple" />
-              <Select value={filter} onValueChange={setFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Service">Service</SelectItem>
-                  <SelectItem value="Bible Study">Bible Study</SelectItem>
-                  <SelectItem value="Prayer">Prayer</SelectItem>
-                  <SelectItem value="Outreach">Outreach</SelectItem>
-                  <SelectItem value="Social">Social</SelectItem>
-                  <SelectItem value="Conference">Conference</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredEvents.map((event, index) => (
-              <EventCard 
-                key={index} 
-                {...event} 
-                index={events.findIndex(e => e.title === event.title)}
-              />
-            ))}
-          </div>
-          
-          <div className="flex justify-center mt-12">
-            <Button className="flex items-center space-x-2 bg-pfcu-purple hover:bg-pfcu-dark text-white">
-              <CalIcon className="h-5 w-5" />
-              <span>Add to Your Calendar</span>
-            </Button>
+      {loading ? (
+        <div className="py-16 bg-white">
+          <div className="container mx-auto flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pfcu-purple"></div>
           </div>
         </div>
-      </section>
+      ) : (
+        <>
+          {/* Featured Events Section */}
+          {featuredEvents.length > 0 && (
+            <section className="py-16 bg-white">
+              <div className="container mx-auto">
+                <h2 className="text-3xl font-display font-bold mb-8 text-center">Featured Events</h2>
+                <div className="grid md:grid-cols-2 gap-8">
+                  {featuredEvents.map((event, index) => (
+                    <EventCard 
+                      key={event.id} 
+                      {...event} 
+                      index={events.findIndex(e => e.id === event.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* All Events Section */}
+          <section className="py-16 bg-pfcu-light">
+            <div className="container mx-auto">
+              <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+                <h2 className="text-3xl font-display font-bold">All Upcoming Events</h2>
+                
+                <div className="flex items-center space-x-2 mt-4 md:mt-0">
+                  <Filter className="h-5 w-5 text-pfcu-purple" />
+                  <Select value={filter} onValueChange={setFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Filter by category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Categories</SelectItem>
+                      {categories.map(category => (
+                        <SelectItem key={category} value={category}>{category}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              
+              {filteredEvents.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredEvents.map((event, index) => (
+                    <EventCard 
+                      key={event.id} 
+                      {...event} 
+                      index={events.findIndex(e => e.id === event.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="bg-white p-8 rounded-lg text-center">
+                  <Calendar className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-xl font-bold mb-2">No events found</h3>
+                  <p className="text-gray-600">There are no events in this category at the moment. Check back soon!</p>
+                </div>
+              )}
+              
+              <div className="flex justify-center mt-12">
+                <Button className="flex items-center space-x-2 bg-pfcu-purple hover:bg-pfcu-dark text-white">
+                  <CalIcon className="h-5 w-5" />
+                  <span>Add to Your Calendar</span>
+                </Button>
+              </div>
+            </div>
+          </section>
+        </>
+      )}
     </MainLayout>
   );
 };
