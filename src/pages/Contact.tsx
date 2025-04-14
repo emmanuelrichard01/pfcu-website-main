@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { Phone, Mail, MapPin, Clock, Instagram } from "lucide-react";
+import GoogleMap from "@/components/map/GoogleMap";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -187,11 +188,8 @@ const Contact = () => {
             We're located on the Caritas University campus. Our fellowship hall is easy to find, 
             and we welcome visitors at all our services and events.
           </p>
-          <div className="h-96 w-full bg-gray-300 rounded-lg overflow-hidden">
-            {/* In a real implementation, an actual map would go here */}
-            <div className="w-full h-full flex items-center justify-center">
-              <span className="text-gray-500">Campus Map</span>
-            </div>
+          <div className="h-96 w-full rounded-lg overflow-hidden">
+            <GoogleMap address="Caritas University, Enugu, Nigeria" height="380px" />
           </div>
         </div>
       </section>

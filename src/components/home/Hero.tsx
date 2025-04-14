@@ -49,8 +49,8 @@ const Hero = () => {
     <div className="relative bg-pfcu-purple min-h-[600px] flex items-center overflow-hidden">
       <div className="absolute inset-0 bg-gradient-to-r from-pfcu-dark to-pfcu-purple opacity-90"></div>
       
-      {/* Carousel content */}
-      <div className="container relative z-10 text-white">
+      {/* Carousel content - Now center-aligned */}
+      <div className="container relative z-10 text-white flex justify-center">
         <AnimatePresence mode="wait">
           <motion.div 
             key={currentSlide}
@@ -58,7 +58,7 @@ const Hero = () => {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -100 }}
             transition={{ duration: 0.5 }}
-            className="max-w-3xl"
+            className="max-w-3xl text-center"
           >
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-2">
               {slides[currentSlide].title} <span className="text-pfcu-gold">{slides[currentSlide].subtitle}</span>
@@ -66,7 +66,7 @@ const Hero = () => {
             <p className="text-xl mb-8 text-gray-200">
               {slides[currentSlide].description}
             </p>
-            <div className="flex flex-wrap gap-4">
+            <div className="flex flex-wrap gap-4 justify-center">
               <Button size="lg" className="bg-pfcu-gold hover:bg-yellow-600 text-pfcu-dark">
                 {slides[currentSlide].cta}
               </Button>

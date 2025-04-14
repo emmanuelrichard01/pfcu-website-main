@@ -17,6 +17,9 @@ const Navbar = () => {
   const toggleMobileDropdown = (name: string) => {
     setMobileDropdownOpen(mobileDropdownOpen === name ? "" : name);
   };
+  
+  // Check if user is admin based on local storage
+  const isAdmin = localStorage.getItem("pfcu_role_selected") === "admin";
 
   const navLinks = [
     { name: "Home", path: "/" },
@@ -33,8 +36,12 @@ const Navbar = () => {
     { name: "Sermons", path: "/sermons" },
     { name: "Giving", path: "/giving" },
     { name: "Contact", path: "/contact" },
-    { name: "Admin", path: "/admin" },
   ];
+  
+  // Add Admin link only if user is admin
+  if (isAdmin) {
+    navLinks.push({ name: "Admin", path: "/admin" });
+  }
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
