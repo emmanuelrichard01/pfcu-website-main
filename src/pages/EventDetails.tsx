@@ -239,30 +239,6 @@ const EventDetails = () => {
       </div>
     </MainLayout>
   );
-
-  function handleShare() {
-    if (navigator.share) {
-      navigator.share({
-        title: event?.title,
-        text: event?.description,
-        url: window.location.href,
-      })
-      .catch((error) => console.log("Error sharing:", error));
-    } else {
-      navigator.clipboard.writeText(window.location.href);
-      toast({
-        title: "Link copied!",
-        description: "The event link has been copied to your clipboard."
-      });
-    }
-  }
-
-  function handleAddCalendar() {
-    toast({
-      title: "Calendar link generated",
-      description: "The event has been added to your calendar (simulated)."
-    });
-  }
 };
 
 export default EventDetails;

@@ -16,6 +16,8 @@ export interface Event {
   updated_at: string;
 }
 
+export type EventCategory = "Service" | "Bible Study" | "Prayer" | "Outreach" | "Social" | "Conference";
+
 export interface EventFormValues {
   title: string;
   description: string;
@@ -23,7 +25,7 @@ export interface EventFormValues {
   date: string;
   time: string;
   location: string;
-  category: "Service" | "Bible Study" | "Prayer" | "Outreach" | "Social" | "Conference";
+  category: string; // Change to string to match the database
   organizer?: string | null;
   contact_email?: string | null;
   contact_phone?: string | null;
