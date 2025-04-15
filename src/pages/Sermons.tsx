@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,7 +10,7 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { FileText, Search, Play, Download, Music } from "lucide-react";
+import { FileText, Search, Play, Download, Music, Pause } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -29,6 +28,39 @@ interface Sermon {
 
 const SermonCard = ({ sermon }: { sermon: Sermon }) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const togglePlay = () => {
+    if (!sermon.audio_url || !audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+    setIsPlaying(!isPlaying);
+  };
+
+  // Handle audio events
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => setIsPlaying(false);
+    const handlePause = () => setIsPlaying(false);
+    const handlePlay = () => setIsPlaying(true);
+
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('play', handlePlay);
+
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('play', handlePlay);
+    };
+  }, [audioRef.current]);
 
   return (
     <motion.div
@@ -65,18 +97,36 @@ const SermonCard = ({ sermon }: { sermon: Sermon }) => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
+          {sermon.audio_url && (
+            <audio ref={audioRef} src={sermon.audio_url} preload="none" />
+          )}
           <Button 
             className="bg-pfcu-purple hover:bg-pfcu-dark"
+            onClick={togglePlay}
             disabled={!sermon.audio_url}
           >
-            <Play className="mr-2 h-4 w-4" /> Listen
+            {isPlaying ? (
+              <><Pause className="mr-2 h-4 w-4" /> Pause</>
+            ) : (
+              <><Play className="mr-2 h-4 w-4" /> Listen</>
+            )}
           </Button>
-          <Button 
-            variant="outline"
-            disabled={!sermon.audio_url}
-          >
-            <Download className="mr-2 h-4 w-4" /> Download
-          </Button>
+          {sermon.audio_url ? (
+            <a 
+              href={sermon.audio_url} 
+              download
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" /> Download
+              </Button>
+            </a>
+          ) : (
+            <Button variant="outline" disabled>
+              <Download className="mr-2 h-4 w-4" /> Download
+            </Button>
+          )}
         </CardFooter>
       </Card>
     </motion.div>

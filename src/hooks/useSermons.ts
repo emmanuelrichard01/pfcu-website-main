@@ -18,19 +18,23 @@ interface Sermon {
 export const useSermons = () => {
   const [sermons, setSermons] = useState<Sermon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [count, setCount] = useState(0);
   const { toast } = useToast();
 
   const fetchSermons = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error, count: totalCount } = await supabase
         .from('sermons')
-        .select('*')
+        .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
       setSermons(data || []);
+      if (totalCount !== null) {
+        setCount(totalCount);
+      }
     } catch (error: any) {
       toast({
         title: "Error fetching sermons",
@@ -44,6 +48,29 @@ export const useSermons = () => {
 
   const deleteSermon = async (id: string) => {
     try {
+      // Get the sermon to find associated files
+      const { data: sermon, error: fetchError } = await supabase
+        .from('sermons')
+        .select('audio_url, cover_image')
+        .eq('id', id)
+        .single();
+      
+      if (fetchError) throw fetchError;
+      
+      // Delete associated files from storage if they exist
+      if (sermon) {
+        if (sermon.audio_url) {
+          const audioPath = new URL(sermon.audio_url).pathname.split('/').slice(-2).join('/');
+          await supabase.storage.from('sermons').remove([audioPath]);
+        }
+        
+        if (sermon.cover_image) {
+          const imagePath = new URL(sermon.cover_image).pathname.split('/').slice(-2).join('/');
+          await supabase.storage.from('sermons').remove([imagePath]);
+        }
+      }
+      
+      // Delete the sermon record
       const { error } = await supabase
         .from('sermons')
         .delete()
@@ -68,9 +95,9 @@ export const useSermons = () => {
 
   // Create storage bucket for sermons if it doesn't exist
   useEffect(() => {
-    const createSermonsBucket = async () => {
+    const createSermonsBuckets = async () => {
       try {
-        // Check if bucket already exists
+        // Check if buckets already exist
         const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
         
         if (bucketsError) throw bucketsError;
@@ -91,13 +118,14 @@ export const useSermons = () => {
       }
     };
     
-    createSermonsBucket();
+    createSermonsBuckets();
     fetchSermons();
   }, []);
 
   return {
     sermons,
     loading,
+    count,
     fetchSermons,
     deleteSermon
   };
