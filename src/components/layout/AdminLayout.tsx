@@ -66,7 +66,7 @@ const AdminLayout = () => {
           <h2 className="text-xl font-bold text-pfcu-gold">PFCU Admin</h2>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-6 px-4">
+        <nav className="flex-1 overflow-hidden py-6 px-4">
           <ul className="space-y-2">
             {navItems.map((item) => (
               <li key={item.name}>

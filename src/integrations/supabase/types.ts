@@ -78,6 +78,45 @@ export type Database = {
         }
         Relationships: []
       }
+      sermons: {
+        Row: {
+          audio_url: string | null
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          preacher: string
+          sermon_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          preacher: string
+          sermon_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          preacher?: string
+          sermon_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
