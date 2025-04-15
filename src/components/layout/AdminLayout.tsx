@@ -39,7 +39,7 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-100">
-      {/* Mobile sidebar toggle - moved to top-right */}
+      {/* Mobile sidebar toggle - top-right */}
       <div className="lg:hidden fixed top-4 right-4 z-50">
         <Button
           variant="outline"
@@ -51,11 +51,11 @@ const AdminLayout = () => {
         </Button>
       </div>
 
-      {/* Sidebar - with fixed height and no scroll */}
+      {/* Sidebar - fixed height with scrolling disabled */}
       <aside
         className={`${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out bg-pfcu-dark text-white flex flex-col h-full`}
+        } lg:translate-x-0 fixed lg:sticky top-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out bg-pfcu-dark text-white flex flex-col h-screen`}
       >
         <div className="p-4 border-b border-pfcu-purple flex items-center space-x-3">
           <img
@@ -66,28 +66,30 @@ const AdminLayout = () => {
           <h2 className="text-xl font-bold text-pfcu-gold">PFCU Admin</h2>
         </div>
 
-        {/* Nav content with fixed height and no overflow */}
-        <nav className="flex-1 py-6 px-4 flex flex-col h-full">
-          <ul className="space-y-2 flex-none">
-            {navItems.map((item) => (
-              <li key={item.name}>
-                <Link
-                  to={item.path}
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
-                    location.pathname === item.path
-                      ? "bg-pfcu-purple text-white"
-                      : "text-gray-300 hover:bg-pfcu-purple/20 hover:text-white"
-                  }`}
-                >
-                  {item.icon}
-                  <span>{item.name}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+        {/* Nav content with fixed layout - no scrolling */}
+        <div className="flex flex-col h-full">
+          <nav className="flex-1 py-6 px-4">
+            <ul className="space-y-2">
+              {navItems.map((item) => (
+                <li key={item.name}>
+                  <Link
+                    to={item.path}
+                    className={`flex items-center space-x-3 px-3 py-2 rounded-md transition-colors ${
+                      location.pathname === item.path
+                        ? "bg-pfcu-purple text-white"
+                        : "text-gray-300 hover:bg-pfcu-purple/20 hover:text-white"
+                    }`}
+                  >
+                    {item.icon}
+                    <span>{item.name}</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
           
-          {/* Motto and tenure declaration */}
-          <div className="mt-auto mb-4 px-3 py-4 bg-pfcu-purple/10 rounded-md">
+          {/* Motto and tenure declaration - positioned at bottom but before logout */}
+          <div className="mt-auto mb-4 mx-4 px-3 py-4 bg-pfcu-purple/10 rounded-md">
             <div className="mb-3">
               <h3 className="font-semibold text-sm text-pfcu-gold">Fellowship's Motto</h3>
               <p className="text-sm text-white">"Many but one in Christ"</p>
@@ -97,17 +99,18 @@ const AdminLayout = () => {
               <p className="text-sm text-white">Realignment</p>
             </div>
           </div>
-        </nav>
-
-        <div className="p-4 border-t border-pfcu-purple">
-          <Button 
-            variant="outline" 
-            className="w-full flex items-center space-x-2 text-white border-white hover:bg-red-600 hover:border-transparent"
-            onClick={handleLogout}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
+        
+          {/* Logout button */}
+          <div className="p-4 border-t border-pfcu-purple">
+            <Button 
+              variant="outline" 
+              className="w-full flex items-center space-x-2 text-white border-white hover:bg-red-600 hover:border-transparent"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          </div>
         </div>
       </aside>
 
