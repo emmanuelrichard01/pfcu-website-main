@@ -28,7 +28,6 @@ import Events from "./pages/Events";
 import EventDetails from "./pages/EventDetails";
 import Contact from "./pages/Contact";
 import Sermons from "./pages/Sermons";
-import AdminDonations from "./pages/admin/AdminDonations";
 
 const queryClient = new QueryClient();
 
@@ -84,7 +83,6 @@ const App = () => {
                 <Route path="sermons" element={<AdminSermons />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="leadership" element={<AdminLeadership />} />
-                <Route path="donations" element={<AdminDonations />} />
               </Route>
               
               {/* Catch-all route */}

@@ -24,45 +24,51 @@ const EventCard = ({ event, index }: EventCardProps) => {
   };
 
   return (
-    <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${is_featured ? 'border-pfcu-gold border-2' : ''}`}>
-      <CardContent className="p-0">
-        {is_featured && (
+    <Card 
+      className={`overflow-hidden hover:shadow-lg transition-shadow ${
+        is_featured ? 'relative' : ''
+      }`}
+    >
+      {is_featured && (
+        <>
+          {/* Top distinctive border design for featured events */}
+          <div className="h-2 bg-gradient-to-r from-pfcu-gold via-yellow-500 to-pfcu-gold" />
           <div className="bg-pfcu-gold text-white py-1 px-4 text-xs font-bold text-center">
             FEATURED EVENT
           </div>
-        )}
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-xl font-bold">{title}</h3>
-            <Badge className={categoryColors[category] || "bg-gray-100 text-gray-800"}>{category}</Badge>
+        </>
+      )}
+      <CardContent className="p-6">
+        <div className="flex justify-between items-start mb-4">
+          <h3 className="text-xl font-bold">{title}</h3>
+          <Badge className={categoryColors[category] || "bg-gray-100 text-gray-800"}>{category}</Badge>
+        </div>
+        
+        <p className="mb-4 text-gray-700">{description}</p>
+        
+        <div className="space-y-2">
+          <div className="flex items-center text-gray-600">
+            <Calendar className="h-4 w-4 mr-2" />
+            <span>{date}</span>
           </div>
           
-          <p className="mb-4 text-gray-700">{description}</p>
-          
-          <div className="space-y-2">
-            <div className="flex items-center text-gray-600">
-              <Calendar className="h-4 w-4 mr-2" />
-              <span>{date}</span>
-            </div>
-            
-            <div className="flex items-center text-gray-600">
-              <Clock className="h-4 w-4 mr-2" />
-              <span>{time}</span>
-            </div>
-            
-            <div className="flex items-center text-gray-600">
-              <MapPin className="h-4 w-4 mr-2" />
-              <span>{location}</span>
-            </div>
+          <div className="flex items-center text-gray-600">
+            <Clock className="h-4 w-4 mr-2" />
+            <span>{time}</span>
           </div>
           
-          <div className="mt-6">
-            <Link to={`/event/${index}`}>
-              <Button className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-white">
-                View Details
-              </Button>
-            </Link>
+          <div className="flex items-center text-gray-600">
+            <MapPin className="h-4 w-4 mr-2" />
+            <span>{location}</span>
           </div>
+        </div>
+        
+        <div className="mt-6">
+          <Link to={`/event/${index}`}>
+            <Button className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-white">
+              View Details
+            </Button>
+          </Link>
         </div>
       </CardContent>
     </Card>

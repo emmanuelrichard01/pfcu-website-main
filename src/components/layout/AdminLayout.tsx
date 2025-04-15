@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,6 @@ import {
   LayoutDashboard, 
   FileText, 
   Calendar, 
-  DollarSign, 
   Users,
   LogOut,
   Menu,
@@ -25,7 +25,6 @@ const AdminLayout = () => {
     { name: "Sermons", path: "/admin/sermons", icon: <FileText className="h-5 w-5" /> },
     { name: "Events", path: "/admin/events", icon: <Calendar className="h-5 w-5" /> },
     { name: "Leadership", path: "/admin/leadership", icon: <Users className="h-5 w-5" /> },
-    { name: "Giving", path: "/admin/giving", icon: <DollarSign className="h-5 w-5" /> },
     { name: "Main Site", path: "/", icon: <Home className="h-5 w-5" /> },
   ];
 
@@ -40,8 +39,8 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-100">
-      {/* Mobile sidebar toggle */}
-      <div className="lg:hidden fixed top-4 left-4 z-50">
+      {/* Mobile sidebar toggle - moved to top-right */}
+      <div className="lg:hidden fixed top-4 right-4 z-50">
         <Button
           variant="outline"
           size="icon"
@@ -90,7 +89,7 @@ const AdminLayout = () => {
         <div className="p-4 border-t border-pfcu-purple">
           <Button 
             variant="outline" 
-            className="w-full flex items-center space-x-2 text-white border-white hover:bg-pfcu-purple"
+            className="w-full flex items-center space-x-2 text-white border-white hover:bg-red-600 hover:border-transparent"
             onClick={handleLogout}
           >
             <LogOut className="h-4 w-4" />

@@ -45,7 +45,7 @@ export const EditEventDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
           <DialogDescription>
@@ -61,7 +61,7 @@ export const EditEventDialog = ({
           submitButtonIcon={<Check className="mr-2 h-4 w-4" />}
         />
         
-        <DialogFooter>
+        <DialogFooter className="sticky bottom-0 bg-white pt-2 pb-0">
           <Button 
             type="button" 
             variant="outline" 
