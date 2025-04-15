@@ -37,6 +37,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Sermon {
@@ -70,6 +71,8 @@ const AdminSermons = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSermon, setSelectedSermon] = useState<Sermon | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
   
   const form = useForm<SermonFormValues>({
@@ -122,8 +125,60 @@ const AdminSermons = () => {
     fetchSermons();
   }, []);
 
+  // Function to upload a file with progress tracking
+  const uploadFileWithProgress = async (file: File, bucket: string, folder: string) => {
+    return new Promise<string>(async (resolve, reject) => {
+      try {
+        const filePath = `${folder}/${Date.now()}_${file.name}`;
+        setUploadingFile(file.name);
+        setUploadProgress(0);
+        
+        // Create a FileReader to track progress
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          try {
+            const fileContent = e.target?.result;
+            if (!fileContent) {
+              throw new Error("Failed to read file");
+            }
+            
+            // Use ArrayBuffer for upload
+            const { data, error } = await supabase.storage
+              .from(bucket)
+              .upload(filePath, file, { upsert: true });
+            
+            if (error) throw error;
+            
+            // Get public URL
+            const { data: urlData } = supabase.storage
+              .from(bucket)
+              .getPublicUrl(filePath);
+              
+            resolve(urlData.publicUrl);
+          } catch (error) {
+            reject(error);
+          }
+        };
+        
+        // Set up progress tracking
+        reader.onprogress = (event) => {
+          if (event.lengthComputable) {
+            const percentage = Math.round((event.loaded / event.total) * 100);
+            setUploadProgress(percentage);
+          }
+        };
+        
+        // Read the file as ArrayBuffer
+        reader.readAsArrayBuffer(file);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
   const onSubmit = async (data: SermonFormValues) => {
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
       // Handle file uploads if files are selected
@@ -132,32 +187,15 @@ const AdminSermons = () => {
       
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('sermons')
-          .upload(`audio/${Date.now()}_${file.name}`, file);
-        
-        if (fileError) throw fileError;
-        
-        const { data: urlData } = supabase.storage
-          .from('sermons')
-          .getPublicUrl(fileData.path);
-          
-        audioUrl = urlData.publicUrl;
+        audioUrl = await uploadFileWithProgress(file, 'sermons', 'audio');
       }
+      
+      // Reset progress before uploading cover image
+      setUploadProgress(0);
       
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('sermons')
-          .upload(`covers/${Date.now()}_${file.name}`, file);
-        
-        if (fileError) throw fileError;
-        
-        const { data: urlData } = supabase.storage
-          .from('sermons')
-          .getPublicUrl(fileData.path);
-          
-        coverImageUrl = urlData.publicUrl;
+        coverImageUrl = await uploadFileWithProgress(file, 'sermons', 'covers');
       }
       
       // Save sermon data to the database
@@ -191,6 +229,8 @@ const AdminSermons = () => {
       });
     } finally {
       setIsUploading(false);
+      setUploadingFile("");
+      setUploadProgress(0);
     }
   };
   
@@ -242,6 +282,7 @@ const AdminSermons = () => {
   const onEditSubmit = async (data: SermonFormValues) => {
     if (!selectedSermon) return;
     setIsUploading(true);
+    setUploadProgress(0);
     
     try {
       // Handle file uploads if files are selected
@@ -250,32 +291,15 @@ const AdminSermons = () => {
       
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('sermons')
-          .upload(`audio/${Date.now()}_${file.name}`, file, { upsert: true });
-        
-        if (fileError) throw fileError;
-        
-        const { data: urlData } = supabase.storage
-          .from('sermons')
-          .getPublicUrl(fileData.path);
-          
-        audioUrl = urlData.publicUrl;
+        audioUrl = await uploadFileWithProgress(file, 'sermons', 'audio');
       }
+      
+      // Reset progress before uploading cover image
+      setUploadProgress(0);
       
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
-        const { data: fileData, error: fileError } = await supabase.storage
-          .from('sermons')
-          .upload(`covers/${Date.now()}_${file.name}`, file, { upsert: true });
-        
-        if (fileError) throw fileError;
-        
-        const { data: urlData } = supabase.storage
-          .from('sermons')
-          .getPublicUrl(fileData.path);
-          
-        coverImageUrl = urlData.publicUrl;
+        coverImageUrl = await uploadFileWithProgress(file, 'sermons', 'covers');
       }
       
       // Update sermon data in the database
@@ -309,6 +333,8 @@ const AdminSermons = () => {
       });
     } finally {
       setIsUploading(false);
+      setUploadingFile("");
+      setUploadProgress(0);
     }
   };
 
@@ -560,11 +586,22 @@ const AdminSermons = () => {
                 )}
               />
               
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Uploading {uploadingFile}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
+              
               <DialogFooter>
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsAddDialogOpen(false)}
+                  disabled={isUploading}
                 >
                   Cancel
                 </Button>
@@ -715,11 +752,22 @@ const AdminSermons = () => {
                 )}
               />
               
+              {isUploading && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Uploading {uploadingFile}</span>
+                    <span>{uploadProgress}%</span>
+                  </div>
+                  <Progress value={uploadProgress} className="h-2" />
+                </div>
+              )}
+              
               <DialogFooter>
                 <Button 
                   type="button" 
                   variant="outline" 
                   onClick={() => setIsEditDialogOpen(false)}
+                  disabled={isUploading}
                 >
                   Cancel
                 </Button>

@@ -51,11 +51,11 @@ const AdminLayout = () => {
         </Button>
       </div>
 
-      {/* Sidebar */}
+      {/* Sidebar - with fixed height and no scroll */}
       <aside
         className={`${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out bg-pfcu-dark text-white flex flex-col`}
+        } lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 transition-transform duration-300 ease-in-out bg-pfcu-dark text-white flex flex-col h-full`}
       >
         <div className="p-4 border-b border-pfcu-purple flex items-center space-x-3">
           <img
@@ -66,8 +66,9 @@ const AdminLayout = () => {
           <h2 className="text-xl font-bold text-pfcu-gold">PFCU Admin</h2>
         </div>
 
-        <nav className="flex-1 overflow-hidden py-6 px-4">
-          <ul className="space-y-2">
+        {/* Nav content with fixed height and no overflow */}
+        <nav className="flex-1 py-6 px-4 flex flex-col h-full">
+          <ul className="space-y-2 flex-none">
             {navItems.map((item) => (
               <li key={item.name}>
                 <Link
@@ -84,6 +85,18 @@ const AdminLayout = () => {
               </li>
             ))}
           </ul>
+          
+          {/* Motto and tenure declaration */}
+          <div className="mt-auto mb-4 px-3 py-4 bg-pfcu-purple/10 rounded-md">
+            <div className="mb-3">
+              <h3 className="font-semibold text-sm text-pfcu-gold">Fellowship's Motto</h3>
+              <p className="text-sm text-white">"Many but one in Christ"</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-sm text-pfcu-gold">Tenure Declaration</h3>
+              <p className="text-sm text-white">Realignment</p>
+            </div>
+          </div>
         </nav>
 
         <div className="p-4 border-t border-pfcu-purple">
