@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Edit, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -77,8 +76,7 @@ const EditSermonDialog = ({
     }
   });
 
-  // Update form values when sermon changes
-  useState(() => {
+  useEffect(() => {
     if (sermon) {
       editForm.reset({
         title: sermon.title,
@@ -90,9 +88,8 @@ const EditSermonDialog = ({
         coverImage: null
       });
     }
-  });
+  }, [sermon, editForm]);
 
-  // Function to upload a file with progress tracking
   const uploadFileWithProgress = async (file: File, bucket: string, folder: string) => {
     return new Promise<string>(async (resolve, reject) => {
       try {
@@ -100,7 +97,6 @@ const EditSermonDialog = ({
         setUploadingFile(file.name);
         setUploadProgress(0);
         
-        // Create a FileReader to track progress
         const reader = new FileReader();
         reader.onload = async (e) => {
           try {
@@ -109,14 +105,12 @@ const EditSermonDialog = ({
               throw new Error("Failed to read file");
             }
             
-            // Use ArrayBuffer for upload
             const { data, error } = await supabase.storage
               .from(bucket)
               .upload(filePath, file, { upsert: true });
             
             if (error) throw error;
             
-            // Get public URL
             const { data: urlData } = supabase.storage
               .from(bucket)
               .getPublicUrl(filePath);
@@ -127,7 +121,6 @@ const EditSermonDialog = ({
           }
         };
         
-        // Set up progress tracking
         reader.onprogress = (event) => {
           if (event.lengthComputable) {
             const percentage = Math.round((event.loaded / event.total) * 100);
@@ -135,7 +128,6 @@ const EditSermonDialog = ({
           }
         };
         
-        // Read the file as ArrayBuffer
         reader.readAsArrayBuffer(file);
       } catch (error) {
         reject(error);
@@ -149,7 +141,6 @@ const EditSermonDialog = ({
     setUploadProgress(0);
     
     try {
-      // Handle file uploads if files are selected
       let audioUrl = sermon.audio_url;
       let coverImageUrl = sermon.cover_image;
       
@@ -158,7 +149,6 @@ const EditSermonDialog = ({
         audioUrl = await uploadFileWithProgress(file, 'sermons', 'audio');
       }
       
-      // Reset progress before uploading cover image
       setUploadProgress(0);
       
       if (data.coverImage && data.coverImage.length > 0) {
@@ -166,7 +156,6 @@ const EditSermonDialog = ({
         coverImageUrl = await uploadFileWithProgress(file, 'sermons', 'covers');
       }
       
-      // Update sermon data in the database
       const { error } = await supabase
         .from('sermons')
         .update({
