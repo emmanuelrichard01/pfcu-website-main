@@ -12,9 +12,9 @@ const DonationStatsToggle = ({
 }: DonationStatsToggleProps) => {
   return (
     <Button 
-      variant="link" 
+      variant="outline"
       onClick={toggleDetails}
-      className="text-pfcu-purple p-0 hover:text-pfcu-dark hover:no-underline"
+      className="text-pfcu-purple hover:text-pfcu-dark hover:bg-gray-50"
     >
       {showDetails ? "Hide Detailed Statistics" : "Show Detailed Statistics"}
     </Button>

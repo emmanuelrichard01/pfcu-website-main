@@ -20,26 +20,7 @@ export const useLeadership = () => {
   const fetchLeaders = async () => {
     setLoading(true);
     try {
-      // Try to fetch leaders from Supabase if table exists
-      try {
-        const { data, error, count: totalCount } = await supabase
-          .from('leaders')
-          .select('*', { count: 'exact' });
-        
-        if (!error && data) {
-          setLeaders(data);
-          if (totalCount !== null) {
-            setCount(totalCount);
-          }
-          localStorage.setItem("pfcu_leaders", JSON.stringify(data));
-          setLoading(false);
-          return;
-        }
-      } catch (error) {
-        console.log("Supabase fetch failed or table doesn't exist, using localStorage instead");
-      }
-      
-      // Fall back to localStorage if Supabase table doesn't exist
+      // For now, we'll just use localStorage since the 'leaders' table doesn't exist in schema
       const storedLeaders = localStorage.getItem("pfcu_leaders");
       if (storedLeaders) {
         const parsedLeaders = JSON.parse(storedLeaders);
