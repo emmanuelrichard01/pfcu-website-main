@@ -37,17 +37,17 @@ const ProtectedRoute = ({ children }: ProtectedRouteProps) => {
         const { data: session } = await supabase.auth.getSession();
         
         if (session.session) {
-          const { data, error } = await supabase
-            .from('admin_users')
-            .select('*')
-            .eq('user_id', session.session.user.id)
-            .single();
+          // Use RPC to call the is_admin function we created to avoid recursion
+          const { data, error } = await supabase.rpc(
+            'is_admin', 
+            { user_uid: session.session.user.id }
+          );
           
-          if (data && !error) {
+          if (data === true && !error) {
             console.log("User verified as admin");
             setIsAdmin(true);
           } else {
-            console.error("Admin verification failed:", error?.message);
+            console.error("Admin verification failed:", error?.message || "User is not an admin");
           }
         }
       } catch (error) {
