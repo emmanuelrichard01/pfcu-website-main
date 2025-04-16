@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSermons } from "@/hooks/useSermons";
 
 interface SermonFormValues {
   title: string;
@@ -46,6 +47,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
+  const { uploadFile } = useSermons();
   
   const form = useForm<SermonFormValues>({
     defaultValues: {
@@ -59,57 +61,6 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
     }
   });
 
-  // Function to upload a file with progress tracking
-  const uploadFileWithProgress = async (file: File, bucket: string, folder: string) => {
-    return new Promise<string>(async (resolve, reject) => {
-      try {
-        const filePath = `${folder}/${Date.now()}_${file.name}`;
-        setUploadingFile(file.name);
-        setUploadProgress(0);
-        
-        // Create a FileReader to track progress
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          try {
-            const fileContent = e.target?.result;
-            if (!fileContent) {
-              throw new Error("Failed to read file");
-            }
-            
-            // Use ArrayBuffer for upload
-            const { data, error } = await supabase.storage
-              .from(bucket)
-              .upload(filePath, file, { upsert: true });
-            
-            if (error) throw error;
-            
-            // Get public URL
-            const { data: urlData } = supabase.storage
-              .from(bucket)
-              .getPublicUrl(filePath);
-              
-            resolve(urlData.publicUrl);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        
-        // Set up progress tracking
-        reader.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentage = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress(percentage);
-          }
-        };
-        
-        // Read the file as ArrayBuffer
-        reader.readAsArrayBuffer(file);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-
   const onSubmit = async (data: SermonFormValues) => {
     setIsUploading(true);
     setUploadProgress(0);
@@ -121,7 +72,10 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
-        audioUrl = await uploadFileWithProgress(file, 'sermons', 'audio');
+        setUploadingFile(file.name);
+        audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
+          setUploadProgress(progress);
+        });
       }
       
       // Reset progress before uploading cover image
@@ -129,7 +83,10 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
-        coverImageUrl = await uploadFileWithProgress(file, 'sermons', 'covers');
+        setUploadingFile(file.name);
+        coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
+          setUploadProgress(progress);
+        });
       }
       
       // Save sermon data to the database
@@ -169,8 +126,12 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!isUploading) {
+        onOpenChange(open);
+      }
+    }}>
+      <DialogContent className="sm:max-w-[525px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Upload New Sermon</DialogTitle>
           <DialogDescription>
@@ -261,12 +222,16 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
                 <FormItem>
                   <FormLabel>Sermon File (Audio or PDF)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept=".mp3,.pdf,.doc,.docx"
-                      onChange={(e) => onChange(e.target.files)}
-                      {...fieldProps}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept=".mp3,.wav,.pdf,.doc,.docx"
+                        onChange={(e) => onChange(e.target.files)}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                        {...fieldProps}
+                      />
+                      <p className="text-xs text-gray-500">Accepted formats: MP3, WAV, PDF, DOC, DOCX</p>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -280,12 +245,16 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
                 <FormItem>
                   <FormLabel>Cover Image (Optional)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => onChange(e.target.files)}
-                      {...fieldProps}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => onChange(e.target.files)}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                        {...fieldProps}
+                      />
+                      <p className="text-xs text-gray-500">Recommended: 16:9 aspect ratio, JPG or PNG</p>
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -302,7 +271,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
               </div>
             )}
             
-            <DialogFooter>
+            <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
               <Button 
                 type="button" 
                 variant="outline" 

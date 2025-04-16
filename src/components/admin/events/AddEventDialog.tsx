@@ -41,7 +41,7 @@ export const AddEventDialog = ({
 }: AddEventDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px]">
+      <DialogContent className="sm:max-w-[525px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Event</DialogTitle>
           <DialogDescription>
@@ -57,11 +57,12 @@ export const AddEventDialog = ({
           submitButtonIcon={<Plus className="mr-2 h-4 w-4" />}
         />
         
-        <DialogFooter>
+        <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>

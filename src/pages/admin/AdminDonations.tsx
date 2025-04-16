@@ -9,6 +9,7 @@ import DonationStatsCards from "@/components/admin/donations/DonationStatsCards"
 import DonationFilters from "@/components/admin/donations/DonationFilters";
 import DonationTable from "@/components/admin/donations/DonationTable";
 import DonationFormDialog from "@/components/admin/donations/DonationFormDialog";
+import DonationStats from "@/components/admin/donations/DonationStats";
 
 const AdminDonations = () => {
   const { toast } = useToast();
@@ -19,6 +20,7 @@ const AdminDonations = () => {
   const [purposeFilter, setPurposeFilter] = useState("all");
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [totalAmount, setTotalAmount] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
   
   useEffect(() => {
     const storedDonations = localStorage.getItem("pfcu_donations");
@@ -193,6 +195,18 @@ const AdminDonations = () => {
           </Button>
         </div>
       </div>
+      
+      <Button 
+        variant="link" 
+        onClick={() => setShowDetails(!showDetails)}
+        className="text-pfcu-purple p-0 hover:text-pfcu-dark hover:no-underline"
+      >
+        {showDetails ? "Hide Detailed Statistics" : "Show Detailed Statistics"}
+      </Button>
+      
+      {showDetails && (
+        <DonationStats donations={donations} />
+      )}
       
       <DonationStatsCards 
         donations={donations} 

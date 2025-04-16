@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -48,9 +49,7 @@ interface EventFormProps {
 export const EventForm = ({ 
   defaultValues, 
   onSubmit, 
-  isSubmitting,
-  submitButtonLabel,
-  submitButtonIcon
+  isSubmitting
 }: EventFormProps) => {
   const form = useForm<EventFormValues>({
     resolver: zodResolver(eventFormSchema),
@@ -59,7 +58,7 @@ export const EventForm = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form id="event-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="title"
@@ -254,11 +253,9 @@ export const EventForm = ({
           render={({ field }) => (
             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
-                <input
-                  type="checkbox"
+                <Checkbox
                   checked={field.value}
-                  onChange={field.onChange}
-                  className="h-5 w-5 rounded border-gray-300 text-pfcu-purple focus:ring-pfcu-purple"
+                  onCheckedChange={field.onChange}
                 />
               </FormControl>
               <div className="space-y-1 leading-none">
@@ -270,8 +267,6 @@ export const EventForm = ({
             </FormItem>
           )}
         />
-        
-        {/* The footer with buttons will be in the parent component */}
       </form>
     </Form>
   );

@@ -45,7 +45,7 @@ export const EditEventDialog = ({
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[525px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Event</DialogTitle>
           <DialogDescription>
@@ -61,11 +61,12 @@ export const EditEventDialog = ({
           submitButtonIcon={<Check className="mr-2 h-4 w-4" />}
         />
         
-        <DialogFooter className="sticky bottom-0 bg-white pt-2 pb-0">
+        <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
           <Button 
             type="button" 
             variant="outline" 
             onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Edit, Clock } from "lucide-react";
@@ -23,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useSermons } from "@/hooks/useSermons";
 
 interface Sermon {
   id: string;
@@ -63,6 +65,7 @@ const EditSermonDialog = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
+  const { uploadFile } = useSermons();
   
   const editForm = useForm<SermonFormValues>({
     defaultValues: {
@@ -90,51 +93,6 @@ const EditSermonDialog = ({
     }
   }, [sermon, editForm]);
 
-  const uploadFileWithProgress = async (file: File, bucket: string, folder: string) => {
-    return new Promise<string>(async (resolve, reject) => {
-      try {
-        const filePath = `${folder}/${Date.now()}_${file.name}`;
-        setUploadingFile(file.name);
-        setUploadProgress(0);
-        
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-          try {
-            const fileContent = e.target?.result;
-            if (!fileContent) {
-              throw new Error("Failed to read file");
-            }
-            
-            const { data, error } = await supabase.storage
-              .from(bucket)
-              .upload(filePath, file, { upsert: true });
-            
-            if (error) throw error;
-            
-            const { data: urlData } = supabase.storage
-              .from(bucket)
-              .getPublicUrl(filePath);
-              
-            resolve(urlData.publicUrl);
-          } catch (error) {
-            reject(error);
-          }
-        };
-        
-        reader.onprogress = (event) => {
-          if (event.lengthComputable) {
-            const percentage = Math.round((event.loaded / event.total) * 100);
-            setUploadProgress(percentage);
-          }
-        };
-        
-        reader.readAsArrayBuffer(file);
-      } catch (error) {
-        reject(error);
-      }
-    });
-  };
-
   const onEditSubmit = async (data: SermonFormValues) => {
     if (!sermon) return;
     setIsUploading(true);
@@ -146,14 +104,20 @@ const EditSermonDialog = ({
       
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
-        audioUrl = await uploadFileWithProgress(file, 'sermons', 'audio');
+        setUploadingFile(file.name);
+        audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
+          setUploadProgress(progress);
+        });
       }
       
       setUploadProgress(0);
       
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
-        coverImageUrl = await uploadFileWithProgress(file, 'sermons', 'covers');
+        setUploadingFile(file.name);
+        coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
+          setUploadProgress(progress);
+        });
       }
       
       const { error } = await supabase
@@ -192,8 +156,12 @@ const EditSermonDialog = ({
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[525px] max-h-[90vh] overflow-y-auto">
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!isUploading) {
+        onOpenChange(open);
+      }
+    }}>
+      <DialogContent className="sm:max-w-[525px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Sermon</DialogTitle>
           <DialogDescription>
@@ -284,12 +252,28 @@ const EditSermonDialog = ({
                 <FormItem>
                   <FormLabel>Sermon File (Leave empty to keep current)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept=".mp3,.pdf,.doc,.docx"
-                      onChange={(e) => onChange(e.target.files)}
-                      {...fieldProps}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept=".mp3,.wav,.pdf,.doc,.docx"
+                        onChange={(e) => onChange(e.target.files)}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                        {...fieldProps}
+                      />
+                      {sermon?.audio_url && (
+                        <div className="text-xs text-gray-600 flex items-center">
+                          <span className="mr-2">Current file:</span>
+                          <a 
+                            href={sermon.audio_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-pfcu-purple hover:underline"
+                          >
+                            View current file
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -303,12 +287,25 @@ const EditSermonDialog = ({
                 <FormItem>
                   <FormLabel>Cover Image (Leave empty to keep current)</FormLabel>
                   <FormControl>
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => onChange(e.target.files)}
-                      {...fieldProps}
-                    />
+                    <div className="flex flex-col gap-2">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => onChange(e.target.files)}
+                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                        {...fieldProps}
+                      />
+                      {sermon?.cover_image && (
+                        <div className="flex items-start gap-2">
+                          <img 
+                            src={sermon.cover_image} 
+                            alt="Current cover" 
+                            className="w-16 h-16 object-cover rounded border"
+                          />
+                          <span className="text-xs text-gray-600">Current cover image</span>
+                        </div>
+                      )}
+                    </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -325,7 +322,7 @@ const EditSermonDialog = ({
               </div>
             )}
             
-            <DialogFooter>
+            <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
               <Button 
                 type="button" 
                 variant="outline" 

@@ -1,19 +1,22 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar, UserPlus, DollarSign, Users } from "lucide-react";
+import { FileText, Calendar, Users, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSermons } from "@/hooks/useSermons";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatCurrency } from "@/lib/utils";
+import { Donation } from "@/types/donations";
 
 const AdminDashboard = () => {
-  const { count: sermonCount } = useSermons();
+  const { sermons, count: sermonCount } = useSermons();
   const [eventCount, setEventCount] = useState(0);
-  const [leadershipCount, setLeadershipCount] = useState(6);
+  const [leadershipCount, setLeadershipCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [recentSermons, setRecentSermons] = useState<any[]>([]);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [totalDonations, setTotalDonations] = useState(0);
 
   // Fetch events count
   useEffect(() => {
@@ -36,6 +39,35 @@ const AdminDashboard = () => {
     fetchEventCount();
   }, []);
 
+  // Fetch leadership count
+  useEffect(() => {
+    const fetchLeadershipCount = () => {
+      const storedLeaders = localStorage.getItem("pfcu_leaders");
+      if (storedLeaders) {
+        const leaders = JSON.parse(storedLeaders);
+        setLeadershipCount(leaders.length);
+      }
+    };
+    
+    fetchLeadershipCount();
+  }, []);
+
+  // Fetch donation info
+  useEffect(() => {
+    const fetchDonationInfo = () => {
+      const storedDonations = localStorage.getItem("pfcu_donations");
+      if (storedDonations) {
+        const donations = JSON.parse(storedDonations) as Donation[];
+        const total = donations
+          .filter(d => d.status === "completed")
+          .reduce((sum, d) => sum + d.amount, 0);
+        setTotalDonations(total);
+      }
+    };
+    
+    fetchDonationInfo();
+  }, []);
+
   // Fetch recent sermons
   useEffect(() => {
     const fetchRecentSermons = async () => {
@@ -43,7 +75,7 @@ const AdminDashboard = () => {
       try {
         const { data, error } = await supabase
           .from('sermons')
-          .select('title, created_at')
+          .select('title, preacher, sermon_date, created_at')
           .order('created_at', { ascending: false })
           .limit(4);
         
@@ -66,7 +98,7 @@ const AdminDashboard = () => {
       try {
         const { data, error } = await supabase
           .from('events')
-          .select('title, date')
+          .select('title, date, time')
           .order('date', { ascending: true })
           .limit(4);
         
@@ -98,14 +130,14 @@ const AdminDashboard = () => {
     },
     {
       title: "Leadership",
-      value: leadershipCount.toString(),
+      value: loading ? "..." : leadershipCount.toString(),
       icon: <Users className="h-8 w-8 text-pfcu-purple" />,
       description: "Current leaders",
       link: "/admin/leadership"
     },
     {
       title: "Total Donations",
-      value: "₦185,000",
+      value: formatCurrency(totalDonations),
       icon: <DollarSign className="h-8 w-8 text-pfcu-purple" />,
       description: "Recent donations",
       link: "/admin/donations"
@@ -163,12 +195,18 @@ const AdminDashboard = () => {
               </div>
             ) : recentSermons.length > 0 ? (
               recentSermons.map((sermon) => (
-                <div key={sermon.title} className="flex items-center justify-between border-b pb-2">
+                <div key={sermon.title + sermon.created_at} className="flex items-center justify-between border-b pb-2">
                   <div>
                     <p className="font-medium">{sermon.title}</p>
-                    <p className="text-sm text-gray-500">Uploaded {formatDate(sermon.created_at)}</p>
+                    <div className="flex items-center gap-1">
+                      <p className="text-sm text-gray-500">{sermon.preacher}</p>
+                      <span className="text-xs text-gray-400">•</span>
+                      <p className="text-sm text-gray-500">{new Date(sermon.sermon_date).toLocaleDateString()}</p>
+                    </div>
                   </div>
-                  <FileText className="h-5 w-5 text-gray-400" />
+                  <div className="text-xs text-gray-500">
+                    {formatDate(sermon.created_at)}
+                  </div>
                 </div>
               ))
             ) : (
@@ -192,12 +230,16 @@ const AdminDashboard = () => {
               </div>
             ) : recentEvents.length > 0 ? (
               recentEvents.map((event) => (
-                <div key={event.title} className="flex items-center justify-between border-b pb-2">
+                <div key={event.title + event.date} className="flex items-center justify-between border-b pb-2">
                   <div>
                     <p className="font-medium">{event.title}</p>
-                    <p className="text-sm text-gray-500">{event.date}</p>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-3 w-3 text-gray-400" />
+                      <p className="text-sm text-gray-500">{event.date}</p>
+                      <span className="text-xs text-gray-400">•</span>
+                      <p className="text-sm text-gray-500">{event.time}</p>
+                    </div>
                   </div>
-                  <Calendar className="h-5 w-5 text-gray-400" />
                 </div>
               ))
             ) : (

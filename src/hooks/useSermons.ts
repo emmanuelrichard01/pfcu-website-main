@@ -46,6 +46,62 @@ export const useSermons = () => {
     }
   };
 
+  const uploadFile = async (file: File, bucket: string, folder: string, onProgress?: (progress: number) => void): Promise<string> => {
+    const filePath = `${folder}/${Date.now()}_${file.name}`;
+    
+    // Upload in chunks to track progress
+    let bytesUploaded = 0;
+    const chunkSize = 1024 * 1024; // 1 MB chunks
+    const totalSize = file.size;
+    const totalChunks = Math.ceil(totalSize / chunkSize);
+    
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      const start = chunkIndex * chunkSize;
+      const end = Math.min(start + chunkSize, totalSize);
+      const chunk = file.slice(start, end);
+      
+      // Upload each chunk
+      const { error } = await supabase.storage
+        .from(bucket)
+        .upload(`${filePath}_part_${chunkIndex}`, chunk, {
+          cacheControl: "3600",
+          upsert: false
+        });
+      
+      if (error) throw error;
+      
+      bytesUploaded += chunk.size;
+      const progress = Math.round((bytesUploaded / totalSize) * 100);
+      
+      if (onProgress) onProgress(progress);
+    }
+    
+    // Combine the chunks (this would be a server-side operation in a real app)
+    // For this demo, we'll just upload the whole file again as the final version
+    const { error } = await supabase.storage
+      .from(bucket)
+      .upload(filePath, file, {
+        cacheControl: "3600",
+        upsert: true
+      });
+    
+    if (error) throw error;
+    
+    // Delete all the chunk parts (in a real app, this would also be done server-side)
+    for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+      await supabase.storage
+        .from(bucket)
+        .remove([`${filePath}_part_${chunkIndex}`]);
+    }
+    
+    // Get the public URL
+    const { data } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(filePath);
+    
+    return data.publicUrl;
+  };
+
   const deleteSermon = async (id: string) => {
     try {
       // Get the sermon to find associated files
@@ -127,6 +183,7 @@ export const useSermons = () => {
     loading,
     count,
     fetchSermons,
-    deleteSermon
+    deleteSermon,
+    uploadFile
   };
 };
