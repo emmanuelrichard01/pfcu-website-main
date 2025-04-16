@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Mail } from "lucide-react";
+import { toast } from "sonner";
 
 const AdminLogin = () => {
   const [email, setEmail] = useState("");
@@ -19,10 +20,16 @@ const AdminLogin = () => {
     setIsLoading(true);
     
     try {
+      console.log("Submitting login form with email:", email);
+      toast.info("Logging in...");
+      
       const success = await login(email, password);
       if (success) {
+        toast.success("Login successful!");
         navigate("/admin");
       }
+    } catch (error) {
+      console.error("Login submission error:", error);
     } finally {
       setIsLoading(false);
     }
@@ -71,16 +78,19 @@ const AdminLogin = () => {
                 required
               />
             </div>
+            <Button 
+              type="submit"
+              className="w-full bg-pfcu-purple hover:bg-pfcu-dark mt-4" 
+              disabled={isLoading}
+            >
+              {isLoading ? "Logging in..." : "Login"}
+            </Button>
           </form>
         </CardContent>
-        <CardFooter>
-          <Button 
-            className="w-full bg-pfcu-purple hover:bg-pfcu-dark" 
-            onClick={handleSubmit}
-            disabled={isLoading}
-          >
-            {isLoading ? "Logging in..." : "Login"}
-          </Button>
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Default admin email: mrebukarichard@gmail.com
+          </p>
         </CardFooter>
       </Card>
     </div>
