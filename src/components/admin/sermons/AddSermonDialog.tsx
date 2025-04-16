@@ -1,9 +1,7 @@
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { Upload, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { 
   Dialog,
   DialogContent,
@@ -12,29 +10,11 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSermons } from "@/hooks/useSermons";
-
-interface SermonFormValues {
-  title: string;
-  preacher: string;
-  sermon_date: string;
-  description: string;
-  duration: string;
-  sermonFile: FileList | null;
-  coverImage: FileList | null;
-}
+import SermonForm, { SermonFormValues } from "./SermonForm";
+import UploadProgress from "./UploadProgress";
 
 interface AddSermonDialogProps {
   isOpen: boolean;
@@ -49,19 +29,17 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   const { toast } = useToast();
   const { uploadFile } = useSermons();
   
-  const form = useForm<SermonFormValues>({
-    defaultValues: {
-      title: "",
-      preacher: "",
-      sermon_date: new Date().toISOString().split("T")[0],
-      description: "",
-      duration: "",
-      sermonFile: null,
-      coverImage: null
-    }
-  });
+  const defaultValues: SermonFormValues = {
+    title: "",
+    preacher: "",
+    sermon_date: new Date().toISOString().split("T")[0],
+    description: "",
+    duration: "",
+    sermonFile: null,
+    coverImage: null
+  };
 
-  const onSubmit = async (data: SermonFormValues) => {
+  const handleSubmit = async (data: SermonFormValues) => {
     setIsUploading(true);
     setUploadProgress(0);
     
@@ -110,7 +88,6 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       });
       
       onOpenChange(false);
-      form.reset();
       onSermonAdded();
     } catch (error: any) {
       toast({
@@ -139,167 +116,46 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
           </DialogDescription>
         </DialogHeader>
         
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sermon Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter sermon title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="preacher"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Preacher</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Name of the preacher" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="sermon_date"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Brief description of the sermon" 
-                      className="resize-none" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="duration"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Duration</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 45 min" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="sermonFile"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
-                <FormItem>
-                  <FormLabel>Sermon File (Audio or PDF)</FormLabel>
-                  <FormControl>
-                    <div className="flex flex-col gap-2">
-                      <Input
-                        type="file"
-                        accept=".mp3,.wav,.pdf,.doc,.docx"
-                        onChange={(e) => onChange(e.target.files)}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
-                        {...fieldProps}
-                      />
-                      <p className="text-xs text-gray-500">Accepted formats: MP3, WAV, PDF, DOC, DOCX</p>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="coverImage"
-              render={({ field: { value, onChange, ...fieldProps } }) => (
-                <FormItem>
-                  <FormLabel>Cover Image (Optional)</FormLabel>
-                  <FormControl>
-                    <div className="flex flex-col gap-2">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => onChange(e.target.files)}
-                        className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
-                        {...fieldProps}
-                      />
-                      <p className="text-xs text-gray-500">Recommended: 16:9 aspect ratio, JPG or PNG</p>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {isUploading && (
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Uploading {uploadingFile}</span>
-                  <span>{uploadProgress}%</span>
-                </div>
-                <Progress value={uploadProgress} className="h-2" />
-              </div>
+        <SermonForm 
+          defaultValues={defaultValues} 
+          onSubmit={handleSubmit} 
+          formId="add-sermon-form"
+        />
+        
+        <UploadProgress 
+          isUploading={isUploading}
+          uploadProgress={uploadProgress}
+          uploadingFile={uploadingFile}
+        />
+        
+        <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isUploading}
+          >
+            Cancel
+          </Button>
+          <Button 
+            type="submit" 
+            form="add-sermon-form"
+            className="bg-pfcu-purple hover:bg-pfcu-dark"
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <>
+                <Clock className="mr-2 h-4 w-4 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Upload Sermon
+              </>
             )}
-            
-            <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                disabled={isUploading}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-pfcu-purple hover:bg-pfcu-dark"
-                disabled={isUploading}
-              >
-                {isUploading ? (
-                  <>
-                    <Clock className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Sermon
-                  </>
-                )}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

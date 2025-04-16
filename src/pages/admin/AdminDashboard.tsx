@@ -6,13 +6,14 @@ import { Link } from "react-router-dom";
 import { useSermons } from "@/hooks/useSermons";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, formatDate } from "@/lib/utils";
 import { Donation } from "@/types/donations";
+import { useLeadership } from "@/hooks/useLeadership";
 
 const AdminDashboard = () => {
   const { sermons, count: sermonCount } = useSermons();
+  const { count: leadershipCount } = useLeadership();
   const [eventCount, setEventCount] = useState(0);
-  const [leadershipCount, setLeadershipCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [recentSermons, setRecentSermons] = useState<any[]>([]);
   const [recentEvents, setRecentEvents] = useState<any[]>([]);
@@ -37,19 +38,6 @@ const AdminDashboard = () => {
     };
 
     fetchEventCount();
-  }, []);
-
-  // Fetch leadership count
-  useEffect(() => {
-    const fetchLeadershipCount = () => {
-      const storedLeaders = localStorage.getItem("pfcu_leaders");
-      if (storedLeaders) {
-        const leaders = JSON.parse(storedLeaders);
-        setLeadershipCount(leaders.length);
-      }
-    };
-    
-    fetchLeadershipCount();
   }, []);
 
   // Fetch donation info
@@ -143,17 +131,6 @@ const AdminDashboard = () => {
       link: "/admin/donations"
     }
   ];
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return "Today";
-    if (diffDays === 1) return "Yesterday";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <div className="space-y-6">

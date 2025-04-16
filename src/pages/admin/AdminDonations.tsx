@@ -1,19 +1,21 @@
 
 import { useState, useEffect } from "react";
-import { Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { Donation } from "@/types/donations";
+import DonationHeader from "@/components/admin/donations/DonationHeader";
+import DonationStatsToggle from "@/components/admin/donations/DonationStatsToggle";
 import DonationStatsCards from "@/components/admin/donations/DonationStatsCards";
 import DonationFilters from "@/components/admin/donations/DonationFilters";
 import DonationTable from "@/components/admin/donations/DonationTable";
 import DonationFormDialog from "@/components/admin/donations/DonationFormDialog";
 import DonationStats from "@/components/admin/donations/DonationStats";
+import { useDonations } from "@/hooks/useDonations";
 
 const AdminDonations = () => {
   const { toast } = useToast();
-  const [donations, setDonations] = useState<Donation[]>([]);
+  const { donations, addDonation, deleteDonation } = useDonations();
+  
   const [filteredDonations, setFilteredDonations] = useState<Donation[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -22,82 +24,7 @@ const AdminDonations = () => {
   const [totalAmount, setTotalAmount] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
   
-  useEffect(() => {
-    const storedDonations = localStorage.getItem("pfcu_donations");
-    
-    if (storedDonations) {
-      setDonations(JSON.parse(storedDonations));
-    } else {
-      const mockDonations: Donation[] = [
-        {
-          id: "1",
-          donorName: "James Okafor",
-          amount: 50000,
-          date: "2025-04-01",
-          purpose: "General Offering",
-          status: "completed",
-          paymentMethod: "Bank Transfer",
-          email: "james@example.com",
-          phone: "+234 801 234 5678"
-        },
-        {
-          id: "2",
-          donorName: "Charity Eze",
-          amount: 20000,
-          date: "2025-04-05",
-          purpose: "Project Support",
-          status: "completed",
-          paymentMethod: "Cash",
-          phone: "+234 802 345 6789"
-        },
-        {
-          id: "3",
-          donorName: "David Adebayo",
-          amount: 35000,
-          date: "2025-04-08",
-          purpose: "Special Offering",
-          status: "completed",
-          paymentMethod: "Online Payment",
-          email: "david@example.com"
-        },
-        {
-          id: "4",
-          donorName: "Mary Johnson",
-          amount: 15000,
-          date: "2025-04-10",
-          purpose: "General Offering",
-          status: "completed",
-          paymentMethod: "Cash"
-        },
-        {
-          id: "5",
-          donorName: "Emmanuel Nwosu",
-          amount: 25000,
-          date: "2025-04-12",
-          purpose: "Project Support",
-          status: "pending",
-          paymentMethod: "Bank Transfer",
-          email: "emmanuel@example.com",
-          phone: "+234 803 456 7890"
-        },
-        {
-          id: "6",
-          donorName: "Grace Udoh",
-          amount: 40000,
-          date: "2025-04-13",
-          purpose: "Special Offering",
-          status: "completed",
-          paymentMethod: "Bank Transfer",
-          email: "grace@example.com",
-          phone: "+234 804 567 8901"
-        }
-      ];
-      
-      setDonations(mockDonations);
-      localStorage.setItem("pfcu_donations", JSON.stringify(mockDonations));
-    }
-  }, []);
-  
+  // Filter donations based on search query and filters
   useEffect(() => {
     let filtered = [...donations];
     
@@ -133,31 +60,6 @@ const AdminDonations = () => {
     setTotalAmount(total);
   }, [donations, searchQuery, statusFilter, purposeFilter, date]);
   
-  const handleDeleteDonation = (id: string) => {
-    const updatedDonations = donations.filter(d => d.id !== id);
-    setDonations(updatedDonations);
-    localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
-    
-    toast({
-      title: "Donation deleted",
-      description: "The donation has been deleted successfully.",
-    });
-  };
-  
-  const handleAddDonation = (newDonation: Omit<Donation, "id">) => {
-    const id = `${donations.length + 1}`;
-    const newDonationWithId = { ...newDonation, id };
-    
-    const updatedDonations = [...donations, newDonationWithId];
-    setDonations(updatedDonations);
-    localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
-    
-    toast({
-      title: "Donation added",
-      description: "The new donation has been added successfully.",
-    });
-  };
-  
   const handleExport = () => {
     toast({
       title: "Export started",
@@ -172,41 +74,22 @@ const AdminDonations = () => {
     }, 1500);
   };
   
+  const toggleDetails = () => setShowDetails(!showDetails);
   const uniquePurposes = Array.from(new Set(donations.map(d => d.purpose)));
   
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold font-display">Donations Management</h1>
-          <p className="text-gray-600">Track and manage all donations to the fellowship.</p>
-        </div>
-        
-        <div className="flex gap-2">
-          <DonationFormDialog onAddDonation={handleAddDonation} />
-          
-          <Button 
-            variant="outline" 
-            className="flex items-center gap-2"
-            onClick={handleExport}
-          >
-            <Download size={16} />
-            <span>Export</span>
-          </Button>
-        </div>
-      </div>
+      <DonationHeader 
+        onAddClick={() => document.getElementById('add-donation-trigger')?.click()}
+        onExportClick={handleExport}
+      />
       
-      <Button 
-        variant="link" 
-        onClick={() => setShowDetails(!showDetails)}
-        className="text-pfcu-purple p-0 hover:text-pfcu-dark hover:no-underline"
-      >
-        {showDetails ? "Hide Detailed Statistics" : "Show Detailed Statistics"}
-      </Button>
+      <DonationStatsToggle 
+        showDetails={showDetails} 
+        toggleDetails={toggleDetails} 
+      />
       
-      {showDetails && (
-        <DonationStats donations={donations} />
-      )}
+      {showDetails && <DonationStats donations={donations} />}
       
       <DonationStatsCards 
         donations={donations} 
@@ -229,8 +112,10 @@ const AdminDonations = () => {
       <DonationTable 
         filteredDonations={filteredDonations}
         donations={donations}
-        onDeleteDonation={handleDeleteDonation}
+        onDeleteDonation={deleteDonation}
       />
+      
+      <DonationFormDialog onAddDonation={addDonation} />
     </div>
   );
 };
