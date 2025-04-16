@@ -17,6 +17,8 @@ import AdminSermons from "./pages/admin/AdminSermons";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminLeadership from "./pages/admin/AdminLeadership";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminSetup from "./pages/admin/AdminSetup";
+import AdminUserManagement from "./pages/admin/AdminUserManagement";
 import Giving from "./pages/Giving";
 import AdminLayout from "./components/layout/AdminLayout";
 import About from "./pages/About";
@@ -70,8 +72,9 @@ const App = () => {
               <Route path="/contact" element={<Contact />} />
               <Route path="/sermons" element={<Sermons />} />
               
-              {/* Admin Login */}
+              {/* Admin Login and Setup */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/setup" element={<AdminSetup />} />
               
               {/* Protected Admin routes */}
               <Route path="/admin" element={
@@ -83,6 +86,7 @@ const App = () => {
                 <Route path="sermons" element={<AdminSermons />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="leadership" element={<AdminLeadership />} />
+                <Route path="users" element={<AdminUserManagement />} />
               </Route>
               
               {/* Catch-all route */}

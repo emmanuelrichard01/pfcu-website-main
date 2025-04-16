@@ -10,7 +10,8 @@ import {
   Users,
   LogOut,
   Menu,
-  X
+  X,
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -25,6 +26,7 @@ const AdminLayout = () => {
     { name: "Sermons", path: "/admin/sermons", icon: <FileText className="h-5 w-5" /> },
     { name: "Events", path: "/admin/events", icon: <Calendar className="h-5 w-5" /> },
     { name: "Leadership", path: "/admin/leadership", icon: <Users className="h-5 w-5" /> },
+    { name: "Admin Users", path: "/admin/users", icon: <Shield className="h-5 w-5" /> },
     { name: "Main Site", path: "/", icon: <Home className="h-5 w-5" /> },
   ];
 

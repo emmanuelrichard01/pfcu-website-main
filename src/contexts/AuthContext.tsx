@@ -8,6 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
+  registerAdmin: (email: string, password: string, isFirstAdmin?: boolean) => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -125,6 +126,65 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const registerAdmin = async (email: string, password: string, isFirstAdmin = false): Promise<boolean> => {
+    try {
+      // If not the first admin, check if the current user is authenticated as admin
+      if (!isFirstAdmin && !isAuthenticated) {
+        toast({
+          title: "Unauthorized",
+          description: "You must be logged in as an admin to create new admin accounts",
+          variant: "destructive",
+        });
+        return false;
+      }
+
+      // Register the user in Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Registration error:", error);
+        throw error;
+      }
+
+      if (!data.user) {
+        throw new Error("User creation failed");
+      }
+
+      // Add the user to admin_users table
+      const { error: adminError } = await supabase
+        .from('admin_users')
+        .insert([{ user_id: data.user.id }]);
+
+      if (adminError) {
+        console.error("Admin user creation failed:", adminError);
+        throw adminError;
+      }
+
+      toast({
+        title: "Admin created successfully",
+        description: `${email} has been registered as an admin`,
+      });
+
+      // If this is the first admin setup, redirect to login
+      if (isFirstAdmin) {
+        navigate("/admin/login");
+      }
+
+      return true;
+    } catch (error: any) {
+      console.error("Admin registration failed:", error);
+      toast({
+        title: "Registration failed",
+        description: error.message || "Failed to create admin account",
+        variant: "destructive",
+      });
+      return false;
+    }
+  };
+
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -141,7 +201,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout, registerAdmin }}>
       {children}
     </AuthContext.Provider>
   );
