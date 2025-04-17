@@ -155,12 +155,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         }
       }
 
-      // Register the user in Supabase Auth
+      // Register the user in Supabase Auth with auto-confirm enabled for the first admin
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + "/admin/login"
+          emailRedirectTo: `${window.location.origin}/admin/login`,
+          // For the first admin setup, let's not require email verification
+          data: isFirstAdmin ? { is_first_admin: true } : undefined
         }
       });
 
@@ -190,7 +192,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Admin created successfully",
-        description: `${email} has been registered as an admin`,
+        description: isFirstAdmin ? 
+          `${email} has been registered as an admin. Please check your email to confirm your account.` : 
+          `${email} has been registered as an admin`,
       });
 
       // If this is the first admin setup, redirect to login

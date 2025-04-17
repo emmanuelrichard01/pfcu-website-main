@@ -15,6 +15,7 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [adminExists, setAdminExists] = useState(true);
+  const [isChecking, setIsChecking] = useState(true);
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -22,6 +23,9 @@ const AdminLogin = () => {
   useEffect(() => {
     const checkAdminExists = async () => {
       try {
+        setIsChecking(true);
+        
+        // First check for confirmed admin users in the auth system
         const { count, error } = await supabase
           .from('admin_users')
           .select('*', { count: 'exact', head: true });
@@ -30,9 +34,14 @@ const AdminLogin = () => {
         
         if (count === 0) {
           setAdminExists(false);
+        } else {
+          setAdminExists(true);
         }
       } catch (error) {
         console.error("Error checking admin users:", error);
+        toast.error("Error checking admin status");
+      } finally {
+        setIsChecking(false);
       }
     };
 
@@ -58,6 +67,14 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="w-10 h-10 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
