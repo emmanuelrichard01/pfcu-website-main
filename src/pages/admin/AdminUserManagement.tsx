@@ -116,15 +116,20 @@ const AdminUserManagement = () => {
         // For each admin user, get their email using the RPC function
         const adminWithEmails = await Promise.all(adminData.map(async (admin) => {
           try {
-            // Use the RPC function to get the email securely
-            const { data: email, error: emailError } = await supabase.rpc(
+            // Use the RPC function to get the email securely - ensure we cast the result properly
+            const { data: emailData, error: emailError } = await supabase.rpc<string>(
               'get_user_email',
               { user_uid: admin.user_id }
             );
             
+            if (emailError) {
+              console.error("Error fetching email:", emailError);
+              throw emailError;
+            }
+            
             return {
               id: admin.id,
-              email: email || "Email not available",
+              email: emailData || "Email not available",
               created_at: admin.created_at,
               is_super_admin: admin.is_super_admin || false
             };
