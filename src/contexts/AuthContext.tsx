@@ -36,18 +36,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         if (data.session) {
           // Verify if the user is an admin
-          const { data: adminData, error } = await supabase
-            .from('admin_users')
-            .select('*')
-            .eq('user_id', data.session.user.id)
-            .single();
+          const { data: isAdminData, error: isAdminError } = await supabase.rpc(
+            'is_admin',
+            { user_uid: data.session.user.id }
+          );
           
-          if (adminData && !error) {
+          if (isAdminData === true && !isAdminError) {
             setIsAuthenticated(true);
             localStorage.setItem("pfcu_admin_auth", "true");
             console.log("Admin authentication confirmed");
           } else {
-            console.log("User is not an admin:", error?.message);
+            console.log("User is not an admin:", isAdminError?.message);
             // If user is authenticated but not an admin, sign them out
             await supabase.auth.signOut();
             localStorage.removeItem("pfcu_admin_auth");
@@ -85,14 +84,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("User authenticated successfully:", data.user?.id);
       
       // Check if the authenticated user is in admin_users table
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('*')
-        .eq('user_id', data.user.id)
-        .single();
+      const { data: isAdminData, error: isAdminError } = await supabase.rpc(
+        'is_admin',
+        { user_uid: data.user.id }
+      );
       
-      if (adminError || !adminData) {
-        console.error("Admin verification failed:", adminError?.message || "User is not an admin");
+      if (isAdminError || isAdminData !== true) {
+        console.error("Admin verification failed:", isAdminError?.message || "User is not an admin");
         toast({
           title: "Access denied",
           description: "You are not authorized to access the admin panel",
@@ -129,19 +127,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const registerAdmin = async (email: string, password: string, isFirstAdmin = false): Promise<boolean> => {
     try {
       // If not the first admin, check if the current user is authenticated as admin
-      if (!isFirstAdmin && !isAuthenticated) {
-        toast({
-          title: "Unauthorized",
-          description: "You must be logged in as an admin to create new admin accounts",
-          variant: "destructive",
-        });
-        return false;
+      if (!isFirstAdmin) {
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (!session.session) {
+          toast({
+            title: "Unauthorized",
+            description: "You must be logged in as an admin to create new admin accounts",
+            variant: "destructive",
+          });
+          return false;
+        }
+        
+        // Verify current user is admin
+        const { data: isAdmin, error: isAdminError } = await supabase.rpc(
+          'is_admin',
+          { user_uid: session.session.user.id }
+        );
+        
+        if (isAdminError || !isAdmin) {
+          toast({
+            title: "Unauthorized",
+            description: "Only admin users can create new admin accounts",
+            variant: "destructive",
+          });
+          return false;
+        }
       }
 
       // Register the user in Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin + "/admin/login"
+        }
       });
 
       if (error) {
@@ -152,6 +172,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!data.user) {
         throw new Error("User creation failed");
       }
+      
+      console.log("Auth user created:", data.user.id);
+
+      // Wait a moment for the auth user to be fully created
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Add the user to admin_users table
       const { error: adminError } = await supabase
