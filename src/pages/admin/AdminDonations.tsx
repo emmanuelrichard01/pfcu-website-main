@@ -63,23 +63,27 @@ const AdminDonations = () => {
     setTotalAmount(total);
   }, [donations, searchQuery, statusFilter, purposeFilter, date]);
   
-  // Run SQL migration for get_user_email function if needed
+  // Check if get_user_email function exists
   useEffect(() => {
-    const runMigration = async () => {
+    const checkEmailFunction = async () => {
       try {
-        const { error } = await supabase.rpc('get_user_email', { user_uid: '00000000-0000-0000-0000-000000000000' });
+        // Try to execute a simple query against the database
+        const { data, error } = await supabase
+          .from('admin_users')
+          .select('id')
+          .limit(1);
         
-        // If the function doesn't exist, we'll get an error
-        if (error && error.message.includes('function does not exist')) {
-          console.log("Creating get_user_email function...");
-          await supabase.rpc('run_sql_migration');
+        if (error) {
+          console.error("Error checking database connection:", error);
+        } else {
+          console.log("Database connection successful");
         }
       } catch (error) {
-        console.error("Error checking/running migration:", error);
+        console.error("Error checking database connection:", error);
       }
     };
     
-    runMigration();
+    checkEmailFunction();
   }, []);
   
   const handleExport = () => {

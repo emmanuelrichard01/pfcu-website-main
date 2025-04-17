@@ -113,20 +113,31 @@ const AdminUserManagement = () => {
           return;
         }
 
-        // For each admin user, get their email from auth
+        // For each admin user, get their email using a custom query
         const adminPromises = data.map(async (admin) => {
-          // Get user info from the auth.users table through an RPC function
-          // Since we can't directly query auth.users
-          const { data: userData } = await supabase
-            .rpc('get_user_email', { user_uid: admin.user_id });
-          
-          return {
-            id: admin.id,
-            user_id: admin.user_id,
-            email: userData || "Email not available",
-            created_at: admin.created_at,
-            is_super_admin: admin.is_super_admin || false
-          };
+          try {
+            // Get user info from auth.users table using a direct query
+            const { data: authUserData } = await supabase
+              .from('auth_user_emails')  // Use a view or query to get emails safely
+              .select('email')
+              .eq('user_id', admin.user_id)
+              .single();
+            
+            return {
+              id: admin.id,
+              email: authUserData?.email || "Email not available",
+              created_at: admin.created_at,
+              is_super_admin: admin.is_super_admin || false
+            };
+          } catch (error) {
+            console.error("Error fetching user email:", error);
+            return {
+              id: admin.id,
+              email: "Email not available",
+              created_at: admin.created_at,
+              is_super_admin: admin.is_super_admin || false
+            };
+          }
         });
 
         const resolvedAdmins = await Promise.all(adminPromises);

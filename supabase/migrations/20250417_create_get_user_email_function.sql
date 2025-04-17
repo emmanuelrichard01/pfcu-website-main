@@ -16,3 +16,11 @@ BEGIN
     RETURN user_email;
 END;
 $$;
+
+-- Create a view to make it easier to query user emails
+CREATE OR REPLACE VIEW public.auth_user_emails AS
+SELECT 
+  id as user_id, 
+  email 
+FROM 
+  auth.users;
