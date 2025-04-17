@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
@@ -45,6 +44,7 @@ import { Separator } from "@/components/ui/separator";
 import { NewDonation, PaymentOption } from "@/types/donations";
 import BankTransferForm from "@/components/giving/BankTransferForm";
 import OnlinePaymentForm from "@/components/giving/OnlinePaymentForm";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -74,7 +74,7 @@ const Giving = () => {
     },
   });
 
-  const onSubmit = (data: GivingFormValues) => {
+  const onSubmit = async (data: GivingFormValues) => {
     setIsProcessing(true);
     
     // Generate a reference number
@@ -86,7 +86,7 @@ const Giving = () => {
       amount: parseFloat(data.amount),
       date: new Date().toISOString().split('T')[0],
       purpose: data.purpose,
-      status: activePaymentMethod === "online" ? "pending" : "pending",
+      status: activePaymentMethod === "online" ? "completed" : "pending",
       paymentMethod: activePaymentMethod === "online" ? "Online Payment" : "Bank Transfer",
       email: data.email,
       phone: data.phoneNumber,
@@ -94,39 +94,66 @@ const Giving = () => {
       paymentGateway: activePaymentMethod === "online" ? "Paystack" : "Direct Deposit",
     };
     
-    // Store donation in localStorage (in a real app, this would be an API call)
-    const storedDonations = localStorage.getItem("pfcu_donations");
-    const donations = storedDonations ? JSON.parse(storedDonations) : [];
-    const donationWithId = { 
-      ...newDonation, 
-      id: (donations.length + 1).toString() 
-    };
-    donations.push(donationWithId);
-    localStorage.setItem("pfcu_donations", JSON.stringify(donations));
-    
-    // Simulate payment processing
-    setTimeout(() => {
-      setIsProcessing(false);
-      form.reset();
+    try {
+      // Insert into Supabase
+      const { error } = await supabase
+        .from('donations')
+        .insert([{
+          donor_name: newDonation.donorName,
+          email: newDonation.email,
+          phone: newDonation.phone,
+          amount: newDonation.amount,
+          purpose: newDonation.purpose,
+          payment_method: newDonation.paymentMethod,
+          payment_reference: newDonation.paymentReference,
+          payment_gateway: newDonation.paymentGateway,
+          status: newDonation.status,
+          date: newDonation.date
+        }]);
       
-      toast({
-        title: "Donation details submitted!",
-        description: activePaymentMethod === "bank" ? 
-          "Please complete your transfer using the account details provided." : 
-          "Your donation is being processed. Thank you for your support!",
-      });
-
-      // If it was an online payment, update the status to completed
-      if (activePaymentMethod === "online") {
-        const updatedDonations = donations.map((d: any) => {
-          if (d.id === donationWithId.id) {
-            return { ...d, status: "completed" };
-          }
-          return d;
-        });
-        localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+      if (error) {
+        throw error;
       }
-    }, 2000);
+      
+      // Simulate payment processing for UI feedback
+      setTimeout(() => {
+        setIsProcessing(false);
+        form.reset();
+        
+        toast({
+          title: "Donation details submitted!",
+          description: activePaymentMethod === "bank" ? 
+            "Please complete your transfer using the account details provided." : 
+            "Your donation has been processed. Thank you for your support!",
+        });
+
+        // If it was an online payment, we've already set the status to completed
+        // in the database insert above
+      }, 1500);
+    } catch (error: any) {
+      console.error("Error submitting donation:", error);
+      
+      // Fall back to localStorage if Supabase fails
+      try {
+        const storedDonations = localStorage.getItem("pfcu_donations");
+        const donations = storedDonations ? JSON.parse(storedDonations) : [];
+        const donationWithId = { 
+          ...newDonation, 
+          id: (donations.length + 1).toString() 
+        };
+        donations.push(donationWithId);
+        localStorage.setItem("pfcu_donations", JSON.stringify(donations));
+      } catch (fallbackError) {
+        console.error("Even fallback storage failed:", fallbackError);
+      }
+      
+      setIsProcessing(false);
+      toast({
+        title: "Error",
+        description: "There was a problem submitting your donation, but we've saved it locally.",
+        variant: "destructive",
+      });
+    }
   };
 
   const copyAccountDetails = () => {

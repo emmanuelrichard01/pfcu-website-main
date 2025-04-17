@@ -13,17 +13,65 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          is_super_admin: boolean | null
           user_id: string
         }
         Insert: {
           created_at?: string
           id?: string
+          is_super_admin?: boolean | null
           user_id: string
         }
         Update: {
           created_at?: string
           id?: string
+          is_super_admin?: boolean | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          donor_name: string
+          email: string | null
+          id: string
+          payment_gateway: string | null
+          payment_method: string
+          payment_reference: string | null
+          phone: string | null
+          purpose: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          donor_name: string
+          email?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_method: string
+          payment_reference?: string | null
+          phone?: string | null
+          purpose: string
+          status: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          donor_name?: string
+          email?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_method?: string
+          payment_reference?: string | null
+          phone?: string | null
+          purpose?: string
+          status?: string
         }
         Relationships: []
       }
@@ -123,6 +171,10 @@ export type Database = {
     }
     Functions: {
       is_admin: {
+        Args: { user_uid: string }
+        Returns: boolean
+      }
+      is_super_admin: {
         Args: { user_uid: string }
         Returns: boolean
       }

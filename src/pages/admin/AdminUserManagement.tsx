@@ -6,7 +6,8 @@ import {
   UserPlus, 
   Trash2,
   Clock,
-  MailIcon
+  MailIcon,
+  Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -43,6 +45,7 @@ interface AdminUser {
   id: string;
   email: string;
   created_at: string;
+  is_super_admin: boolean;
 }
 
 interface AdminFormData {
@@ -56,6 +59,7 @@ const AdminUserManagement = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserIsSuperAdmin, setCurrentUserIsSuperAdmin] = useState(false);
   const { registerAdmin } = useAuth();
   const { toast: toastUI } = useToast();
 
@@ -67,43 +71,66 @@ const AdminUserManagement = () => {
     }
   });
 
+  // Check if current user is super admin
+  useEffect(() => {
+    const checkSuperAdmin = async () => {
+      try {
+        const { data: session } = await supabase.auth.getSession();
+        
+        if (session.session) {
+          const { data, error } = await supabase.rpc(
+            'is_super_admin',
+            { user_uid: session.session.user.id }
+          );
+          
+          if (!error && data === true) {
+            setCurrentUserIsSuperAdmin(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error checking super admin status:", error);
+      }
+    };
+    
+    checkSuperAdmin();
+  }, []);
+
   // Fetch admin users
   useEffect(() => {
     const fetchAdminUsers = async () => {
       setIsLoading(true);
       try {
-        // Get all admin users
-        const { data: adminData, error: adminError } = await supabase
+        // Get all admin users with their super admin status
+        const { data, error } = await supabase
           .from('admin_users')
           .select('*');
 
-        if (adminError) {
-          throw adminError;
-        }
+        if (error) throw error;
 
-        if (!adminData) {
+        if (!data || data.length === 0) {
           setAdminUsers([]);
+          setIsLoading(false);
           return;
         }
 
-        // Get user details for each admin
-        const admins: AdminUser[] = [];
-        
-        for (const admin of adminData) {
-          const { data: userData, error: userError } = await supabase.auth.admin.getUserById(
-            admin.user_id
-          );
+        // For each admin user, get their email from auth
+        const adminPromises = data.map(async (admin) => {
+          // Get user info from the auth.users table through an RPC function
+          // Since we can't directly query auth.users
+          const { data: userData } = await supabase
+            .rpc('get_user_email', { user_uid: admin.user_id });
           
-          if (!userError && userData) {
-            admins.push({
-              id: admin.id,
-              email: userData.user.email || "Unknown",
-              created_at: admin.created_at
-            });
-          }
-        }
+          return {
+            id: admin.id,
+            user_id: admin.user_id,
+            email: userData || "Email not available",
+            created_at: admin.created_at,
+            is_super_admin: admin.is_super_admin || false
+          };
+        });
 
-        setAdminUsers(admins);
+        const resolvedAdmins = await Promise.all(adminPromises);
+        setAdminUsers(resolvedAdmins);
       } catch (error) {
         console.error("Error fetching admin users:", error);
         toastUI({
@@ -146,17 +173,25 @@ const AdminUserManagement = () => {
         setIsDialogOpen(false);
         form.reset();
         
-        // Refresh admin users list
-        // In a real application, we would implement proper refresh logic
-        // For now, we'll just add a fake entry to the list
-        setAdminUsers([
-          ...adminUsers,
-          {
-            id: Math.random().toString(),
-            email: data.email,
-            created_at: new Date().toISOString()
-          }
-        ]);
+        // Refresh the admin users list
+        const { data: newAdminData, error: newAdminError } = await supabase
+          .from('admin_users')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+        
+        if (!newAdminError && newAdminData) {
+          setAdminUsers([
+            {
+              id: newAdminData.id,
+              email: data.email,
+              created_at: newAdminData.created_at,
+              is_super_admin: newAdminData.is_super_admin || false
+            },
+            ...adminUsers
+          ]);
+        }
       }
     } catch (error) {
       console.error("Error creating admin:", error);
@@ -165,15 +200,80 @@ const AdminUserManagement = () => {
     }
   };
 
-  const handleDeleteAdmin = async (adminId: string, adminEmail: string) => {
-    // In a real application, we would implement proper delete functionality
-    // For this demo, we'll just show a toast
-    toast.info(`This would delete the admin user: ${adminEmail}`);
+  const handleToggleSuperAdmin = async (adminId: string, isSuperAdmin: boolean) => {
+    if (!currentUserIsSuperAdmin) {
+      toastUI({
+        title: "Permission denied",
+        description: "Only super admins can change admin roles",
+        variant: "destructive"
+      });
+      return;
+    }
     
-    toastUI({
-      title: "Feature not implemented",
-      description: "Admin deletion would require additional security checks",
-    });
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .update({ is_super_admin: !isSuperAdmin })
+        .eq('id', adminId);
+        
+      if (error) throw error;
+      
+      // Update local state
+      setAdminUsers(adminUsers.map(admin => 
+        admin.id === adminId 
+          ? { ...admin, is_super_admin: !isSuperAdmin } 
+          : admin
+      ));
+      
+      toastUI({
+        title: "Admin role updated",
+        description: `Admin is now ${!isSuperAdmin ? 'a super admin' : 'a regular admin'}`,
+      });
+    } catch (error: any) {
+      console.error("Error updating admin role:", error);
+      toastUI({
+        title: "Error",
+        description: error.message || "Failed to update admin role",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteAdmin = async (adminId: string, adminEmail: string) => {
+    if (!currentUserIsSuperAdmin) {
+      toastUI({
+        title: "Permission denied",
+        description: "Only super admins can delete admins",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (confirm(`Are you sure you want to delete admin ${adminEmail}?`)) {
+      try {
+        const { error } = await supabase
+          .from('admin_users')
+          .delete()
+          .eq('id', adminId);
+          
+        if (error) throw error;
+        
+        // Update local state
+        setAdminUsers(adminUsers.filter(admin => admin.id !== adminId));
+        
+        toastUI({
+          title: "Admin deleted",
+          description: `${adminEmail} has been removed from admin users`,
+        });
+      } catch (error: any) {
+        console.error("Error deleting admin:", error);
+        toastUI({
+          title: "Error",
+          description: error.message || "Failed to delete admin",
+          variant: "destructive"
+        });
+      }
+    }
   };
 
   return (
@@ -193,12 +293,24 @@ const AdminUserManagement = () => {
         </Button>
       </div>
 
+      {currentUserIsSuperAdmin && (
+        <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
+          <div className="flex items-center gap-2">
+            <Award className="text-amber-600 h-5 w-5" />
+            <p className="text-amber-800">
+              You are a Super Admin. You can manage all other admins.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Admin Users Table */}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
               <TableHead>Created At</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -206,7 +318,7 @@ const AdminUserManagement = () => {
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8">
+                <TableCell colSpan={4} className="text-center py-8">
                   <div className="flex justify-center">
                     <div className="w-6 h-6 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
                   </div>
@@ -214,7 +326,7 @@ const AdminUserManagement = () => {
               </TableRow>
             ) : adminUsers.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8">
+                <TableCell colSpan={4} className="text-center py-8">
                   No admin users found
                 </TableCell>
               </TableRow>
@@ -222,16 +334,36 @@ const AdminUserManagement = () => {
               adminUsers.map((admin) => (
                 <TableRow key={admin.id}>
                   <TableCell className="font-medium">{admin.email}</TableCell>
+                  <TableCell>
+                    {admin.is_super_admin ? (
+                      <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">Super Admin</Badge>
+                    ) : (
+                      <Badge variant="outline">Admin</Badge>
+                    )}
+                  </TableCell>
                   <TableCell>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right">
-                    <Button 
-                      variant="outline" 
-                      size="icon" 
-                      className="text-red-500 hover:text-red-600"
-                      onClick={() => handleDeleteAdmin(admin.id, admin.email)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                  <TableCell className="text-right space-x-2">
+                    {currentUserIsSuperAdmin && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleToggleSuperAdmin(admin.id, admin.is_super_admin)}
+                          className={admin.is_super_admin ? "text-amber-500" : "text-gray-500"}
+                          title={admin.is_super_admin ? "Demote to Admin" : "Promote to Super Admin"}
+                        >
+                          <Award className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-600"
+                          onClick={() => handleDeleteAdmin(admin.id, admin.email)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

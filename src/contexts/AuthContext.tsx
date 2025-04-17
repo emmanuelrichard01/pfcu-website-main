@@ -9,6 +9,8 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
   registerAdmin: (email: string, password: string, isFirstAdmin?: boolean) => Promise<boolean>;
+  isSuperAdmin: boolean;
+  checkSuperAdminStatus: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
     localStorage.getItem("pfcu_admin_auth") === "true"
   );
+  const [isSuperAdmin, setIsSuperAdmin] = useState<boolean>(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -44,6 +47,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           if (isAdminData === true && !isAdminError) {
             setIsAuthenticated(true);
             localStorage.setItem("pfcu_admin_auth", "true");
+            
+            // Check if user is super admin
+            const { data: isSuperAdminData, error: isSuperAdminError } = await supabase.rpc(
+              'is_super_admin',
+              { user_uid: data.session.user.id }
+            );
+            
+            if (isSuperAdminData === true && !isSuperAdminError) {
+              setIsSuperAdmin(true);
+            }
+            
             console.log("Admin authentication confirmed");
           } else {
             console.log("User is not an admin:", isAdminError?.message);
@@ -51,21 +65,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             await supabase.auth.signOut();
             localStorage.removeItem("pfcu_admin_auth");
             setIsAuthenticated(false);
+            setIsSuperAdmin(false);
           }
         } else {
           console.log("No active session found");
           localStorage.removeItem("pfcu_admin_auth");
           setIsAuthenticated(false);
+          setIsSuperAdmin(false);
         }
       } catch (err) {
         console.error("Error checking session:", err);
         setIsAuthenticated(false);
+        setIsSuperAdmin(false);
         localStorage.removeItem("pfcu_admin_auth");
       }
     };
     
     checkSession();
   }, []);
+
+  const checkSuperAdminStatus = async (): Promise<boolean> => {
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      
+      if (!session.session) {
+        return false;
+      }
+      
+      const { data, error } = await supabase.rpc(
+        'is_super_admin',
+        { user_uid: session.session.user.id }
+      );
+      
+      if (error || data !== true) {
+        return false;
+      }
+      
+      setIsSuperAdmin(true);
+      return true;
+    } catch (error) {
+      console.error("Error checking super admin status:", error);
+      return false;
+    }
+  };
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
@@ -106,6 +148,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // User is authenticated and is an admin
       setIsAuthenticated(true);
       localStorage.setItem("pfcu_admin_auth", "true");
+      
+      // Check if the user is a super admin
+      const { data: isSuperAdminData, error: isSuperAdminError } = await supabase.rpc(
+        'is_super_admin',
+        { user_uid: data.user.id }
+      );
+      
+      if (isSuperAdminData === true && !isSuperAdminError) {
+        setIsSuperAdmin(true);
+      }
       
       toast({
         title: "Login successful",
@@ -218,6 +270,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       await supabase.auth.signOut();
       setIsAuthenticated(false);
+      setIsSuperAdmin(false);
       localStorage.removeItem("pfcu_admin_auth");
       navigate("/");
       toast({
@@ -230,7 +283,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout, registerAdmin }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated, 
+      login, 
+      logout, 
+      registerAdmin, 
+      isSuperAdmin,
+      checkSuperAdminStatus 
+    }}>
       {children}
     </AuthContext.Provider>
   );

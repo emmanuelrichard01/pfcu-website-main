@@ -12,110 +12,99 @@ export const useDonations = () => {
   const fetchDonations = async () => {
     setLoading(true);
     try {
-      // Try to fetch donations from Supabase if table exists
-      // For now, we skip this since the table doesn't exist in schema
-      // Instead, we'll just use localStorage
+      // Fetch donations from Supabase
+      const { data, error } = await supabase
+        .from('donations')
+        .select('*')
+        .order('created_at', { ascending: false });
       
-      const storedDonations = localStorage.getItem("pfcu_donations");
-      if (storedDonations) {
-        setDonations(JSON.parse(storedDonations));
-      } else {
-        initializeMockData();
+      if (error) {
+        throw error;
       }
-    } catch (error) {
+      
+      if (data) {
+        // Map Supabase data to our Donation type
+        const formattedDonations: Donation[] = data.map(item => ({
+          id: item.id,
+          donorName: item.donor_name,
+          amount: Number(item.amount),
+          date: item.date,
+          purpose: item.purpose,
+          status: item.status as "completed" | "pending" | "failed",
+          paymentMethod: item.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
+          email: item.email || undefined,
+          phone: item.phone || undefined,
+          paymentReference: item.payment_reference || undefined,
+          paymentGateway: item.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
+        }));
+        
+        setDonations(formattedDonations);
+      } else {
+        // No donations found
+        setDonations([]);
+      }
+    } catch (error: any) {
+      console.error("Error fetching donations:", error);
+      toast({
+        title: "Error fetching donations",
+        description: error.message || "Failed to load donations",
+        variant: "destructive"
+      });
+      
       // Fall back to localStorage if there's any error
       const storedDonations = localStorage.getItem("pfcu_donations");
       if (storedDonations) {
         setDonations(JSON.parse(storedDonations));
-      } else {
-        initializeMockData();
       }
     } finally {
       setLoading(false);
     }
   };
 
-  const initializeMockData = () => {
-    const mockDonations: Donation[] = [
-      {
-        id: "1",
-        donorName: "James Okafor",
-        amount: 50000,
-        date: "2025-04-01",
-        purpose: "General Offering",
-        status: "completed",
-        paymentMethod: "Bank Transfer",
-        email: "james@example.com",
-        phone: "+234 801 234 5678"
-      },
-      {
-        id: "2",
-        donorName: "Charity Eze",
-        amount: 20000,
-        date: "2025-04-05",
-        purpose: "Project Support",
-        status: "completed",
-        paymentMethod: "Cash",
-        phone: "+234 802 345 6789"
-      },
-      {
-        id: "3",
-        donorName: "David Adebayo",
-        amount: 35000,
-        date: "2025-04-08",
-        purpose: "Special Offering",
-        status: "completed",
-        paymentMethod: "Online Payment",
-        email: "david@example.com"
-      },
-      {
-        id: "4",
-        donorName: "Mary Johnson",
-        amount: 15000,
-        date: "2025-04-10",
-        purpose: "General Offering",
-        status: "completed",
-        paymentMethod: "Cash"
-      },
-      {
-        id: "5",
-        donorName: "Emmanuel Nwosu",
-        amount: 25000,
-        date: "2025-04-12",
-        purpose: "Project Support",
-        status: "pending",
-        paymentMethod: "Bank Transfer",
-        email: "emmanuel@example.com",
-        phone: "+234 803 456 7890"
-      },
-      {
-        id: "6",
-        donorName: "Grace Udoh",
-        amount: 40000,
-        date: "2025-04-13",
-        purpose: "Special Offering",
-        status: "completed",
-        paymentMethod: "Bank Transfer",
-        email: "grace@example.com",
-        phone: "+234 804 567 8901"
-      }
-    ];
-    
-    setDonations(mockDonations);
-    localStorage.setItem("pfcu_donations", JSON.stringify(mockDonations));
-  };
-
   const addDonation = async (newDonation: Omit<Donation, "id">) => {
     try {
-      const id = `${donations.length + 1}`;
-      const newDonationWithId = { ...newDonation, id };
+      // Map our Donation type to Supabase schema
+      const donationData = {
+        donor_name: newDonation.donorName,
+        email: newDonation.email || null,
+        phone: newDonation.phone || null,
+        amount: newDonation.amount,
+        purpose: newDonation.purpose,
+        payment_method: newDonation.paymentMethod,
+        payment_reference: newDonation.paymentReference || null,
+        payment_gateway: newDonation.paymentGateway || null,
+        status: newDonation.status,
+        date: newDonation.date
+      };
       
-      // In the future when 'donations' table exists in Supabase, we'll add here
+      // Insert into Supabase
+      const { data, error } = await supabase
+        .from('donations')
+        .insert([donationData])
+        .select('*')
+        .single();
       
-      // Update local state and localStorage
-      const updatedDonations = [...donations, newDonationWithId];
-      setDonations(updatedDonations);
-      localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+      if (error) {
+        throw error;
+      }
+      
+      // Format the new donation with ID returned from Supabase
+      const newDonationWithId: Donation = {
+        id: data.id,
+        donorName: data.donor_name,
+        amount: Number(data.amount),
+        date: data.date,
+        purpose: data.purpose,
+        status: data.status as "completed" | "pending" | "failed",
+        paymentMethod: data.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
+        email: data.email || undefined,
+        phone: data.phone || undefined,
+        paymentReference: data.payment_reference || undefined,
+        paymentGateway: data.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
+      };
+      
+      // Update local state
+      setDonations(prev => [newDonationWithId, ...prev]);
       
       toast({
         title: "Donation added",
@@ -124,9 +113,25 @@ export const useDonations = () => {
       
       return true;
     } catch (error: any) {
+      console.error("Error adding donation:", error);
+      
+      // Fall back to localStorage if there's any error
+      try {
+        // Generate a fallback ID
+        const id = `local-${Date.now()}`;
+        const newDonationWithId = { ...newDonation, id };
+        
+        // Update local state and localStorage
+        const updatedDonations = [newDonationWithId, ...donations];
+        setDonations(updatedDonations);
+        localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+      } catch (fallbackError) {
+        console.error("Even fallback storage failed:", fallbackError);
+      }
+      
       toast({
         title: "Error adding donation",
-        description: error.message,
+        description: error.message || "Failed to add donation to database",
         variant: "destructive"
       });
       return false;
@@ -135,12 +140,18 @@ export const useDonations = () => {
 
   const deleteDonation = async (id: string) => {
     try {
-      // In the future when 'donations' table exists in Supabase, we'll delete here
+      // Delete from Supabase
+      const { error } = await supabase
+        .from('donations')
+        .delete()
+        .eq('id', id);
       
-      // Update local state and localStorage
-      const updatedDonations = donations.filter(d => d.id !== id);
-      setDonations(updatedDonations);
-      localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+      if (error) {
+        throw error;
+      }
+      
+      // Update local state
+      setDonations(donations.filter(d => d.id !== id));
       
       toast({
         title: "Donation deleted",
@@ -149,9 +160,21 @@ export const useDonations = () => {
       
       return true;
     } catch (error: any) {
+      console.error("Error deleting donation:", error);
+      
+      // Fall back to localStorage if there's any error
+      try {
+        // Update local state and localStorage
+        const updatedDonations = donations.filter(d => d.id !== id);
+        setDonations(updatedDonations);
+        localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+      } catch (fallbackError) {
+        console.error("Even fallback storage failed:", fallbackError);
+      }
+      
       toast({
         title: "Error deleting donation",
-        description: error.message,
+        description: error.message || "Failed to delete donation",
         variant: "destructive"
       });
       return false;
