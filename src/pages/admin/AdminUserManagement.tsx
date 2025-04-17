@@ -101,31 +101,30 @@ const AdminUserManagement = () => {
       setIsLoading(true);
       try {
         // Get all admin users with their super admin status
-        const { data, error } = await supabase
+        const { data: adminData, error: adminError } = await supabase
           .from('admin_users')
           .select('*');
 
-        if (error) throw error;
+        if (adminError) throw adminError;
 
-        if (!data || data.length === 0) {
+        if (!adminData || adminData.length === 0) {
           setAdminUsers([]);
           setIsLoading(false);
           return;
         }
 
-        // For each admin user, get their email using a custom query
-        const adminPromises = data.map(async (admin) => {
+        // For each admin user, get their email using the RPC function
+        const adminWithEmails = await Promise.all(adminData.map(async (admin) => {
           try {
-            // Get user info from auth.users table using a direct query
-            const { data: authUserData } = await supabase
-              .from('auth_user_emails')  // Use a view or query to get emails safely
-              .select('email')
-              .eq('user_id', admin.user_id)
-              .single();
+            // Use the RPC function to get the email securely
+            const { data: email, error: emailError } = await supabase.rpc(
+              'get_user_email',
+              { user_uid: admin.user_id }
+            );
             
             return {
               id: admin.id,
-              email: authUserData?.email || "Email not available",
+              email: email || "Email not available",
               created_at: admin.created_at,
               is_super_admin: admin.is_super_admin || false
             };
@@ -138,10 +137,9 @@ const AdminUserManagement = () => {
               is_super_admin: admin.is_super_admin || false
             };
           }
-        });
+        }));
 
-        const resolvedAdmins = await Promise.all(adminPromises);
-        setAdminUsers(resolvedAdmins);
+        setAdminUsers(adminWithEmails);
       } catch (error) {
         console.error("Error fetching admin users:", error);
         toastUI({
