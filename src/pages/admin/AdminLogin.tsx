@@ -18,10 +18,11 @@ const AdminLogin = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    let ignore = false;
     const checkAdmins = async () => {
       try {
         const exists = await hasAdminUsers();
-        setAdminExists(exists);
+        if (!ignore) setAdminExists(exists);
       } catch (error) {
         console.error("Error checking admin existence:", error);
         toast.error("Error checking admin status");
@@ -30,6 +31,9 @@ const AdminLogin = () => {
     };
 
     checkAdmins();
+    return () => {
+      ignore = true;
+    };
   }, [hasAdminUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
