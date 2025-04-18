@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Lock, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
 
 const AdminLogin = () => {
@@ -15,33 +14,23 @@ const AdminLogin = () => {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [adminExists, setAdminExists] = useState<boolean | null>(null);
-  const { login } = useAuth();
+  const { login, hasAdminUsers } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkAdminExists = async () => {
+    const checkAdmins = async () => {
       try {
-        const { data: sessionData } = await supabase.auth.getSession();
-        if (!sessionData.session) {
-          console.log("No active session yet. Waiting...");
-        }
-
-        const { count, error } = await supabase
-          .from('admin_users')
-          .select('*', { count: 'exact', head: true });
-
-        if (error) throw error;
-
-        setAdminExists(count > 0);
+        const exists = await hasAdminUsers();
+        setAdminExists(exists);
       } catch (error) {
-        console.error("Error checking admin users:", error);
+        console.error("Error checking admin existence:", error);
         toast.error("Error checking admin status");
         setAdminExists(false);
       }
     };
 
-    checkAdminExists();
-  }, []);
+    checkAdmins();
+  }, [hasAdminUsers]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
