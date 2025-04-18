@@ -14,34 +14,29 @@ const AdminLogin = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [adminExists, setAdminExists] = useState(true);
-  const [isChecking, setIsChecking] = useState(true);
+  const [adminExists, setAdminExists] = useState<boolean | null>(null);
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // Check if any admin accounts exist
   useEffect(() => {
     const checkAdminExists = async () => {
       try {
-        setIsChecking(true);
-        
-        // First check for confirmed admin users in the auth system
+        const { data: sessionData } = await supabase.auth.getSession();
+        if (!sessionData.session) {
+          console.log("No active session yet. Waiting...");
+        }
+
         const { count, error } = await supabase
           .from('admin_users')
           .select('*', { count: 'exact', head: true });
-        
+
         if (error) throw error;
-        
-        if (count === 0) {
-          setAdminExists(false);
-        } else {
-          setAdminExists(true);
-        }
+
+        setAdminExists(count > 0);
       } catch (error) {
         console.error("Error checking admin users:", error);
         toast.error("Error checking admin status");
-      } finally {
-        setIsChecking(false);
+        setAdminExists(false);
       }
     };
 
@@ -51,11 +46,9 @@ const AdminLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      console.log("Submitting login form with email:", email);
       toast.info("Logging in...");
-      
       const success = await login(email, password);
       if (success) {
         toast.success("Login successful!");
@@ -68,7 +61,7 @@ const AdminLogin = () => {
     }
   };
 
-  if (isChecking) {
+  if (adminExists === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="w-10 h-10 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
@@ -131,9 +124,9 @@ const AdminLogin = () => {
                   required
                 />
               </div>
-              <Button 
+              <Button
                 type="submit"
-                className="w-full bg-pfcu-purple hover:bg-pfcu-dark mt-4" 
+                className="w-full bg-pfcu-purple hover:bg-pfcu-dark mt-4"
                 disabled={isLoading}
               >
                 {isLoading ? "Logging in..." : "Login"}
