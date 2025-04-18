@@ -11,6 +11,7 @@ interface AuthContextType {
   registerAdmin: (email: string, password: string, isFirstAdmin?: boolean) => Promise<boolean>;
   isSuperAdmin: boolean;
   checkSuperAdminStatus: () => Promise<boolean>;
+  hasAdminUsers: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,6 +32,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const hasAdminUsers = async (): Promise<boolean> => {
+    try {
+      const { count, error } = await supabase
+        .from('admin_users')
+        .select('*', { count: 'exact', head: true });
+  
+      if (error) {
+        console.error("Error checking admin user count:", error);
+        return false;
+      }
+  
+      return count > 0;
+    } catch (err) {
+      console.error("Unexpected error checking admin count:", err);
+      return false;
+    }
+  };
+  
   // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
@@ -82,6 +101,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
     
     checkSession();
+    
   }, []);
 
   const checkSuperAdminStatus = async (): Promise<boolean> => {
@@ -289,7 +309,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       logout, 
       registerAdmin, 
       isSuperAdmin,
-      checkSuperAdminStatus 
+      checkSuperAdminStatus, 
+      hasAdminUsers
     }}>
       {children}
     </AuthContext.Provider>
