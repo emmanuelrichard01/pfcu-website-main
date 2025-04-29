@@ -13,6 +13,7 @@ import RoleSelection from "./components/RoleSelection";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminDonations from "./pages/admin/AdminDonations";
 import AdminSermons from "./pages/admin/AdminSermons";
 import AdminEvents from "./pages/admin/AdminEvents";
 import AdminLeadership from "./pages/admin/AdminLeadership";
@@ -86,6 +87,7 @@ const App = () => {
                 <Route path="sermons" element={<AdminSermons />} />
                 <Route path="events" element={<AdminEvents />} />
                 <Route path="leadership" element={<AdminLeadership />} />
+                <Route path="donations" element={<AdminDonations />} />
                 <Route path="users" element={<AdminUserManagement />} />
               </Route>
               
