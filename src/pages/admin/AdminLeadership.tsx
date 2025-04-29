@@ -205,7 +205,7 @@ const AdminLeadership = () => {
                 name="slogan"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Tenure Slogan</FormLabel>
+                    <FormLabel>Tenure Declaration</FormLabel>
                     <FormControl>
                       <Input placeholder="Fellowship slogan" {...field} />
                     </FormControl>
