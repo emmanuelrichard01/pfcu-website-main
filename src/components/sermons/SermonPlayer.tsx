@@ -221,7 +221,7 @@ const SermonPlayer = ({ title, preacher, coverImage, audioUrl }: SermonPlayerPro
               disabled={loading || !!error}
               className={`${loading || error ? 'opacity-50' : ''}`}
             />
-            <div className="flex justify-between text-xs text-gray-300">
+            <div className="flex justify-between text-xs text-gray-300 pt-1">
               <span>{formatTime(currentTime)}</span>
               <span>{formatTime(duration)}</span>
             </div>
