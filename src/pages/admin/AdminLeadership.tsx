@@ -1,16 +1,14 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { 
   Users, 
   Plus, 
   Edit, 
   Trash2, 
-  Search,
   Clock,
   Save,
   Camera,
-  Upload,
   Facebook,
   Instagram,
   Linkedin,
@@ -45,6 +43,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useLeadership } from "@/hooks/useLeadership";
 
 interface LeaderData {
   id?: string;
@@ -67,7 +66,7 @@ interface TenureData {
 }
 
 const AdminLeadership = () => {
-  const [leaders, setLeaders] = useState<LeaderData[]>([]);
+  const { leaders, loading, addLeader, updateLeader, deleteLeader } = useLeadership();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingLeader, setEditingLeader] = useState<LeaderData | null>(null);
@@ -77,19 +76,13 @@ const AdminLeadership = () => {
   });
   const [activeTab, setActiveTab] = useState("basic");
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load data from localStorage for demo purposes
-    // In a real app, this would be an API call
-    const storedLeaders = localStorage.getItem("pfcu_leaders");
+    // Load tenure data from localStorage
     const storedTenure = localStorage.getItem("pfcu_tenure");
-    
-    if (storedLeaders) {
-      setLeaders(JSON.parse(storedLeaders));
-    }
-    
     if (storedTenure) {
       setTenureData(JSON.parse(storedTenure));
     }
@@ -116,10 +109,29 @@ const AdminLeadership = () => {
   });
 
   const handleOpenDialog = (leader?: LeaderData) => {
+    // Reset the form first to clear any previous data
+    leaderForm.reset({
+      name: "",
+      position: "",
+      initial: "",
+      bio: "",
+      profileImage: "",
+      socialMedia: {
+        facebook: "",
+        twitter: "",
+        instagram: "",
+        linkedin: ""
+      }
+    });
+    
+    setTempImageUrl(null);
+    
     if (leader) {
       setEditingLeader(leader);
       setTempImageUrl(leader.profileImage || null);
-      leaderForm.reset({
+      
+      // Create a deep copy to avoid state reference issues
+      const formValues = {
         name: leader.name,
         position: leader.position,
         initial: leader.initial,
@@ -131,24 +143,13 @@ const AdminLeadership = () => {
           instagram: leader.socialMedia?.instagram || "",
           linkedin: leader.socialMedia?.linkedin || ""
         }
-      });
+      };
+      
+      leaderForm.reset(formValues);
     } else {
       setEditingLeader(null);
-      setTempImageUrl(null);
-      leaderForm.reset({
-        name: "",
-        position: "",
-        initial: "",
-        bio: "",
-        profileImage: "",
-        socialMedia: {
-          facebook: "",
-          twitter: "",
-          instagram: "",
-          linkedin: ""
-        }
-      });
     }
+    
     setIsDialogOpen(true);
     setActiveTab("basic");
   };
@@ -186,50 +187,41 @@ const AdminLeadership = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleLeaderSubmit = (data: LeaderData) => {
+  const handleLeaderSubmit = async (data: LeaderData) => {
     setIsSubmitting(true);
     
-    // Update or create leader
-    setTimeout(() => {
-      let updatedLeaders;
+    try {
+      let success = false;
       
-      if (editingLeader) {
+      if (editingLeader?.id) {
         // Update existing leader
-        updatedLeaders = leaders.map(leader =>
-          leader.id === editingLeader.id ? { ...data, id: editingLeader.id } : leader
-        );
-        toast({
-          title: "Leader updated successfully",
-          description: `${data.name}'s information has been updated.`
-        });
+        success = await updateLeader(editingLeader.id, data);
       } else {
         // Add new leader
-        updatedLeaders = [...leaders, { ...data, id: Date.now().toString() }];
-        toast({
-          title: "Leader added successfully",
-          description: `${data.name} has been added to the leadership.`
-        });
+        success = await addLeader(data);
       }
       
-      setLeaders(updatedLeaders);
-      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
-      
+      if (success) {
+        setIsDialogOpen(false);
+        setEditingLeader(null);
+        setTempImageUrl(null);
+      }
+    } catch (error) {
+      console.error("Leader save error:", error);
+      toast({
+        title: "Error",
+        description: "There was an error saving the leader information.",
+        variant: "destructive"
+      });
+    } finally {
       setIsSubmitting(false);
-      setIsDialogOpen(false);
-    }, 1000);
+    }
   };
 
-  const handleDeleteLeader = (leaderToDelete: LeaderData) => {
-    const updatedLeaders = leaders.filter(
-      leader => leader.id !== leaderToDelete.id
-    );
-    setLeaders(updatedLeaders);
-    localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
-    
-    toast({
-      title: "Leader removed",
-      description: `${leaderToDelete.name} has been removed from the leadership.`
-    });
+  const handleDeleteLeader = async (leaderToDelete: LeaderData) => {
+    if (leaderToDelete.id) {
+      await deleteLeader(leaderToDelete.id);
+    }
   };
 
   const handleTenureSubmit = (data: TenureData) => {
@@ -307,67 +299,73 @@ const AdminLeadership = () => {
 
       {/* Leaders Table */}
       <div className="border rounded-lg overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Profile</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Social Media</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leaders.map((leader) => (
-              <TableRow key={leader.id} className="hover:bg-gray-50 transition-colors duration-200">
-                <TableCell>
-                  <Avatar className="h-10 w-10">
-                    {leader.profileImage ? (
-                      <AvatarImage src={leader.profileImage} alt={leader.name} />
-                    ) : (
-                      <AvatarFallback className="bg-pfcu-purple text-white">
-                        {leader.initial}
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                </TableCell>
-                <TableCell className="font-medium">{leader.name}</TableCell>
-                <TableCell>{leader.position}</TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    {leader.socialMedia?.facebook && <Facebook className="h-4 w-4 text-gray-500" />}
-                    {leader.socialMedia?.twitter && <Twitter className="h-4 w-4 text-gray-500" />}
-                    {leader.socialMedia?.instagram && <Instagram className="h-4 w-4 text-gray-500" />}
-                    {leader.socialMedia?.linkedin && <Linkedin className="h-4 w-4 text-gray-500" />}
-                    {!leader.socialMedia?.facebook && 
-                      !leader.socialMedia?.twitter && 
-                      !leader.socialMedia?.instagram && 
-                      !leader.socialMedia?.linkedin && 
-                      <span className="text-xs text-gray-400">None</span>}
-                  </div>
-                </TableCell>
-                <TableCell className="text-right space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    className="hover:bg-gray-100 transition-colors duration-200"
-                    onClick={() => handleOpenDialog(leader)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="icon" 
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
-                    onClick={() => handleDeleteLeader(leader)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </TableCell>
+        {loading ? (
+          <div className="flex items-center justify-center p-8">
+            <div className="w-8 h-8 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Profile</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Position</TableHead>
+                <TableHead>Social Media</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {leaders.map((leader) => (
+                <TableRow key={leader.id} className="hover:bg-gray-50 transition-colors duration-200">
+                  <TableCell>
+                    <Avatar className="h-10 w-10">
+                      {leader.profileImage ? (
+                        <AvatarImage src={leader.profileImage} alt={leader.name} />
+                      ) : (
+                        <AvatarFallback className="bg-pfcu-purple text-white">
+                          {leader.initial}
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                  </TableCell>
+                  <TableCell className="font-medium">{leader.name}</TableCell>
+                  <TableCell>{leader.position}</TableCell>
+                  <TableCell>
+                    <div className="flex gap-1">
+                      {leader.socialMedia?.facebook && <Facebook className="h-4 w-4 text-gray-500" />}
+                      {leader.socialMedia?.twitter && <Twitter className="h-4 w-4 text-gray-500" />}
+                      {leader.socialMedia?.instagram && <Instagram className="h-4 w-4 text-gray-500" />}
+                      {leader.socialMedia?.linkedin && <Linkedin className="h-4 w-4 text-gray-500" />}
+                      {!leader.socialMedia?.facebook && 
+                        !leader.socialMedia?.twitter && 
+                        !leader.socialMedia?.instagram && 
+                        !leader.socialMedia?.linkedin && 
+                        <span className="text-xs text-gray-400">None</span>}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="icon"
+                      className="hover:bg-gray-100 transition-colors duration-200"
+                      onClick={() => handleOpenDialog(leader)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="icon" 
+                      className="text-red-500 hover:text-red-600 hover:bg-red-50 transition-colors duration-200"
+                      onClick={() => handleDeleteLeader(leader)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
       </div>
 
       {/* Add/Edit Leader Dialog */}
@@ -475,7 +473,8 @@ const AdminLeadership = () => {
                               <span>Choose Image</span>
                             </div>
                             <Input 
-                              type="file" 
+                              type="file"
+                              ref={fileInputRef}
                               className="hidden"
                               onChange={handleImageUpload}
                               accept="image/*"
@@ -498,6 +497,11 @@ const AdminLeadership = () => {
                         onClick={() => {
                           setTempImageUrl(null);
                           leaderForm.setValue("profileImage", "");
+                          
+                          // Reset the file input
+                          if (fileInputRef.current) {
+                            fileInputRef.current.value = "";
+                          }
                         }}
                       >
                         Remove Image

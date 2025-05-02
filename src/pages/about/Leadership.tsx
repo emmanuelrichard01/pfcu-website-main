@@ -5,6 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LeaderProps {
   name: string;
@@ -91,54 +92,106 @@ const Leadership = () => {
     year: "2024/2025",
     slogan: "Many but one in Christ"
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch leadership data from localStorage (in real app, this would be an API call)
-    const storedLeaders = localStorage.getItem("pfcu_leaders");
-    const storedTenure = localStorage.getItem("pfcu_tenure");
-    
-    if (storedLeaders) {
-      const leaderData = JSON.parse(storedLeaders);
-      // Map the data structure if needed
-      const formattedLeaders = leaderData.map((leader: any) => ({
-        name: leader.name,
-        role: leader.position,
-        initial: leader.initial,
-        bio: leader.bio || "",
-        profileImage: leader.profileImage || "",
-        socialMedia: leader.socialMedia || {
-          instagram: "https://instagram.com/pfcu_"
+    const fetchLeaders = async () => {
+      setLoading(true);
+      try {
+        // Try to fetch from Supabase first
+        const { data, error } = await supabase
+          .from('leaders')
+          .select('*')
+          .order('position');
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Map database schema to our interface
+          const mappedLeaders: LeaderProps[] = data.map(leader => ({
+            name: leader.name,
+            role: leader.position,
+            initial: leader.initial,
+            bio: leader.bio || undefined,
+            profileImage: leader.profile_image || undefined,
+            socialMedia: {
+              facebook: leader.facebook_url || undefined,
+              twitter: leader.twitter_url || undefined,
+              instagram: leader.instagram_url || undefined,
+              linkedin: leader.linkedin_url || undefined,
+            }
+          }));
+          
+          setLeaders(mappedLeaders);
+        } else {
+          // Fallback to localStorage
+          const storedLeaders = localStorage.getItem("pfcu_leaders");
+          if (storedLeaders) {
+            const leaderData = JSON.parse(storedLeaders);
+            // Map the data structure if needed
+            const formattedLeaders = leaderData.map((leader: any) => ({
+              name: leader.name,
+              role: leader.position,
+              initial: leader.initial,
+              bio: leader.bio || "",
+              profileImage: leader.profileImage || "",
+              socialMedia: leader.socialMedia || {
+                instagram: "https://instagram.com/pfcu_"
+              }
+            }));
+            setLeaders(formattedLeaders);
+          } else {
+            // Fallback data if none exists
+            setLeaders([
+              {
+                name: "Emmanuel R.C. Moghalu",
+                role: "Pastor/President",
+                bio: "Leading the fellowship with vision and passion since 2024.",
+                initial: "EM",
+                socialMedia: {
+                  instagram: "https://instagram.com/pfcu_"
+                }
+              },
+              {
+                name: "Chisom C. Mbagwu",
+                role: "Assistant Pastor/VP",
+                bio: "Assists in overseeing the daily operations of the fellowship.",
+                initial: "CM",
+                socialMedia: {
+                  instagram: "https://instagram.com/pfcu_"
+                }
+              },
+            ]);
+          }
         }
-      }));
-      setLeaders(formattedLeaders);
-    } else {
-      // Fallback data if none exists
-      setLeaders([
-        {
-          name: "Emmanuel R.C. Moghalu",
-          role: "Pastor/President",
-          bio: "Leading the fellowship with vision and passion since 2024.",
-          initial: "EM",
-          socialMedia: {
-            instagram: "https://instagram.com/pfcu_"
-          }
-        },
-        {
-          name: "Chisom C. Mbagwu",
-          role: "Assistant Pastor/VP",
-          bio: "Assists in overseeing the daily operations of the fellowship.",
-          initial: "CM",
-          socialMedia: {
-            instagram: "https://instagram.com/pfcu_"
-          }
-        },
-        // ... and so on for other leaders
-      ]);
-    }
+      } catch (error) {
+        console.error("Error fetching leaders:", error);
+        
+        // Fallback to localStorage
+        const storedLeaders = localStorage.getItem("pfcu_leaders");
+        if (storedLeaders) {
+          const formattedLeaders = JSON.parse(storedLeaders).map((leader: any) => ({
+            name: leader.name,
+            role: leader.position,
+            initial: leader.initial,
+            bio: leader.bio || "",
+            profileImage: leader.profileImage || "",
+            socialMedia: leader.socialMedia || {}
+          }));
+          setLeaders(formattedLeaders);
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
     
+    // Load tenure data from localStorage
+    const storedTenure = localStorage.getItem("pfcu_tenure");
     if (storedTenure) {
       setTenureInfo(JSON.parse(storedTenure));
     }
+    
+    fetchLeaders();
   }, []);
 
   return (
@@ -164,11 +217,20 @@ const Leadership = () => {
             <strong>{tenureInfo.year} Tenure</strong> - <em>{tenureInfo.slogan}</em>
           </p>
           
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
-            {leaders.map((leader) => (
-              <LeaderCard key={leader.name} {...leader} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="flex justify-center py-12">
+              <div className="w-10 h-10 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+              {leaders.map((leader, index) => (
+                <LeaderCard 
+                  key={leader.name + index} 
+                  {...leader} 
+                />
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </MainLayout>

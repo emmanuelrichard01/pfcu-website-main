@@ -1,8 +1,8 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LeaderData {
   name: string;
@@ -86,65 +86,116 @@ const LeadershipSection = () => {
     year: "2024/2025",
     slogan: "Many but one in Christ"
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // In a real app, this would fetch from an API or database
-    // For now, we'll use localStorage to demonstrate the admin update functionality
-    const storedLeaders = localStorage.getItem("pfcu_leaders");
-    const storedTenure = localStorage.getItem("pfcu_tenure");
-    
-    if (storedLeaders) {
-      setLeaders(JSON.parse(storedLeaders));
-    } else {
-      // Default leaders if none are stored
-      const defaultLeaders = [
-        {
-          name: "Emmanuel R.C. Moghalu",
-          position: "Pastor/President",
-          initial: "EM",
-          bio: "Leading with vision and purpose",
-        },
-        {
-          name: "Chisom C. Mbagwu",
-          position: "Assistant Pastor/VP",
-          initial: "CM",
-          bio: "Supporting the team and community",
-        },
-        {
-          name: "Joshua E. Aforue",
-          position: "General Secretary",
-          initial: "JA",
-          bio: "Keeping records and documentation",
-        },
-        {
-          name: "Emmanuella Y. Ufe",
-          position: "Asst. Secretary & Treasurer",
-          initial: "EU",
-          bio: "Managing resources and finances",
-        },
-        {
-          name: "Dorci F. Donald",
-          position: "P.R.O & Financial Secretary",
-          initial: "DD",
-          bio: "Maintaining public relations",
-        },
-        {
-          name: "Samuel C. Oyenze",
-          position: "Provost",
-          initial: "SO",
-          bio: "Ensuring order and discipline",
-        }
-      ];
+    const fetchLeaders = async () => {
+      setLoading(true);
       
-      setLeaders(defaultLeaders);
-      localStorage.setItem("pfcu_leaders", JSON.stringify(defaultLeaders));
-    }
+      try {
+        // Try to fetch leaders from Supabase database
+        const { data, error } = await supabase
+          .from('leaders')
+          .select('*')
+          .order('position');
+          
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          // Map database schema to our interface
+          const mappedLeaders: LeaderData[] = data.map(leader => ({
+            name: leader.name,
+            position: leader.position,
+            initial: leader.initial,
+            bio: leader.bio || undefined,
+            profileImage: leader.profile_image || undefined,
+            socialMedia: {
+              facebook: leader.facebook_url || undefined,
+              twitter: leader.twitter_url || undefined,
+              instagram: leader.instagram_url || undefined,
+              linkedin: leader.linkedin_url || undefined,
+            }
+          }));
+          
+          setLeaders(mappedLeaders);
+        } else {
+          // Fallback to localStorage if needed
+          const storedLeaders = localStorage.getItem("pfcu_leaders");
+          const storedTenure = localStorage.getItem("pfcu_tenure");
+          
+          if (storedLeaders) {
+            setLeaders(JSON.parse(storedLeaders));
+          } else {
+            // Default leaders if none are stored
+            const defaultLeaders = [
+              {
+                name: "Emmanuel R.C. Moghalu",
+                position: "Pastor/President",
+                initial: "EM",
+                bio: "Leading with vision and purpose",
+              },
+              {
+                name: "Chisom C. Mbagwu",
+                position: "Assistant Pastor/VP",
+                initial: "CM",
+                bio: "Supporting the team and community",
+              },
+              {
+                name: "Joshua E. Aforue",
+                position: "General Secretary",
+                initial: "JA",
+                bio: "Keeping records and documentation",
+              },
+              {
+                name: "Emmanuella Y. Ufe",
+                position: "Asst. Secretary & Treasurer",
+                initial: "EU",
+                bio: "Managing resources and finances",
+              },
+              {
+                name: "Dorci F. Donald",
+                position: "P.R.O & Financial Secretary",
+                initial: "DD",
+                bio: "Maintaining public relations",
+              },
+              {
+                name: "Samuel C. Oyenze",
+                position: "Provost",
+                initial: "SO",
+                bio: "Ensuring order and discipline",
+              }
+            ];
+            
+            setLeaders(defaultLeaders);
+            localStorage.setItem("pfcu_leaders", JSON.stringify(defaultLeaders));
+          }
+          
+          if (storedTenure) {
+            setTenureInfo(JSON.parse(storedTenure));
+          } else {
+            localStorage.setItem("pfcu_tenure", JSON.stringify(tenureInfo));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching leaders:", error);
+        
+        // Fallback to localStorage if needed
+        const storedLeaders = localStorage.getItem("pfcu_leaders");
+        if (storedLeaders) {
+          setLeaders(JSON.parse(storedLeaders));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
     
+    // Fetch tenure info from localStorage
+    const storedTenure = localStorage.getItem("pfcu_tenure");
     if (storedTenure) {
       setTenureInfo(JSON.parse(storedTenure));
-    } else {
-      localStorage.setItem("pfcu_tenure", JSON.stringify(tenureInfo));
     }
+    
+    fetchLeaders();
   }, []);
 
   return (
@@ -165,11 +216,17 @@ const LeadershipSection = () => {
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {leaders.map((leader, index) => (
-            <LeaderCard key={leader.name} leader={leader} index={index} />
-          ))}
-        </div>
+        {loading ? (
+          <div className="flex justify-center">
+            <div className="w-8 h-8 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        ) : (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {leaders.map((leader, index) => (
+              <LeaderCard key={leader.name + index} leader={leader} index={index} />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

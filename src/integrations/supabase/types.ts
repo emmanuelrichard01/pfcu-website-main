@@ -126,6 +126,51 @@ export type Database = {
         }
         Relationships: []
       }
+      leaders: {
+        Row: {
+          bio: string | null
+          created_at: string
+          facebook_url: string | null
+          id: string
+          initial: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          name: string
+          position: string
+          profile_image: string | null
+          twitter_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id?: string
+          initial: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          name: string
+          position: string
+          profile_image?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id?: string
+          initial?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          name?: string
+          position?: string
+          profile_image?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sermons: {
         Row: {
           audio_url: string | null
