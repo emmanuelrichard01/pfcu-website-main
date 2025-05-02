@@ -1,14 +1,20 @@
 
 import { useState, useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Leader {
-  id: string;
+  id?: string;
   name: string;
-  role: string;
-  bio: string;
-  imageUrl?: string;
+  position: string;
+  initial: string;
+  bio?: string;
+  profileImage?: string;
+  socialMedia?: {
+    facebook?: string;
+    twitter?: string;
+    instagram?: string;
+    linkedin?: string;
+  };
 }
 
 export const useLeadership = () => {
@@ -27,9 +33,55 @@ export const useLeadership = () => {
         setLeaders(parsedLeaders);
         setCount(parsedLeaders.length);
       } else {
-        // Initialize with empty array if no data in localStorage
-        setLeaders([]);
-        setCount(0);
+        // Initialize with default leaders if no data in localStorage
+        const defaultLeaders = [
+          {
+            id: "1",
+            name: "Emmanuel R.C. Moghalu",
+            position: "Pastor/President",
+            initial: "EM",
+            bio: "Leading with vision and purpose",
+          },
+          {
+            id: "2",
+            name: "Chisom C. Mbagwu",
+            position: "Assistant Pastor/VP",
+            initial: "CM",
+            bio: "Supporting the team and community",
+          },
+          {
+            id: "3",
+            name: "Joshua E. Aforue",
+            position: "General Secretary",
+            initial: "JA",
+            bio: "Keeping records and documentation",
+          },
+          {
+            id: "4",
+            name: "Emmanuella Y. Ufe",
+            position: "Asst. Secretary & Treasurer",
+            initial: "EU",
+            bio: "Managing resources and finances",
+          },
+          {
+            id: "5",
+            name: "Dorci F. Donald",
+            position: "P.R.O & Financial Secretary",
+            initial: "DD",
+            bio: "Maintaining public relations",
+          },
+          {
+            id: "6",
+            name: "Samuel C. Oyenze",
+            position: "Provost",
+            initial: "SO",
+            bio: "Ensuring order and discipline",
+          }
+        ];
+        
+        setLeaders(defaultLeaders);
+        setCount(defaultLeaders.length);
+        localStorage.setItem("pfcu_leaders", JSON.stringify(defaultLeaders));
       }
     } catch (error: any) {
       toast({
@@ -43,6 +95,80 @@ export const useLeadership = () => {
       setLoading(false);
     }
   };
+  
+  const addLeader = async (leader: Omit<Leader, "id">) => {
+    try {
+      const newLeader = { ...leader, id: Date.now().toString() };
+      const updatedLeaders = [...leaders, newLeader];
+      
+      setLeaders(updatedLeaders);
+      setCount(updatedLeaders.length);
+      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
+      
+      toast({
+        title: "Leader added successfully",
+        description: `${leader.name} has been added to the leadership team.`
+      });
+      
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Error adding leader",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+  
+  const updateLeader = async (id: string, updatedData: Partial<Leader>) => {
+    try {
+      const updatedLeaders = leaders.map(leader => 
+        leader.id === id ? { ...leader, ...updatedData } : leader
+      );
+      
+      setLeaders(updatedLeaders);
+      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
+      
+      toast({
+        title: "Leader updated successfully",
+        description: "The leader's information has been updated."
+      });
+      
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Error updating leader",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+  
+  const deleteLeader = async (id: string) => {
+    try {
+      const updatedLeaders = leaders.filter(leader => leader.id !== id);
+      
+      setLeaders(updatedLeaders);
+      setCount(updatedLeaders.length);
+      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
+      
+      toast({
+        title: "Leader removed successfully",
+        description: "The leader has been removed from the team."
+      });
+      
+      return true;
+    } catch (error: any) {
+      toast({
+        title: "Error removing leader",
+        description: error.message,
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
 
   // Fetch leaders on component mount
   useEffect(() => {
@@ -53,6 +179,9 @@ export const useLeadership = () => {
     leaders,
     loading,
     count,
-    fetchLeaders
+    fetchLeaders,
+    addLeader,
+    updateLeader,
+    deleteLeader
   };
 };

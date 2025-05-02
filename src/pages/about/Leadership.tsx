@@ -2,14 +2,16 @@
 import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface LeaderProps {
   name: string;
   role: string;
   bio?: string;
   initial: string;
+  profileImage?: string;
   socialMedia?: {
     facebook?: string;
     twitter?: string;
@@ -23,48 +25,63 @@ interface TenureData {
   slogan: string;
 }
 
-const LeaderCard = ({ name, role, bio, initial, socialMedia }: LeaderProps) => {
+const LeaderCard = ({ name, role, bio, initial, profileImage, socialMedia }: LeaderProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardContent className="p-0">
-        <div className="bg-pfcu-purple h-24"></div>
-        <div className="px-6 pb-6 -mt-12">
-          <Avatar className="w-24 h-24 border-4 border-white mb-4">
-            <AvatarFallback className="bg-pfcu-gold text-pfcu-dark text-xl font-bold">
-              {initial}
-            </AvatarFallback>
-          </Avatar>
-          <h3 className="text-xl font-bold mb-1">{name}</h3>
-          <p className="text-pfcu-purple font-medium mb-3">{role}</p>
-          {bio && <p className="text-gray-600 text-sm mb-4">{bio}</p>}
-          
-          {socialMedia && (
-            <div className="flex gap-3">
-              {socialMedia.facebook && (
-                <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pfcu-purple">
-                  <Facebook size={18} />
-                </a>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+        <CardContent className="p-0">
+          <div className="bg-pfcu-purple h-24"></div>
+          <div className="px-6 pb-6 -mt-12">
+            <Avatar className="w-24 h-24 border-4 border-white mb-4 shadow-md">
+              {profileImage ? (
+                <AvatarImage src={profileImage} alt={name} />
+              ) : (
+                <AvatarFallback className="bg-pfcu-gold text-pfcu-dark text-xl font-bold">
+                  {initial}
+                </AvatarFallback>
               )}
-              {socialMedia.twitter && (
-                <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pfcu-purple">
-                  <Twitter size={18} />
-                </a>
-              )}
-              {socialMedia.instagram && (
-                <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pfcu-purple">
-                  <Instagram size={18} />
-                </a>
-              )}
-              {socialMedia.linkedin && (
-                <a href={socialMedia.linkedin} target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-pfcu-purple">
-                  <Linkedin size={18} />
-                </a>
-              )}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            </Avatar>
+            <h3 className="text-xl font-bold mb-1">{name}</h3>
+            <p className="text-pfcu-purple font-medium mb-3">{role}</p>
+            {bio && <p className="text-gray-600 text-sm mb-4">{bio}</p>}
+            
+            {socialMedia && (
+              <div className="flex gap-3">
+                {socialMedia.facebook && (
+                  <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer" 
+                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                    <Facebook size={18} />
+                  </a>
+                )}
+                {socialMedia.twitter && (
+                  <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer" 
+                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                    <Twitter size={18} />
+                  </a>
+                )}
+                {socialMedia.instagram && (
+                  <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer" 
+                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                    <Instagram size={18} />
+                  </a>
+                )}
+                {socialMedia.linkedin && (
+                  <a href={socialMedia.linkedin} target="_blank" rel="noopener noreferrer" 
+                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                    <Linkedin size={18} />
+                  </a>
+                )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -87,8 +104,9 @@ const Leadership = () => {
         name: leader.name,
         role: leader.position,
         initial: leader.initial,
-        bio: "",
-        socialMedia: {
+        bio: leader.bio || "",
+        profileImage: leader.profileImage || "",
+        socialMedia: leader.socialMedia || {
           instagram: "https://instagram.com/pfcu_"
         }
       }));
@@ -125,14 +143,19 @@ const Leadership = () => {
 
   return (
     <MainLayout>
-      <div className="bg-pfcu-light py-16 md:py-24">
+      <motion.div 
+        className="bg-pfcu-light py-16 md:py-24"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.8 }}
+      >
         <div className="container mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-6">Our Leadership</h1>
-          <p className="text-xl text-center max-w-3xl mx-auto text-gray-700">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-6 animate-fade-in">Our Leadership</h1>
+          <p className="text-xl text-center max-w-3xl mx-auto text-gray-700 animate-fade-in">
             Meet the dedicated team guiding our fellowship with vision and purpose.
           </p>
         </div>
-      </div>
+      </motion.div>
 
       <section className="py-16">
         <div className="container mx-auto">

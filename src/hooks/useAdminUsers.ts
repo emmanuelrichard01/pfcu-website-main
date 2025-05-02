@@ -53,10 +53,10 @@ export function useAdminUsers() {
         }
 
         // For each admin user, get their email using the RPC function
-        const adminWithEmails = await Promise.all(adminData.map(async (admin) => {
+        const adminsWithEmails = await Promise.all(adminData.map(async (admin) => {
           try {
             // Use the RPC function to get the email securely
-            const { data: emailData, error: emailError } = await supabase.rpc<string>(
+            const { data: emailData, error: emailError } = await supabase.rpc(
               'get_user_email',
               { user_uid: admin.user_id }
             );
@@ -68,7 +68,7 @@ export function useAdminUsers() {
             
             return {
               id: admin.id,
-              email: emailData || "Email not available",
+              email: emailData as string || "Email not available",
               created_at: admin.created_at,
               is_super_admin: admin.is_super_admin || false
             };
@@ -83,7 +83,7 @@ export function useAdminUsers() {
           }
         }));
 
-        setAdminUsers(adminWithEmails);
+        setAdminUsers(adminsWithEmails as AdminUser[]);
       } catch (error) {
         console.error("Error fetching admin users:", error);
         toast({
