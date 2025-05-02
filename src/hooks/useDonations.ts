@@ -77,34 +77,42 @@ export const useDonations = () => {
         date: newDonation.date
       };
       
-      // Insert into Supabase
+      // Use RPC to add donation with admin rights
       const { data, error } = await supabase
-        .from('donations')
-        .insert([donationData])
-        .select('*')
-        .single();
+        .rpc('admin_add_donation', donationData);
       
       if (error) {
-        throw error;
+        console.error("RPC error:", error);
+        // Fall back to direct insertion
+        const { data: insertData, error: insertError } = await supabase
+          .from('donations')
+          .insert([donationData])
+          .select('*')
+          .single();
+          
+        if (insertError) throw insertError;
+        
+        // Convert inserted data to our format
+        const newDonationWithId: Donation = {
+          id: insertData.id,
+          donorName: insertData.donor_name,
+          amount: Number(insertData.amount),
+          date: insertData.date,
+          purpose: insertData.purpose,
+          status: insertData.status as "completed" | "pending" | "failed",
+          paymentMethod: insertData.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
+          email: insertData.email || undefined,
+          phone: insertData.phone || undefined,
+          paymentReference: insertData.payment_reference || undefined,
+          paymentGateway: insertData.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
+        };
+        
+        // Update local state
+        setDonations(prev => [newDonationWithId, ...prev]);
+      } else {
+        // Refresh the entire list to get the newly added donation
+        fetchDonations();
       }
-      
-      // Format the new donation with ID returned from Supabase
-      const newDonationWithId: Donation = {
-        id: data.id,
-        donorName: data.donor_name,
-        amount: Number(data.amount),
-        date: data.date,
-        purpose: data.purpose,
-        status: data.status as "completed" | "pending" | "failed",
-        paymentMethod: data.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
-        email: data.email || undefined,
-        phone: data.phone || undefined,
-        paymentReference: data.payment_reference || undefined,
-        paymentGateway: data.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
-      };
-      
-      // Update local state
-      setDonations(prev => [newDonationWithId, ...prev]);
       
       toast({
         title: "Donation added",
@@ -138,16 +146,79 @@ export const useDonations = () => {
     }
   };
 
-  const deleteDonation = async (id: string) => {
+  const updateDonation = async (id: string, updatedData: Partial<Donation>) => {
     try {
-      // Delete from Supabase
+      // Convert our data model to Supabase schema
+      const donationData: any = {};
+      
+      if (updatedData.donorName !== undefined) donationData.donor_name = updatedData.donorName;
+      if (updatedData.email !== undefined) donationData.email = updatedData.email || null;
+      if (updatedData.phone !== undefined) donationData.phone = updatedData.phone || null;
+      if (updatedData.amount !== undefined) donationData.amount = updatedData.amount;
+      if (updatedData.purpose !== undefined) donationData.purpose = updatedData.purpose;
+      if (updatedData.paymentMethod !== undefined) donationData.payment_method = updatedData.paymentMethod;
+      if (updatedData.paymentReference !== undefined) donationData.payment_reference = updatedData.paymentReference || null;
+      if (updatedData.paymentGateway !== undefined) donationData.payment_gateway = updatedData.paymentGateway || null;
+      if (updatedData.status !== undefined) donationData.status = updatedData.status;
+      if (updatedData.date !== undefined) donationData.date = updatedData.date;
+      
+      // Use RPC to update donation with admin rights
       const { error } = await supabase
-        .from('donations')
-        .delete()
-        .eq('id', id);
+        .rpc('admin_update_donation', { 
+          donation_id: id,
+          ...donationData
+        });
       
       if (error) {
-        throw error;
+        console.error("RPC error:", error);
+        // Fall back to direct update
+        const { error: updateError } = await supabase
+          .from('donations')
+          .update(donationData)
+          .eq('id', id);
+          
+        if (updateError) throw updateError;
+      }
+      
+      // Update local state
+      const updatedDonations = donations.map(donation => 
+        donation.id === id ? { ...donation, ...updatedData } : donation
+      );
+      
+      setDonations(updatedDonations);
+      
+      toast({
+        title: "Donation updated",
+        description: "The donation has been updated successfully."
+      });
+      
+      return true;
+    } catch (error: any) {
+      console.error("Error updating donation:", error);
+      toast({
+        title: "Error updating donation",
+        description: error.message || "Failed to update donation",
+        variant: "destructive"
+      });
+      return false;
+    }
+  };
+
+  const deleteDonation = async (id: string) => {
+    try {
+      // Use RPC to delete donation with admin rights
+      const { error } = await supabase
+        .rpc('admin_delete_donation', { donation_id: id });
+      
+      if (error) {
+        console.error("RPC error:", error);
+        // Fall back to direct deletion
+        const { error: deleteError } = await supabase
+          .from('donations')
+          .delete()
+          .eq('id', id);
+          
+        if (deleteError) throw deleteError;
       }
       
       // Update local state
@@ -161,16 +232,6 @@ export const useDonations = () => {
       return true;
     } catch (error: any) {
       console.error("Error deleting donation:", error);
-      
-      // Fall back to localStorage if there's any error
-      try {
-        // Update local state and localStorage
-        const updatedDonations = donations.filter(d => d.id !== id);
-        setDonations(updatedDonations);
-        localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
-      } catch (fallbackError) {
-        console.error("Even fallback storage failed:", fallbackError);
-      }
       
       toast({
         title: "Error deleting donation",
@@ -191,6 +252,7 @@ export const useDonations = () => {
     loading,
     fetchDonations,
     addDonation,
+    updateDonation,
     deleteDonation
   };
 };

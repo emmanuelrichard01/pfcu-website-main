@@ -123,7 +123,11 @@ export const useLeadership = () => {
   
   const updateLeader = async (id: string, updatedData: Partial<Leader>) => {
     try {
-      const updatedLeaders = leaders.map(leader => 
+      // Create a deep copy of the leaders array to avoid reference issues
+      const leadersCopy = JSON.parse(JSON.stringify(leaders));
+      
+      // Find the leader by ID
+      const updatedLeaders = leadersCopy.map((leader: Leader) => 
         leader.id === id ? { ...leader, ...updatedData } : leader
       );
       

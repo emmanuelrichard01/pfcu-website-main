@@ -1,16 +1,9 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardFooter, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { 
   FileText, 
   Search, 
@@ -27,7 +20,6 @@ import {
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
-// Type definition for sermon data from Supabase
 interface Sermon {
   id: string;
   title: string;
@@ -54,6 +46,7 @@ const AudioPlayer = ({ src, title, preacher, coverImage, onClose }: AudioPlayerP
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -62,17 +55,28 @@ const AudioPlayer = ({ src, title, preacher, coverImage, onClose }: AudioPlayerP
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
+    const handleError = () => {
+      setError("Error loading audio file");
+      console.error("Audio error:", audio.error);
+    };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('durationchange', handleDurationChange);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('error', handleError);
     };
   }, []);
+
+  useEffect(() => {
+    // Reset error when src changes
+    setError(null);
+  }, [src]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -81,7 +85,10 @@ const AudioPlayer = ({ src, title, preacher, coverImage, onClose }: AudioPlayerP
     if (isPlaying) {
       audio.pause();
     } else {
-      audio.play();
+      audio.play().catch(err => {
+        console.error("Playback error:", err);
+        setError("Could not play audio: " + err.message);
+      });
     }
     setIsPlaying(!isPlaying);
   };
@@ -148,6 +155,11 @@ const AudioPlayer = ({ src, title, preacher, coverImage, onClose }: AudioPlayerP
     >
       <audio ref={audioRef} src={src} preload="metadata" />
       <div className="max-w-7xl mx-auto px-4 py-3">
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-2 mb-2 rounded">
+            {error}. Please try again or contact the administrator.
+          </div>
+        )}
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-pfcu-purple/10 rounded flex-shrink-0">
             {coverImage ? (
@@ -206,6 +218,7 @@ const AudioPlayer = ({ src, title, preacher, coverImage, onClose }: AudioPlayerP
               size="icon" 
               className="h-10 w-10 rounded-full bg-pfcu-purple hover:bg-pfcu-dark"
               onClick={togglePlay}
+              disabled={!!error}
             >
               {isPlaying ? (
                 <Pause className="h-5 w-5" />
@@ -328,10 +341,12 @@ const Sermons = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentSermon, setCurrentSermon] = useState<Sermon | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   useEffect(() => {
     const fetchSermons = async () => {
       setLoading(true);
+      setError(null);
       try {
         const { data, error } = await supabase
           .from('sermons')
@@ -340,10 +355,12 @@ const Sermons = () => {
         
         if (error) {
           console.error("Error fetching sermons:", error);
+          setError("Failed to fetch sermons");
           throw error;
         }
         
         if (data) {
+          console.log("Sermon data loaded:", data);
           setSermons(data);
         }
       } catch (error) {
@@ -356,11 +373,27 @@ const Sermons = () => {
     fetchSermons();
   }, []);
   
+  // This useEffect will log the currentSermon when it changes
+  useEffect(() => {
+    if (currentSermon) {
+      console.log("Current sermon selected:", currentSermon);
+      console.log("Audio URL:", currentSermon.audio_url);
+    }
+  }, [currentSermon]);
+  
   const filteredSermons = searchTerm 
     ? sermons.filter(sermon => 
         sermon.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         sermon.preacher.toLowerCase().includes(searchTerm.toLowerCase()))
     : sermons;
+  
+  const handleSelectSermon = (sermon: Sermon) => {
+    if (!sermon.audio_url) {
+      console.warn("Sermon has no audio URL:", sermon);
+      return;
+    }
+    setCurrentSermon(sermon);
+  };
 
   return (
     <MainLayout>
@@ -436,6 +469,12 @@ const Sermons = () => {
             </motion.div>
           </div>
 
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
           {loading ? (
             <div className="text-center py-20">
               <div className="w-16 h-16 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -444,7 +483,7 @@ const Sermons = () => {
           ) : filteredSermons.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {filteredSermons.map((sermon) => (
-                <div key={sermon.id} onClick={() => setCurrentSermon(sermon)} className="cursor-pointer">
+                <div key={sermon.id} onClick={() => handleSelectSermon(sermon)} className="cursor-pointer">
                   <SermonCard sermon={sermon} />
                 </div>
               ))}
