@@ -1,7 +1,8 @@
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Facebook, Twitter as TwitterIcon, Instagram, Linkedin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface LeaderData {
@@ -59,7 +60,8 @@ const LeaderCard = ({ leader, index }: LeaderCardProps) => {
           {leader.socialMedia.twitter && (
             <a href={leader.socialMedia.twitter} target="_blank" rel="noopener noreferrer" 
                className="text-gray-500 hover:text-pfcu-purple transition-colors">
-              <Twitter size={16} />
+              <TwitterIcon size={16} />
+              <span className="sr-only">X (formerly Twitter)</span>
             </a>
           )}
           {leader.socialMedia.instagram && (
@@ -84,7 +86,7 @@ const LeadershipSection = () => {
   const [leaders, setLeaders] = useState<LeaderData[]>([]);
   const [tenureInfo, setTenureInfo] = useState({
     year: "2024/2025",
-    slogan: "Many but one in Christ"
+    declaration: "Many but one in Christ"
   });
   const [loading, setLoading] = useState(true);
 
@@ -171,7 +173,11 @@ const LeadershipSection = () => {
           }
           
           if (storedTenure) {
-            setTenureInfo(JSON.parse(storedTenure));
+            const parsedTenure = JSON.parse(storedTenure);
+            setTenureInfo({
+              year: parsedTenure.year,
+              declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+            });
           } else {
             localStorage.setItem("pfcu_tenure", JSON.stringify(tenureInfo));
           }
@@ -192,7 +198,11 @@ const LeadershipSection = () => {
     // Fetch tenure info from localStorage
     const storedTenure = localStorage.getItem("pfcu_tenure");
     if (storedTenure) {
-      setTenureInfo(JSON.parse(storedTenure));
+      const parsedTenure = JSON.parse(storedTenure);
+      setTenureInfo({
+        year: parsedTenure.year,
+        declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+      });
     }
     
     fetchLeaders();
@@ -211,7 +221,7 @@ const LeadershipSection = () => {
           <h2 className="section-title">Our Leadership</h2>
           <p className="section-subtitle">{tenureInfo.year} Tenure Leadership</p>
           <p className="text-center max-w-2xl mx-auto mb-8 text-gray-600">
-            <em>{tenureInfo.slogan}</em> - Our leadership team is dedicated to guiding our fellowship
+            <em>{tenureInfo.declaration}</em> - Our leadership team is dedicated to guiding our fellowship
             through the academic year from June {tenureInfo.year.split('/')[0]} to June {tenureInfo.year.split('/')[1]}.
           </p>
         </motion.div>

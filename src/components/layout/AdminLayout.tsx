@@ -23,9 +23,13 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<{ email: string; initials: string } | null>(null);
+  const [currentTenure, setCurrentTenure] = useState({
+    year: "2024/2025",
+    declaration: "Realignment"
+  });
 
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
@@ -60,6 +64,16 @@ const AdminLayout = () => {
     };
     
     fetchCurrentUser();
+
+    // Fetch tenure data
+    const storedTenure = localStorage.getItem("pfcu_tenure");
+    if (storedTenure) {
+      const parsedTenure = JSON.parse(storedTenure);
+      setCurrentTenure({
+        year: parsedTenure.year,
+        declaration: parsedTenure.slogan // Using the existing slogan field as declaration
+      });
+    }
   }, []);
 
   const toggleSidebar = () => {
@@ -158,7 +172,7 @@ const AdminLayout = () => {
             </div>
             <div>
               <h3 className="font-semibold text-sm text-pfcu-gold">Tenure Declaration</h3>
-              <p className="text-sm text-white">Realignment</p>
+              <p className="text-sm text-white">{currentTenure.declaration}</p>
             </div>
           </div>
         

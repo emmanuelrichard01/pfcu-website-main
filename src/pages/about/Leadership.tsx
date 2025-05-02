@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Facebook, Twitter, Instagram, Linkedin } from "lucide-react";
+import { Facebook, Twitter as TwitterIcon, Instagram, Linkedin } from "lucide-react";
 import { motion } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -23,7 +23,7 @@ interface LeaderProps {
 
 interface TenureData {
   year: string;
-  slogan: string;
+  declaration: string;
 }
 
 const LeaderCard = ({ name, role, bio, initial, profileImage, socialMedia }: LeaderProps) => {
@@ -62,7 +62,8 @@ const LeaderCard = ({ name, role, bio, initial, profileImage, socialMedia }: Lea
                 {socialMedia.twitter && (
                   <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer" 
                      className="text-gray-500 hover:text-pfcu-purple transition-colors">
-                    <Twitter size={18} />
+                    <TwitterIcon size={18} />
+                    <span className="sr-only">X (formerly Twitter)</span>
                   </a>
                 )}
                 {socialMedia.instagram && (
@@ -90,7 +91,7 @@ const Leadership = () => {
   const [leaders, setLeaders] = useState<LeaderProps[]>([]);
   const [tenureInfo, setTenureInfo] = useState<TenureData>({
     year: "2024/2025",
-    slogan: "Many but one in Christ"
+    declaration: "Many but one in Christ"
   });
   const [loading, setLoading] = useState(true);
 
@@ -188,7 +189,11 @@ const Leadership = () => {
     // Load tenure data from localStorage
     const storedTenure = localStorage.getItem("pfcu_tenure");
     if (storedTenure) {
-      setTenureInfo(JSON.parse(storedTenure));
+      const parsedTenure = JSON.parse(storedTenure);
+      setTenureInfo({
+        year: parsedTenure.year,
+        declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+      });
     }
     
     fetchLeaders();
@@ -214,7 +219,7 @@ const Leadership = () => {
         <div className="container mx-auto">
           <h2 className="text-3xl font-display font-bold mb-8 text-center">Current Leadership Team</h2>
           <p className="text-center max-w-2xl mx-auto mb-8">
-            <strong>{tenureInfo.year} Tenure</strong> - <em>{tenureInfo.slogan}</em>
+            <strong>{tenureInfo.year} Tenure</strong> - <em>{tenureInfo.declaration}</em>
           </p>
           
           {loading ? (
