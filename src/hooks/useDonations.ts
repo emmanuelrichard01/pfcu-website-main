@@ -77,41 +77,33 @@ export const useDonations = () => {
         date: newDonation.date
       };
       
-      // Use RPC to add donation with admin rights
+      // Use direct insertion rather than RPC
       const { data, error } = await supabase
-        .rpc('admin_add_donation', donationData);
-      
-      if (error) {
-        console.error("RPC error:", error);
-        // Fall back to direct insertion
-        const { data: insertData, error: insertError } = await supabase
-          .from('donations')
-          .insert([donationData])
-          .select('*')
-          .single();
+        .from('donations')
+        .insert([donationData])
+        .select('*')
+        .single();
           
-        if (insertError) throw insertError;
-        
-        // Convert inserted data to our format
+      if (error) throw error;
+      
+      // Convert inserted data to our format
+      if (data) {
         const newDonationWithId: Donation = {
-          id: insertData.id,
-          donorName: insertData.donor_name,
-          amount: Number(insertData.amount),
-          date: insertData.date,
-          purpose: insertData.purpose,
-          status: insertData.status as "completed" | "pending" | "failed",
-          paymentMethod: insertData.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
-          email: insertData.email || undefined,
-          phone: insertData.phone || undefined,
-          paymentReference: insertData.payment_reference || undefined,
-          paymentGateway: insertData.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
+          id: data.id,
+          donorName: data.donor_name,
+          amount: Number(data.amount),
+          date: data.date,
+          purpose: data.purpose,
+          status: data.status as "completed" | "pending" | "failed",
+          paymentMethod: data.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
+          email: data.email || undefined,
+          phone: data.phone || undefined,
+          paymentReference: data.payment_reference || undefined,
+          paymentGateway: data.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
         };
         
         // Update local state
         setDonations(prev => [newDonationWithId, ...prev]);
-      } else {
-        // Refresh the entire list to get the newly added donation
-        fetchDonations();
       }
       
       toast({
@@ -162,23 +154,13 @@ export const useDonations = () => {
       if (updatedData.status !== undefined) donationData.status = updatedData.status;
       if (updatedData.date !== undefined) donationData.date = updatedData.date;
       
-      // Use RPC to update donation with admin rights
+      // Use direct update rather than RPC
       const { error } = await supabase
-        .rpc('admin_update_donation', { 
-          donation_id: id,
-          ...donationData
-        });
-      
-      if (error) {
-        console.error("RPC error:", error);
-        // Fall back to direct update
-        const { error: updateError } = await supabase
-          .from('donations')
-          .update(donationData)
-          .eq('id', id);
+        .from('donations')
+        .update(donationData)
+        .eq('id', id);
           
-        if (updateError) throw updateError;
-      }
+      if (error) throw error;
       
       // Update local state
       const updatedDonations = donations.map(donation => 
@@ -206,20 +188,13 @@ export const useDonations = () => {
 
   const deleteDonation = async (id: string) => {
     try {
-      // Use RPC to delete donation with admin rights
+      // Use direct deletion rather than RPC
       const { error } = await supabase
-        .rpc('admin_delete_donation', { donation_id: id });
-      
-      if (error) {
-        console.error("RPC error:", error);
-        // Fall back to direct deletion
-        const { error: deleteError } = await supabase
-          .from('donations')
-          .delete()
-          .eq('id', id);
+        .from('donations')
+        .delete()
+        .eq('id', id);
           
-        if (deleteError) throw deleteError;
-      }
+      if (error) throw error;
       
       // Update local state
       setDonations(donations.filter(d => d.id !== id));

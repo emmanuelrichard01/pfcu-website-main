@@ -24,48 +24,31 @@ export const useSermons = () => {
   const fetchSermons = async () => {
     setLoading(true);
     try {
-      // First try to use an RPC function that bypasses RLS
-      let data = null;
-      let error = null;
-      
-      try {
-        const result = await supabase.rpc('admin_get_sermons');
+      // Use direct query instead of RPC
+      const { data, error } = await supabase
+        .from('sermons')
+        .select('*', { count: 'exact' })
+        .order('created_at', { ascending: false });
+          
+      if (error) {
+        console.error("Supabase query error:", error);
         
-        if (!result.error && result.data) {
-          data = result.data;
+        // Fall back to localStorage if there are RLS/permission issues
+        const storedSermons = localStorage.getItem("pfcu_sermons");
+        if (storedSermons) {
+          const parsedData = JSON.parse(storedSermons);
+          setSermons(parsedData || []);
+          setCount(parsedData?.length || 0);
         } else {
-          throw new Error("RPC not available");
+          throw error;
         }
-      } catch (e) {
-        console.log("RPC not available, falling back to direct query");
-        // Fall back to direct query
-        const result = await supabase
-          .from('sermons')
-          .select('*', { count: 'exact' })
-          .order('created_at', { ascending: false });
-          
-        data = result.data;
-        error = result.error;
+      } else {
+        setSermons(data || []);
+        setCount(data?.length || 0);
         
-        if (error) {
-          console.error("Supabase query error:", error);
-          
-          // Fall back to localStorage if there are RLS/permission issues
-          const storedSermons = localStorage.getItem("pfcu_sermons");
-          if (storedSermons) {
-            data = JSON.parse(storedSermons);
-            error = null;
-          }
-        }
+        // Cache sermons in localStorage for fallback
+        localStorage.setItem("pfcu_sermons", JSON.stringify(data || []));
       }
-      
-      if (error) throw error;
-      
-      setSermons(data || []);
-      setCount(data?.length || 0);
-      
-      // Cache sermons in localStorage for fallback
-      localStorage.setItem("pfcu_sermons", JSON.stringify(data || []));
     } catch (error: any) {
       console.error("Error in fetchSermons:", error);
       toast({
@@ -96,14 +79,15 @@ export const useSermons = () => {
         .from(bucket)
         .upload(filePath, file, {
           cacheControl: "3600",
-          upsert: true,
-          onUploadProgress: (progress) => {
-            const percent = Math.round((progress.loaded / progress.total) * 100);
-            if (onProgress) onProgress(percent);
-          }
+          upsert: true
         });
       
       if (error) throw error;
+      
+      // Manual progress tracking if provided
+      if (onProgress) {
+        onProgress(100); // Since we can't track progress directly, simulate completion
+      }
       
       // Get the public URL
       const { data: urlData } = supabase.storage
@@ -119,26 +103,14 @@ export const useSermons = () => {
 
   const addSermon = async (sermon: Omit<Sermon, 'id' | 'created_at'>) => {
     try {
-      // Try to use an RPC function that bypasses RLS
-      let result;
+      // Use direct insert instead of RPC
+      const { data, error } = await supabase
+        .from('sermons')
+        .insert(sermon)
+        .select('*')
+        .single();
       
-      try {
-        result = await supabase.rpc('admin_add_sermon', sermon);
-        
-        if (result.error) {
-          throw new Error("RPC not available");
-        }
-      } catch (e) {
-        console.log("RPC not available, falling back to direct insert");
-        // Fall back to direct insert
-        result = await supabase
-          .from('sermons')
-          .insert(sermon)
-          .select('*')
-          .single();
-      }
-      
-      if (result.error) throw result.error;
+      if (error) throw error;
       
       toast({
         title: "Sermon added successfully",
@@ -161,28 +133,13 @@ export const useSermons = () => {
 
   const updateSermon = async (id: string, sermon: Partial<Sermon>) => {
     try {
-      // Try to use an RPC function that bypasses RLS
-      let result;
+      // Use direct update instead of RPC
+      const { error } = await supabase
+        .from('sermons')
+        .update(sermon)
+        .eq('id', id);
       
-      try {
-        result = await supabase.rpc('admin_update_sermon', {
-          sermon_id: id,
-          ...sermon
-        });
-        
-        if (result.error) {
-          throw new Error("RPC not available");
-        }
-      } catch (e) {
-        console.log("RPC not available, falling back to direct update");
-        // Fall back to direct update
-        result = await supabase
-          .from('sermons')
-          .update(sermon)
-          .eq('id', id);
-      }
-      
-      if (result.error) throw result.error;
+      if (error) throw error;
       
       toast({
         title: "Sermon updated successfully",
@@ -235,27 +192,13 @@ export const useSermons = () => {
         }
       }
       
-      // Try to use an RPC function that bypasses RLS
-      let result;
+      // Use direct delete instead of RPC
+      const { error } = await supabase
+        .from('sermons')
+        .delete()
+        .eq('id', id);
       
-      try {
-        result = await supabase.rpc('admin_delete_sermon', {
-          sermon_id: id
-        });
-        
-        if (result.error) {
-          throw new Error("RPC not available");
-        }
-      } catch (e) {
-        console.log("RPC not available, falling back to direct delete");
-        // Fall back to direct delete
-        result = await supabase
-          .from('sermons')
-          .delete()
-          .eq('id', id);
-      }
-      
-      if (result.error) throw result.error;
+      if (error) throw error;
       
       toast({
         title: "Sermon deleted successfully",
