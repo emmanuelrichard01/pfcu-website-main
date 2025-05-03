@@ -1,350 +1,184 @@
-import { useState, useRef, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, Loader2 } from "lucide-react";
-import { Slider } from "@/components/ui/slider";
-import { Progress } from "@/components/ui/progress";
-import { motion, AnimatePresence } from "framer-motion";
+
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
+import { formatTime } from '@/lib/utils';
 
 interface SermonPlayerProps {
   title: string;
   preacher: string;
-  coverImage?: string;
+  date: string;
   audioUrl: string;
+  coverImage?: string;
 }
 
-const SermonPlayer = ({ title, preacher, coverImage, audioUrl }: SermonPlayerProps) => {
+const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(0.7);
+  const [duration, setDuration] = useState(0);
   const [isMuted, setIsMuted] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [bufferingProgress, setBufferingProgress] = useState(0);
-  
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const animationRef = useRef<number>();
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Format time in MM:SS
-  const formatTime = (time: number) => {
-    if (time && !isNaN(time)) {
-      const minutes = Math.floor(time / 60);
-      const seconds = Math.floor(time % 60);
-      return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-    }
-    return "0:00";
-  };
-
-  // Load and handle audio events
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
     
-    setLoading(true);
-    setError(null);
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setBufferingProgress(0);
-
-    // Simulate loading progress while waiting for the audio to load
-    let progressInterval: NodeJS.Timeout;
-    progressInterval = setInterval(() => {
-      setBufferingProgress(prev => {
-        if (prev < 90) return prev + Math.random() * 10;
-        return prev;
-      });
-    }, 500);
-
-    const handleCanPlay = () => {
-      setLoading(false);
-      setBufferingProgress(100);
-      clearInterval(progressInterval);
-      setDuration(audio.duration);
-    };
-
-    const handleLoadError = () => {
-      setLoading(false);
-      setBufferingProgress(0);
-      clearInterval(progressInterval);
-      setError("Failed to load sermon audio. Please try again.");
-    };
-
-    const handleTimeUpdate = () => {
-      if (audio.currentTime && audio.duration) {
-        setCurrentTime(audio.currentTime);
-      }
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
-    };
-
-    const handleProgress = () => {
-      if (audio.buffered.length > 0) {
-        const bufferedEnd = audio.buffered.end(audio.buffered.length - 1);
-        const duration = audio.duration;
-        const progress = (bufferedEnd / duration) * 100;
-        setBufferingProgress(progress);
-      }
-    };
-
-    audio.addEventListener("canplaythrough", handleCanPlay);
-    audio.addEventListener("error", handleLoadError);
-    audio.addEventListener("timeupdate", handleTimeUpdate);
-    audio.addEventListener("ended", handleEnded);
-    audio.addEventListener("progress", handleProgress);
-
+    const setAudioData = () => setDuration(audio.duration);
+    const setAudioTime = () => setCurrentTime(audio.currentTime);
+    
+    audio.addEventListener('loadeddata', setAudioData);
+    audio.addEventListener('timeupdate', setAudioTime);
+    
     return () => {
-      clearInterval(progressInterval);
-      audio.removeEventListener("canplaythrough", handleCanPlay);
-      audio.removeEventListener("error", handleLoadError);
-      audio.removeEventListener("timeupdate", handleTimeUpdate);
-      audio.removeEventListener("ended", handleEnded);
-      audio.removeEventListener("progress", handleProgress);
-      
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+      audio.removeEventListener('loadeddata', setAudioData);
+      audio.removeEventListener('timeupdate', setAudioTime);
     };
-  }, [audioUrl]);
+  }, [audioRef]);
 
-  const togglePlayPause = () => {
+  const togglePlay = () => {
     if (!audioRef.current) return;
     
-    if (loading) return;
-    
-    const isAudioPlaying = isPlaying;
-    setIsPlaying(!isAudioPlaying);
-
-    if (!isAudioPlaying) {
-      audioRef.current.play();
-      animationRef.current = requestAnimationFrame(updateProgress);
-    } else {
+    if (isPlaying) {
       audioRef.current.pause();
-      if (animationRef.current) {
-        cancelAnimationFrame(animationRef.current);
-      }
+    } else {
+      audioRef.current.play();
     }
+    setIsPlaying(!isPlaying);
   };
-
-  const updateProgress = () => {
-    if (!audioRef.current) return;
-    
-    setCurrentTime(audioRef.current.currentTime);
-    animationRef.current = requestAnimationFrame(updateProgress);
-  };
-
-  const handleTimeChange = (value: number[]) => {
-    if (!audioRef.current || loading) return;
-    
-    audioRef.current.currentTime = value[0];
-    setCurrentTime(value[0]);
-  };
-
-  const handleVolumeChange = (value: number[]) => {
-    if (!audioRef.current) return;
-    
-    const newVolume = value[0];
-    setVolume(newVolume);
-    audioRef.current.volume = newVolume;
-    
-    if (newVolume === 0) {
-      setIsMuted(true);
-    } else if (isMuted) {
-      setIsMuted(false);
-    }
-  };
-
+  
   const toggleMute = () => {
     if (!audioRef.current) return;
     
-    const newMuteState = !isMuted;
-    setIsMuted(newMuteState);
-    audioRef.current.muted = newMuteState;
+    audioRef.current.muted = !isMuted;
+    setIsMuted(!isMuted);
   };
   
-  const jumpBackward = () => {
-    if (!audioRef.current || loading) return;
+  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!audioRef.current) return;
     
-    audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
-    setCurrentTime(audioRef.current.currentTime);
+    const time = parseFloat(e.target.value);
+    audioRef.current.currentTime = time;
+    setCurrentTime(time);
   };
   
-  const jumpForward = () => {
-    if (!audioRef.current || loading) return;
+  const handleSkipBack = () => {
+    if (!audioRef.current) return;
     
-    audioRef.current.currentTime = Math.min(audioRef.current.duration, audioRef.current.currentTime + 10);
-    setCurrentTime(audioRef.current.currentTime);
+    audioRef.current.currentTime -= 10;
   };
+  
+  const handleSkipForward = () => {
+    if (!audioRef.current) return;
+    
+    audioRef.current.currentTime += 10;
+  };
+  
+  const defaultCover = "/placeholder.svg";
 
   return (
-    <Card className="w-full overflow-hidden shadow-xl rounded-xl border-pfcu-purple/10 hover:border-pfcu-purple/30 transition-all duration-300 transform hover:scale-[1.01]">
-      <CardContent className="p-0">
-        {/* Audio Element */}
-        <audio ref={audioRef} src={audioUrl} preload="metadata" />
-
-        {/* Cover Image */}
-        <div className="relative w-full aspect-square bg-gradient-to-br from-pfcu-dark to-pfcu-purple overflow-hidden">
-          {coverImage ? (
-            <motion.img 
-              src={coverImage} 
-              alt={`${title} cover`} 
-              className="w-full h-full object-cover"
-              initial={{ scale: 1.05, opacity: 0.9 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5 }}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pfcu-dark to-pfcu-purple">
-              <motion.span 
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="text-white text-6xl font-bold"
-              >
-                {title.charAt(0)}
-              </motion.span>
-            </div>
-          )}
-          
-          <AnimatePresence>
-            {loading && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center"
-              >
-                <Loader2 className="w-12 h-12 text-pfcu-gold animate-spin mb-4" />
-                <p className="text-white text-lg font-medium">Loading Audio...</p>
-                <div className="w-3/4 mt-4">
-                  <Progress value={bufferingProgress} className="h-2 bg-gray-700" />
-                  <p className="text-center text-sm text-gray-300 mt-2">{Math.round(bufferingProgress)}%</p>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          
-          <AnimatePresence>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center"
-              >
-                <div className="text-white text-center p-4">
-                  <p className="mb-4 text-lg">{error}</p>
-                  <Button 
-                    variant="outline"
-                    className="border-white text-white bg-pfcu-purple/40 hover:bg-pfcu-purple hover:text-white"
-                    onClick={() => {
-                      if (audioRef.current) {
-                        audioRef.current.load();
-                        setLoading(true);
-                        setError(null);
-                      }
-                    }}
-                  >
-                    Retry
-                  </Button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+      <div className="relative h-64 bg-pfcu-purple flex items-center justify-center">
+        {coverImage ? (
+          <img 
+            src={coverImage} 
+            alt={title} 
+            className="w-full h-full object-cover absolute inset-0 opacity-25"
+          />
+        ) : (
+          <div className="absolute inset-0 bg-pfcu-purple opacity-50"></div>
+        )}
+        <div className="w-48 h-48 bg-white rounded-lg shadow-lg overflow-hidden z-10">
+          <img 
+            src={coverImage || defaultCover} 
+            alt={title} 
+            className="w-full h-full object-cover"
+          />
         </div>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Button 
+            onClick={togglePlay}
+            className="rounded-full bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-white w-16 h-16 flex items-center justify-center shadow-lg transform hover:scale-110 transition-all duration-300 z-20"
+            aria-label={isPlaying ? "Pause" : "Play"}
+          >
+            {isPlaying ? (
+              <Pause className="h-8 w-8" />
+            ) : (
+              <Play className="h-8 w-8 ml-1" />
+            )}
+          </Button>
+        </div>
+      </div>
 
-        {/* Controls */}
-        <div className="p-6 bg-gradient-to-b from-pfcu-dark to-black text-white">
-          {/* Title and Preacher */}
-          <div className="mb-6">
-            <h3 className="font-bold text-xl truncate text-pfcu-gold">{title}</h3>
-            <p className="text-sm text-gray-300">{preacher}</p>
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      
+      <div className="p-4">
+        <h2 className="text-xl font-bold mb-1">{title}</h2>
+        <p className="text-gray-600 mb-2">{preacher} • {date}</p>
+        
+        <div className="mt-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-gray-500">{formatTime(currentTime)}</span>
+            <span className="text-xs text-gray-500">{formatTime(duration)}</span>
           </div>
-
-          {/* Progress Slider */}
-          <div className="mb-6">
-            <Slider
-              value={[currentTime]}
-              min={0}
-              max={duration || 100}
-              step={0.1}
-              onValueChange={handleTimeChange}
-              disabled={loading || !!error}
-              className={`${loading || error ? 'opacity-50' : ''}`}
-            />
-            <div className="flex justify-between text-xs text-gray-300 pt-2">
-              <span className="font-mono">{formatTime(currentTime)}</span>
-              <span className="font-mono">{formatTime(duration)}</span>
-            </div>
-          </div>
-
-          {/* Control Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-5">
+          
+          <input
+            type="range"
+            min="0"
+            max={duration || 0}
+            value={currentTime}
+            onChange={handleSeek}
+            className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          />
+          
+          <div className="flex items-center justify-between mt-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleMute}
+              aria-label={isMuted ? "Unmute" : "Mute"}
+            >
+              {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+            </Button>
+            
+            <div className="flex items-center space-x-2">
               <Button 
                 variant="ghost" 
-                size="icon" 
-                onClick={jumpBackward}
-                disabled={loading || !!error}
-                className="text-white hover:bg-pfcu-purple/30 transition-transform hover:scale-110"
+                size="sm" 
+                onClick={handleSkipBack}
+                aria-label="Skip back 10 seconds"
               >
-                <SkipBack size={20} />
+                <SkipBack className="h-5 w-5" />
+                <span className="text-xs ml-1">10s</span>
               </Button>
-
+              
               <Button 
-                size="icon" 
-                className="rounded-full w-12 h-12 bg-pfcu-gold text-pfcu-dark hover:bg-pfcu-gold/80 transition-all hover:scale-110 shadow-lg flex items-center justify-center"
-                onClick={togglePlayPause}
-                disabled={loading || !!error}
+                onClick={togglePlay}
+                className="rounded-full bg-pfcu-purple text-white hover:bg-pfcu-gold w-10 h-10 flex items-center justify-center"
+                aria-label={isPlaying ? "Pause" : "Play"}
               >
                 {isPlaying ? (
-                  <Pause size={24} />
+                  <Pause className="h-5 w-5" />
                 ) : (
-                  <Play size={24} />
+                  <Play className="h-5 w-5 ml-0.5" />
                 )}
               </Button>
-
+              
               <Button 
                 variant="ghost" 
-                size="icon" 
-                onClick={jumpForward}
-                disabled={loading || !!error}
-                className="text-white hover:bg-pfcu-purple/30 transition-transform hover:scale-110"
+                size="sm" 
+                onClick={handleSkipForward}
+                aria-label="Skip forward 10 seconds"
               >
-                <SkipForward size={20} />
+                <span className="text-xs mr-1">10s</span>
+                <SkipForward className="h-5 w-5" />
               </Button>
             </div>
-
-            {/* Volume Control */}
-            <div className="flex items-center space-x-3">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="text-white hover:bg-pfcu-purple/30"
-                onClick={toggleMute}
-              >
-                {isMuted || volume === 0 ? <VolumeX size={20} /> : <Volume2 size={20} />}
-              </Button>
-              <Slider
-                value={[isMuted ? 0 : volume]}
-                min={0}
-                max={1}
-                step={0.01}
-                onValueChange={handleVolumeChange}
-                className="w-24"
-              />
-            </div>
+            
+            <div className="w-5"></div> {/* Placeholder for balance */}
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

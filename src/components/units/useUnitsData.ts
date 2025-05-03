@@ -1,52 +1,32 @@
 import { 
   BookOpen, Music, Church, Users, Video, Image, 
   Headphones, Heart, School, Pencil, Megaphone, 
-  MessageSquare, HandHeart, Shield, Bell, Globe 
+  MessageSquare, HandHeart, Shield, Bell, Globe,
+  LucideIcon
 } from "lucide-react";
 
-// Define an interface for the unit data structure
 export interface UnitData {
   name: string;
   description: string;
-  icon: any; // Using 'any' here because we're storing component references
+  icon: LucideIcon;
   activities: string[];
-  leaders: {name: string; position: string}[];
+  leaders: { name: string; position: string }[];
 }
 
-export interface UnitCategory {
+export interface CategoryData {
   category: string;
   units: UnitData[];
 }
 
 export const useUnitsData = () => {
-  // Define icons first so they can be referenced without JSX
-  const icons = {
-    music: Music,
-    church: Church,
-    bookOpen: BookOpen,
-    users: Users,
-    globe: Globe,
-    pencil: Pencil,
-    video: Video,
-    image: Image,
-    headphones: Headphones,
-    handHeart: HandHeart,
-    bell: Bell,
-    shield: Shield,
-    school: School,
-    heart: Heart,
-    messageSquare: MessageSquare,
-    megaphone: Megaphone
-  };
-
-  const unitsData: UnitCategory[] = [
+  const unitsData: CategoryData[] = [
     {
       category: "Worship",
       units: [
         {
           name: "Choir Unit",
           description: "The vocal and instrumental arm of the fellowship, leading worship during services and events.",
-          icon: icons.music,
+          icon: Music,
           activities: [
             "Sunday service worship",
             "Special ministrations",
@@ -61,7 +41,7 @@ export const useUnitsData = () => {
         {
           name: "Prayer Unit",
           description: "Dedicated to intercession for the fellowship, university, and nation through regular prayer meetings.",
-          icon: icons.church,
+          icon: Church,
           activities: [
             "Weekly prayer meetings",
             "All-night prayer sessions",
@@ -75,17 +55,17 @@ export const useUnitsData = () => {
         },
         {
           name: "Bible Study Unit",
-          description: "Focuses on in-depth study and teaching of the Word of God to build spiritual knowledge and maturity.",
-          icon: icons.bookOpen,
+          description: "Focused on in-depth study and understanding of the scriptures, promoting spiritual growth and knowledge.",
+          icon: BookOpen,
           activities: [
             "Weekly Bible study sessions",
-            "Topical studies",
-            "Book studies",
-            "Bible quiz competitions"
+            "Thematic Bible discussions",
+            "Scripture memorization challenges",
+            "Bible quizzes and competitions"
           ],
           leaders: [
-            {name: "Faith Uzodinma", position: "Coordinator"},
-            {name: "Paul Eke", position: "Assistant Coordinator"}
+            {name: "Ruth Eze", position: "Coordinator"},
+            {name: "Caleb Okoro", position: "Assistant Coordinator"}
           ]
         }
       ]
@@ -95,47 +75,32 @@ export const useUnitsData = () => {
       units: [
         {
           name: "Evangelism Unit",
-          description: "Focused on sharing the gospel both on campus and in surrounding communities.",
-          icon: icons.users,
+          description: "Committed to spreading the gospel through various outreach programs and activities.",
+          icon: Megaphone,
           activities: [
             "Campus evangelism",
             "Community outreaches",
-            "Evangelism training",
-            "Follow-up with new converts"
+            "Distribution of gospel tracts",
+            "Organizing evangelistic events"
           ],
           leaders: [
-            {name: "James Eke", position: "Leader"},
-            {name: "Ruth Okonkwo", position: "Assistant Leader"}
+            {name: "Samuel Ibe", position: "Coordinator"},
+            {name: "Blessing Uche", position: "Assistant Coordinator"}
           ]
         },
         {
-          name: "Cell Team Unit",
-          description: "Coordinates small groups and fellowships in various parts of the campus.",
-          icon: icons.globe,
+          name: "Missions Unit",
+          description: "Dedicated to supporting and participating in local and international missions projects.",
+          icon: Globe,
           activities: [
-            "Cell group coordination",
-            "Cell leader training",
-            "Weekly cell meetings",
-            "Cell group outreach"
+            "Supporting missionaries",
+            "Organizing mission trips",
+            "Raising funds for mission projects",
+            "Awareness campaigns for global missions"
           ],
           leaders: [
-            {name: "Peter Adamu", position: "Coordinator"},
-            {name: "Joy Nnamdi", position: "Assistant Coordinator"}
-          ]
-        },
-        {
-          name: "Editorial Unit",
-          description: "Handles publications, articles, and written content for the fellowship.",
-          icon: icons.pencil,
-          activities: [
-            "Newsletter production",
-            "Content creation",
-            "Bulletin management",
-            "Documentation of events"
-          ],
-          leaders: [
-            {name: "Samuel Obi", position: "Editor-in-Chief"},
-            {name: "Favour Johnson", position: "Assistant Editor"}
+            {name: "Grace Okeke", position: "Coordinator"},
+            {name: "Peter Zion", position: "Assistant Coordinator"}
           ]
         }
       ]
@@ -144,48 +109,93 @@ export const useUnitsData = () => {
       category: "Media",
       units: [
         {
-          name: "Drama Unit",
-          description: "Uses theatrical performances to communicate spiritual messages in an engaging way.",
-          icon: icons.video,
-          activities: [
-            "Drama presentations at services",
-            "Annual stage productions",
-            "Acting workshops",
-            "Script writing"
-          ],
-          leaders: [
-            {name: "Chioma Ede", position: "Director"},
-            {name: "Victor Okeke", position: "Assistant Director"}
-          ]
-        },
-        {
           name: "Technical Unit",
-          description: "Manages sound, lighting, and all technical aspects of fellowship services and events.",
-          icon: icons.image,
+          description: "Responsible for managing and maintaining the technical equipment and systems for fellowship events.",
+          icon: Headphones,
           activities: [
-            "Sound system operation",
-            "Lighting management",
-            "Livestreaming services",
-            "Equipment maintenance"
+            "Sound system setup and operation",
+            "Lighting and visual effects",
+            "Recording and broadcasting services",
+            "Technical support for events"
           ],
           leaders: [
-            {name: "Joshua Okoro", position: "Lead"},
-            {name: "Grace Eze", position: "Assistant Lead"}
+            {name: "Daniel Chukwu", position: "Coordinator"},
+            {name: "Esther James", position: "Assistant Coordinator"}
           ]
         },
         {
-          name: "Library Unit",
-          description: "Maintains and manages the fellowship's collection of books, resources and archives.",
-          icon: icons.headphones,
+          name: "Publicity Unit",
+          description: "Focused on promoting fellowship events and activities through various media channels.",
+          icon: Megaphone,
           activities: [
-            "Resource cataloging",
-            "Book lending system",
-            "Resource acquisition",
-            "Reading promotions"
+            "Creating promotional materials",
+            "Managing social media accounts",
+            "Distributing flyers and posters",
+            "Public relations and media outreach"
           ],
           leaders: [
-            {name: "Michael Ojo", position: "Librarian"},
-            {name: "Blessing Eze", position: "Assistant Librarian"}
+            {name: "Favour Eze", position: "Coordinator"},
+            {name: "Miracle Okoro", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Graphics & Media Unit",
+          description: "Dedicated to creating visual content and managing media resources for the fellowship.",
+          icon: Image,
+          activities: [
+            "Designing graphics for events",
+            "Creating video content",
+            "Managing photo archives",
+            "Developing multimedia presentations"
+          ],
+          leaders: [
+            {name: "Cynthia Okeke", position: "Coordinator"},
+            {name: "Joshua Peter", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Editorial Unit",
+          description: "Responsible for creating written content and managing publications for the fellowship.",
+          icon: Pencil,
+          activities: [
+            "Writing articles for the fellowship magazine",
+            "Editing and proofreading content",
+            "Managing the fellowship website",
+            "Creating newsletters and email campaigns"
+          ],
+          leaders: [
+            {name: "Ruth David", position: "Coordinator"},
+            {name: "Caleb Joseph", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Social Media Unit",
+          description: "Focused on engaging and growing the fellowship's online community through social media platforms.",
+          icon: MessageSquare,
+          activities: [
+            "Creating engaging social media content",
+            "Managing social media accounts",
+            "Responding to online inquiries",
+            "Analyzing social media metrics"
+          ],
+          leaders: [
+            {name: "Samuel Ibe", position: "Coordinator"},
+            {name: "Blessing Uche", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Video Unit",
+          description: "Dedicated to producing high-quality video content for the fellowship's events and activities.",
+          icon: Video,
+          activities: [
+            "Filming events and activities",
+            "Editing and producing videos",
+            "Managing video archives",
+            "Creating promotional videos"
+          ],
+          leaders: [
+            {name: "Grace Okeke", position: "Coordinator"},
+            {name: "Peter Zion", position: "Assistant Coordinator"}
           ]
         }
       ]
@@ -195,47 +205,47 @@ export const useUnitsData = () => {
       units: [
         {
           name: "Welfare Unit",
-          description: "Caters to the well-being of fellowship members through various support initiatives.",
-          icon: icons.handHeart,
+          description: "Committed to providing support and care for the physical and emotional well-being of fellowship members.",
+          icon: HandHeart,
           activities: [
-            "Visitation to sick members",
-            "Support for members in need",
-            "Birthday celebrations",
-            "Welfare packages distribution"
+            "Providing assistance to members in need",
+            "Organizing welfare programs",
+            "Offering counseling and support",
+            "Visiting sick members"
           ],
           leaders: [
-            {name: "Blessing Nwosu", position: "Coordinator"},
-            {name: "John Uche", position: "Assistant Coordinator"}
+            {name: "Esther Obi", position: "Coordinator"},
+            {name: "Joseph Ade", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Security Unit",
+          description: "Responsible for ensuring the safety and security of fellowship members and property during events and activities.",
+          icon: Shield,
+          activities: [
+            "Providing security during events",
+            "Managing access control",
+            "Responding to security incidents",
+            "Conducting safety training"
+          ],
+          leaders: [
+            {name: "David Nwachukwu", position: "Coordinator"},
+            {name: "Mary Okafor", position: "Assistant Coordinator"}
           ]
         },
         {
           name: "Ushering Unit",
-          description: "Ensures order and decorum during services and events, welcoming visitors and members.",
-          icon: icons.bell,
+          description: "Dedicated to providing a welcoming and orderly environment during fellowship services and events.",
+          icon: Users,
           activities: [
-            "Service coordination",
-            "Visitor welcome",
-            "Seating arrangement",
-            "Offering collection"
+            "Greeting and seating attendees",
+            "Distributing materials",
+            "Collecting offerings",
+            "Maintaining order during services"
           ],
           leaders: [
-            {name: "Peace Adeyemi", position: "Head Usher"},
-            {name: "Daniel Okafor", position: "Assistant Head Usher"}
-          ]
-        },
-        {
-          name: "Sanctuary Unit",
-          description: "Maintains the cleanliness and setup of the fellowship venue before and after services.",
-          icon: icons.shield,
-          activities: [
-            "Venue cleaning",
-            "Chair arrangement",
-            "General maintenance",
-            "Security coordination"
-          ],
-          leaders: [
-            {name: "Emmanuel Ike", position: "Lead"},
-            {name: "Mercy Adebayo", position: "Assistant Lead"}
+            {name: "Ruth Eze", position: "Coordinator"},
+            {name: "Caleb Okoro", position: "Assistant Coordinator"}
           ]
         }
       ]
@@ -244,63 +254,48 @@ export const useUnitsData = () => {
       category: "Development",
       units: [
         {
+          name: "Follow-Up Unit",
+          description: "Focused on connecting with and integrating new members into the fellowship community.",
+          icon: Heart,
+          activities: [
+            "Contacting new members",
+            "Providing information about the fellowship",
+            "Inviting new members to events",
+            "Connecting new members with mentors"
+          ],
+          leaders: [
+            {name: "Samuel Ibe", position: "Coordinator"},
+            {name: "Blessing Uche", position: "Assistant Coordinator"}
+          ]
+        },
+        {
           name: "Academic Unit",
-          description: "Promotes academic excellence through tutorials, study groups, and resources.",
-          icon: icons.school,
+          description: "Committed to supporting and promoting academic excellence among fellowship members.",
+          icon: School,
           activities: [
-            "Tutorial sessions",
-            "Study groups",
-            "Academic counseling",
-            "Resource sharing"
+            "Organizing tutorials and study groups",
+            "Providing academic resources",
+            "Mentoring students",
+            "Recognizing academic achievements"
           ],
           leaders: [
-            {name: "Grace Okoli", position: "Coordinator"},
-            {name: "John Adewale", position: "Assistant Coordinator"}
+            {name: "Grace Okeke", position: "Coordinator"},
+            {name: "Peter Zion", position: "Assistant Coordinator"}
           ]
         },
         {
-          name: "Social Unit",
-          description: "Organizes social events and activities to build fellowship among members.",
-          icon: icons.heart,
+          name: "Protocol Unit",
+          description: "Responsible for managing logistics and ensuring smooth operations during fellowship events and activities.",
+          icon: Bell,
           activities: [
-            "Fellowship games",
-            "Social outings",
-            "Sports activities",
-            "Fellowship dinner"
+            "Coordinating transportation",
+            "Managing accommodations",
+            "Providing event support",
+            "Ensuring smooth operations"
           ],
           leaders: [
-            {name: "Victoria Chukwu", position: "Coordinator"},
-            {name: "Philip Obi", position: "Assistant Coordinator"}
-          ]
-        },
-        {
-          name: "Children Unit",
-          description: "Provides spiritual guidance and care for children during fellowship services.",
-          icon: icons.messageSquare,
-          activities: [
-            "Children's church",
-            "Bible lessons",
-            "Creative activities",
-            "Children's outings"
-          ],
-          leaders: [
-            {name: "Dr. Esther Johnson", position: "Head Teacher"},
-            {name: "Pastor Mike Okafor", position: "Assistant Teacher"}
-          ]
-        },
-        {
-          name: "Decorating Unit",
-          description: "Responsible for beautifying the fellowship venue for services and special events.",
-          icon: icons.megaphone,
-          activities: [
-            "Venue decoration",
-            "Aesthetic planning",
-            "Seasonal themes",
-            "Special event setups"
-          ],
-          leaders: [
-            {name: "Joy Nwankwo", position: "Lead Decorator"},
-            {name: "Paul Eze", position: "Assistant Decorator"}
+            {name: "Cynthia Okeke", position: "Coordinator"},
+            {name: "Joshua Peter", position: "Assistant Coordinator"}
           ]
         }
       ]

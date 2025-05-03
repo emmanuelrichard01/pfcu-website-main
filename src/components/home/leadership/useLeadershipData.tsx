@@ -50,8 +50,7 @@ export const useLeadershipData = () => {
         // Try to fetch leaders from Supabase database
         const { data, error } = await supabase
           .from('leaders')
-          .select('*')
-          .order('position');
+          .select('*');
           
         if (error) throw error;
         
@@ -106,7 +105,7 @@ export const useLeadershipData = () => {
               },
               {
                 name: "Emmanuella Y. Ufe",
-                position: "Asst. Secretary & Treasurer",
+                position: "Assistant Secretary & Treasurer",
                 initial: "EU",
                 bio: "Managing resources and finances",
               },
