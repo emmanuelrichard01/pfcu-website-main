@@ -5,12 +5,12 @@ import { motion } from "framer-motion";
 interface UnitProps {
   name: string;
   description: string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
   activities: string[];
   leaders: {name: string; position: string}[];
 }
 
-const UnitCard = ({ name, description, icon, activities, leaders }: UnitProps) => {
+const UnitCard = ({ name, description, icon: Icon, activities, leaders }: UnitProps) => {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -22,7 +22,7 @@ const UnitCard = ({ name, description, icon, activities, leaders }: UnitProps) =
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="text-pfcu-purple bg-pfcu-light p-4 rounded-full h-16 w-16 flex items-center justify-center">
-              {icon}
+              <Icon className="h-12 w-12" />
             </div>
             <div className="flex-1">
               <h3 className="text-xl font-bold mb-2 font-display">{name}</h3>

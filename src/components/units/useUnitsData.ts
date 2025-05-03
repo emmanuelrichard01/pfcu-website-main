@@ -5,15 +5,29 @@ import {
   MessageSquare, HandHeart, Shield, Bell, Globe 
 } from "lucide-react";
 
+// Define an interface for the unit data structure
+export interface UnitData {
+  name: string;
+  description: string;
+  icon: React.ElementType;
+  activities: string[];
+  leaders: {name: string; position: string}[];
+}
+
+export interface CategoryData {
+  category: string;
+  units: UnitData[];
+}
+
 export const useUnitsData = () => {
-  const unitsData = [
+  const unitsData: CategoryData[] = [
     {
       category: "Worship",
       units: [
         {
           name: "Choir Unit",
           description: "The vocal and instrumental arm of the fellowship, leading worship during services and events.",
-          icon: <Music className="h-12 w-12" />,
+          icon: Music,
           activities: [
             "Sunday service worship",
             "Special ministrations",
@@ -28,7 +42,7 @@ export const useUnitsData = () => {
         {
           name: "Prayer Unit",
           description: "Dedicated to intercession for the fellowship, university, and nation through regular prayer meetings.",
-          icon: <Church className="h-12 w-12" />,
+          icon: Church,
           activities: [
             "Weekly prayer meetings",
             "All-night prayer sessions",
@@ -43,7 +57,7 @@ export const useUnitsData = () => {
         {
           name: "Bible Study Unit",
           description: "Focuses on in-depth study and teaching of the Word of God to build spiritual knowledge and maturity.",
-          icon: <BookOpen className="h-12 w-12" />,
+          icon: BookOpen,
           activities: [
             "Weekly Bible study sessions",
             "Topical studies",
@@ -63,7 +77,7 @@ export const useUnitsData = () => {
         {
           name: "Evangelism Unit",
           description: "Focused on sharing the gospel both on campus and in surrounding communities.",
-          icon: <Users className="h-12 w-12" />,
+          icon: Users,
           activities: [
             "Campus evangelism",
             "Community outreaches",
@@ -78,7 +92,7 @@ export const useUnitsData = () => {
         {
           name: "Cell Team Unit",
           description: "Coordinates small groups and fellowships in various parts of the campus.",
-          icon: <Globe className="h-12 w-12" />,
+          icon: Globe,
           activities: [
             "Cell group coordination",
             "Cell leader training",
@@ -93,7 +107,7 @@ export const useUnitsData = () => {
         {
           name: "Editorial Unit",
           description: "Handles publications, articles, and written content for the fellowship.",
-          icon: <Pencil className="h-12 w-12" />,
+          icon: Pencil,
           activities: [
             "Newsletter production",
             "Content creation",
@@ -113,7 +127,7 @@ export const useUnitsData = () => {
         {
           name: "Drama Unit",
           description: "Uses theatrical performances to communicate spiritual messages in an engaging way.",
-          icon: <Video className="h-12 w-12" />,
+          icon: Video,
           activities: [
             "Drama presentations at services",
             "Annual stage productions",
@@ -128,7 +142,7 @@ export const useUnitsData = () => {
         {
           name: "Technical Unit",
           description: "Manages sound, lighting, and all technical aspects of fellowship services and events.",
-          icon: <Image className="h-12 w-12" />,
+          icon: Image,
           activities: [
             "Sound system operation",
             "Lighting management",
@@ -143,7 +157,7 @@ export const useUnitsData = () => {
         {
           name: "Library Unit",
           description: "Maintains and manages the fellowship's collection of books, resources and archives.",
-          icon: <Headphones className="h-12 w-12" />,
+          icon: Headphones,
           activities: [
             "Resource cataloging",
             "Book lending system",
@@ -163,7 +177,7 @@ export const useUnitsData = () => {
         {
           name: "Welfare Unit",
           description: "Caters to the well-being of fellowship members through various support initiatives.",
-          icon: <HandHeart className="h-12 w-12" />,
+          icon: HandHeart,
           activities: [
             "Visitation to sick members",
             "Support for members in need",
@@ -178,7 +192,7 @@ export const useUnitsData = () => {
         {
           name: "Ushering Unit",
           description: "Ensures order and decorum during services and events, welcoming visitors and members.",
-          icon: <Bell className="h-12 w-12" />,
+          icon: Bell,
           activities: [
             "Service coordination",
             "Visitor welcome",
@@ -193,7 +207,7 @@ export const useUnitsData = () => {
         {
           name: "Sanctuary Unit",
           description: "Maintains the cleanliness and setup of the fellowship venue before and after services.",
-          icon: <Shield className="h-12 w-12" />,
+          icon: Shield,
           activities: [
             "Venue cleaning",
             "Chair arrangement",
@@ -213,7 +227,7 @@ export const useUnitsData = () => {
         {
           name: "Academic Unit",
           description: "Promotes academic excellence through tutorials, study groups, and resources.",
-          icon: <School className="h-12 w-12" />,
+          icon: School,
           activities: [
             "Tutorial sessions",
             "Study groups",
@@ -228,7 +242,7 @@ export const useUnitsData = () => {
         {
           name: "Social Unit",
           description: "Organizes social events and activities to build fellowship among members.",
-          icon: <Heart className="h-12 w-12" />,
+          icon: Heart,
           activities: [
             "Fellowship games",
             "Social outings",
@@ -243,7 +257,7 @@ export const useUnitsData = () => {
         {
           name: "Children Unit",
           description: "Provides spiritual guidance and care for children during fellowship services.",
-          icon: <MessageSquare className="h-12 w-12" />,
+          icon: MessageSquare,
           activities: [
             "Children's church",
             "Bible lessons",
@@ -258,7 +272,7 @@ export const useUnitsData = () => {
         {
           name: "Decorating Unit",
           description: "Responsible for beautifying the fellowship venue for services and special events.",
-          icon: <Megaphone className="h-12 w-12" />,
+          icon: Megaphone,
           activities: [
             "Venue decoration",
             "Aesthetic planning",

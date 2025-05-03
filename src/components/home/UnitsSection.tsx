@@ -1,16 +1,16 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Church, BookOpen, Users, Music, Calendar, MessageSquare, Video, Image, Headphones, Heart, School, Pencil, Bell, Shield, HandHeart, Globe } from "lucide-react";
+import { Church, BookOpen, Users, Music, School, HandHeart, Video, Image } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
 interface UnitCardProps {
   name: string;
   description: string;
-  icon: React.ReactNode;
+  icon: React.ElementType;
 }
 
-const UnitCard = ({ name, description, icon }: UnitCardProps) => {
+const UnitCard = ({ name, description, icon: Icon }: UnitCardProps) => {
   return (
     <motion.div
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
@@ -22,7 +22,7 @@ const UnitCard = ({ name, description, icon }: UnitCardProps) => {
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full border-t-2 border-t-pfcu-purple/30 hover:border-t-pfcu-purple">
         <CardContent className="p-6 h-full flex flex-col">
           <div className="mb-4 text-pfcu-purple group-hover:text-pfcu-gold transition-colors bg-pfcu-light p-3 rounded-full w-16 h-16 flex items-center justify-center">
-            {icon}
+            <Icon size={36} />
           </div>
           <h3 className="font-display text-xl font-bold mb-2">{name}</h3>
           <p className="text-gray-600 text-sm flex-grow">{description}</p>
@@ -37,42 +37,42 @@ const UnitsSection = () => {
     {
       name: "Academic Unit",
       description: "Supporting students in their academic pursuits through study groups and resources.",
-      icon: <School size={36} />
+      icon: School
     },
     {
       name: "Bible Study Unit",
       description: "Facilitating in-depth study and understanding of the Word of God.",
-      icon: <BookOpen size={36} />
+      icon: BookOpen
     },
     {
       name: "Choir Unit",
       description: "Leading worship and creating an atmosphere of praise through music.",
-      icon: <Music size={36} />
+      icon: Music
     },
     {
       name: "Prayer Unit",
       description: "Interceding for the fellowship, university, and beyond.",
-      icon: <Church size={36} />
+      icon: Church
     },
     {
       name: "Evangelism Unit",
       description: "Sharing the gospel and reaching out to the campus community.",
-      icon: <Users size={36} />
+      icon: Users
     },
     {
       name: "Welfare Unit",
       description: "Providing support and care for the needs of fellowship members.",
-      icon: <HandHeart size={36} />
+      icon: HandHeart
     },
     {
       name: "Drama Unit",
       description: "Using theatrical arts to convey spiritual messages and truths.",
-      icon: <Video size={36} />
+      icon: Video
     },
     {
       name: "Technical Unit",
       description: "Managing audio, visual, and technical aspects of the fellowship.",
-      icon: <Image size={36} />
+      icon: Image
     }
   ];
 
