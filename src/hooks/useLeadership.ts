@@ -23,14 +23,32 @@ export const useLeadership = () => {
   const [count, setCount] = useState(0);
   const { toast } = useToast();
 
+  // Define the leadership position hierarchy for sorting
+  const positionOrder: Record<string, number> = {
+    "Pastor/President": 1,
+    "Assistant Pastor/VP": 2,
+    "General Secretary": 3,
+    "Asst. Secretary & Treasurer": 4,
+    "P.R.O & Financial Secretary": 5,
+    "Provost": 6
+  };
+
+  // Function to sort leaders by position
+  const sortLeadersByHierarchy = (leadersList: Leader[]): Leader[] => {
+    return [...leadersList].sort((a, b) => {
+      const posA = positionOrder[a.position] || 99;
+      const posB = positionOrder[b.position] || 99;
+      return posA - posB;
+    });
+  };
+
   const fetchLeaders = async () => {
     setLoading(true);
     try {
       // Try to fetch leaders from the Supabase database
       const { data, error } = await supabase
         .from('leaders')
-        .select('*')
-        .order('position');
+        .select('*');
       
       if (error) {
         throw error;
@@ -53,14 +71,17 @@ export const useLeadership = () => {
           }
         }));
         
-        setLeaders(mappedLeaders);
+        // Sort leaders according to the specified hierarchy
+        const sortedLeaders = sortLeadersByHierarchy(mappedLeaders);
+        setLeaders(sortedLeaders);
         setCount(mappedLeaders.length);
       } else {
         // If no data in database, check localStorage
         const storedLeaders = localStorage.getItem("pfcu_leaders");
         if (storedLeaders) {
           const parsedLeaders = JSON.parse(storedLeaders);
-          setLeaders(parsedLeaders);
+          const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
+          setLeaders(sortedLeaders);
           setCount(parsedLeaders.length);
           
           // Migrate localStorage data to database
@@ -128,7 +149,8 @@ export const useLeadership = () => {
       const storedLeaders = localStorage.getItem("pfcu_leaders");
       if (storedLeaders) {
         const parsedLeaders = JSON.parse(storedLeaders);
-        setLeaders(parsedLeaders);
+        const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
+        setLeaders(sortedLeaders);
         setCount(parsedLeaders.length);
       } else {
         setLeaders([]);
@@ -195,8 +217,8 @@ export const useLeadership = () => {
         }
       };
       
-      // Update local state
-      const updatedLeaders = [...leaders, newLeader];
+      // Update local state with sorted leaders
+      const updatedLeaders = sortLeadersByHierarchy([...leaders, newLeader]);
       setLeaders(updatedLeaders);
       setCount(updatedLeaders.length);
       
@@ -219,7 +241,7 @@ export const useLeadership = () => {
       // Try to use localStorage as fallback
       try {
         const newLeader = { ...leader, id: Date.now().toString() };
-        const updatedLeaders = [...leaders, newLeader];
+        const updatedLeaders = sortLeadersByHierarchy([...leaders, newLeader]);
         
         setLeaders(updatedLeaders);
         setCount(updatedLeaders.length);
@@ -235,6 +257,9 @@ export const useLeadership = () => {
   
   const updateLeader = async (id: string, updatedData: Partial<Leader>) => {
     try {
+      console.log("Updating leader with ID:", id);
+      console.log("Updated data:", updatedData);
+      
       // Update database first
       const dbUpdateData = {
         name: updatedData.name,
@@ -255,6 +280,8 @@ export const useLeadership = () => {
         }
       });
       
+      console.log("Database update data:", dbUpdateData);
+      
       const { error } = await supabase
         .from('leaders')
         .update(dbUpdateData)
@@ -263,14 +290,16 @@ export const useLeadership = () => {
       if (error) throw error;
       
       // Update local state - immutably creating a new array with updated leader
-      const updatedLeaders = leaders.map(leader => 
+      const updatedLeadersArray = leaders.map(leader => 
         leader.id === id ? { ...leader, ...updatedData } : leader
       );
       
-      setLeaders(updatedLeaders);
+      // Sort leaders by hierarchy
+      const sortedLeaders = sortLeadersByHierarchy(updatedLeadersArray);
+      setLeaders(sortedLeaders);
       
       // Keep localStorage in sync for backward compatibility
-      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
+      localStorage.setItem("pfcu_leaders", JSON.stringify(sortedLeaders));
       
       toast({
         title: "Leader updated successfully",
@@ -279,6 +308,8 @@ export const useLeadership = () => {
       
       return true;
     } catch (error: any) {
+      console.error("Error updating leader:", error);
+      
       toast({
         title: "Error updating leader",
         description: error.message,
@@ -287,12 +318,13 @@ export const useLeadership = () => {
       
       try {
         // Fallback to direct localStorage update
-        const updatedLeaders = leaders.map(leader => 
+        const updatedLeadersArray = leaders.map(leader => 
           leader.id === id ? { ...leader, ...updatedData } : leader
         );
         
-        setLeaders(updatedLeaders);
-        localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
+        const sortedLeaders = sortLeadersByHierarchy(updatedLeadersArray);
+        setLeaders(sortedLeaders);
+        localStorage.setItem("pfcu_leaders", JSON.stringify(sortedLeaders));
         
         return true;
       } catch (fallbackError) {

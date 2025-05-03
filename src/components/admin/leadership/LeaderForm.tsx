@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
 import { Save, Clock, Camera } from "lucide-react";
 import { useRef, useState, useEffect } from "react";
+import { useToast } from "@/components/ui/use-toast";
 
 interface LeaderData {
   id?: string;
@@ -41,7 +42,9 @@ interface LeaderFormProps {
 const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFormProps) => {
   const [activeTab, setActiveTab] = useState("basic");
   const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
   
   const leaderForm = useForm<LeaderData>({
     defaultValues: initialData
@@ -59,28 +62,54 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
     
     // Check file type
     if (!file.type.startsWith('image/')) {
-      alert("Please select an image file.");
+      toast({
+        title: "Invalid file type",
+        description: "Please select an image file.",
+        variant: "destructive"
+      });
       return;
     }
     
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      alert("Image size should be less than 2MB.");
+      toast({
+        title: "File too large",
+        description: "Image size should be less than 2MB.",
+        variant: "destructive"
+      });
       return;
     }
     
+    // Store the file for later use
+    setImageFile(file);
+    
+    // Create a preview URL
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setTempImageUrl(dataUrl);
+      // Important: We're storing the data URL in the form
       leaderForm.setValue("profileImage", dataUrl);
     };
     reader.readAsDataURL(file);
   };
 
   const handleFormSubmit = async (data: LeaderData) => {
+    console.log("Form submitted with data:", data);
+    
+    // Forward the form data to the parent onSubmit handler
     await onSubmit(data);
   };
+  
+  // Define position options with the correct hierarchy
+  const positionOptions = [
+    { value: "Pastor/President", label: "Pastor/President" },
+    { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP" },
+    { value: "General Secretary", label: "General Secretary" },
+    { value: "Asst. Secretary & Treasurer", label: "Asst. Secretary & Treasurer" },
+    { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary" },
+    { value: "Provost", label: "Provost" }
+  ];
 
   return (
     <Form {...leaderForm}>
@@ -114,7 +143,17 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 <FormItem>
                   <FormLabel>Position</FormLabel>
                   <FormControl>
-                    <Input placeholder="Leadership position" {...field} />
+                    <select 
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-purple"
+                      onChange={(e) => field.onChange(e.target.value)}
+                      value={field.value}
+                    >
+                      {positionOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -203,6 +242,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                   className="mt-2 text-xs h-8"
                   onClick={() => {
                     setTempImageUrl(null);
+                    setImageFile(null);
                     leaderForm.setValue("profileImage", "");
                     
                     if (fileInputRef.current) {
