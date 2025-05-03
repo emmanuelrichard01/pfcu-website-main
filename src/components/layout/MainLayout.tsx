@@ -1,5 +1,6 @@
 
 import { ReactNode, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import Navbar from "./Navbar";
 import Footer from "./Footer";
 import ScrollToTop from "../ScrollToTop";
@@ -9,6 +10,16 @@ interface MainLayoutProps {
 }
 
 const MainLayout = ({ children }: MainLayoutProps) => {
+  const location = useLocation();
+  
+  // Scroll to top when route changes
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, [location.pathname]);
+  
   useEffect(() => {
     // Enable smooth scrolling for internal links
     const handleLinkClick = (e: MouseEvent) => {

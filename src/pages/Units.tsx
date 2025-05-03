@@ -1,7 +1,9 @@
 
+import { useEffect } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { motion } from "framer-motion";
 import { 
   BookOpen, Music, Church, Users, Video, Image, 
   Headphones, Heart, School, Pencil, Megaphone, 
@@ -18,41 +20,61 @@ interface UnitProps {
 
 const UnitCard = ({ name, description, icon, activities, leaders }: UnitProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="text-pfcu-purple">
-            {icon}
-          </div>
-          <div>
-            <h3 className="text-xl font-bold mb-2">{name}</h3>
-            <p className="mb-4 text-gray-700">{description}</p>
-            
-            <div className="mb-4">
-              <h4 className="font-bold text-sm text-pfcu-purple mb-2">Key Activities:</h4>
-              <ul className="list-disc list-inside space-y-1 text-gray-700">
-                {activities.map((activity, index) => (
-                  <li key={index}>{activity}</li>
-                ))}
-              </ul>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      viewport={{ once: true }}
+    >
+      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-pfcu-purple">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="text-pfcu-purple bg-pfcu-light p-4 rounded-full h-16 w-16 flex items-center justify-center">
+              {icon}
             </div>
-            
-            <div>
-              <h4 className="font-bold text-sm text-pfcu-purple mb-2">Unit Leaders:</h4>
-              <ul className="space-y-1 text-gray-700">
-                {leaders.map((leader, index) => (
-                  <li key={index}>{leader.name} - <span className="font-medium">{leader.position}</span></li>
-                ))}
-              </ul>
+            <div className="flex-1">
+              <h3 className="text-xl font-bold mb-2 font-display">{name}</h3>
+              <p className="mb-4 text-gray-700">{description}</p>
+              
+              <div className="mb-4">
+                <h4 className="font-bold text-sm text-pfcu-purple mb-2 inline-flex items-center">
+                  <span className="bg-pfcu-purple h-1 w-4 mr-2"></span>
+                  Key Activities
+                </h4>
+                <ul className="list-disc list-inside space-y-1 text-gray-700 pl-3">
+                  {activities.map((activity, index) => (
+                    <li key={index} className="text-sm">{activity}</li>
+                  ))}
+                </ul>
+              </div>
+              
+              <div>
+                <h4 className="font-bold text-sm text-pfcu-purple mb-2 inline-flex items-center">
+                  <span className="bg-pfcu-purple h-1 w-4 mr-2"></span>
+                  Unit Leaders
+                </h4>
+                <ul className="space-y-1 text-gray-700 pl-3">
+                  {leaders.map((leader, index) => (
+                    <li key={index} className="text-sm">
+                      <span className="font-medium">{leader.name}</span> - {leader.position}
+                    </li>
+                  ))}
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
 const Units = () => {
+  useEffect(() => {
+    // Ensure page loads from the top
+    window.scrollTo(0, 0);
+  }, []);
+
   const unitsData = [
     {
       category: "Worship",
@@ -123,14 +145,14 @@ const Units = () => {
           ]
         },
         {
-          name: "Mission Unit",
-          description: "Coordinates mission trips and partnerships with churches and organizations beyond the campus.",
+          name: "Cell Team Unit",
+          description: "Coordinates small groups and fellowships in various parts of the campus.",
           icon: <Globe className="h-12 w-12" />,
           activities: [
-            "Mission trips planning",
-            "Missionary support",
-            "Cross-cultural training",
-            "Mission awareness programs"
+            "Cell group coordination",
+            "Cell leader training",
+            "Weekly cell meetings",
+            "Cell group outreach"
           ],
           leaders: [
             {name: "Peter Adamu", position: "Coordinator"},
@@ -138,18 +160,18 @@ const Units = () => {
           ]
         },
         {
-          name: "Publicity Unit",
-          description: "Handles communication and promotional activities to raise awareness about fellowship events.",
-          icon: <Megaphone className="h-12 w-12" />,
+          name: "Editorial Unit",
+          description: "Handles publications, articles, and written content for the fellowship.",
+          icon: <Pencil className="h-12 w-12" />,
           activities: [
-            "Event publicity",
-            "Social media management",
-            "Graphic design",
-            "Campus announcements"
+            "Newsletter production",
+            "Content creation",
+            "Bulletin management",
+            "Documentation of events"
           ],
           leaders: [
-            {name: "Samuel Obi", position: "Head"},
-            {name: "Favour Johnson", position: "Assistant Head"}
+            {name: "Samuel Obi", position: "Editor-in-Chief"},
+            {name: "Favour Johnson", position: "Assistant Editor"}
           ]
         }
       ]
@@ -188,18 +210,18 @@ const Units = () => {
           ]
         },
         {
-          name: "Media Unit",
-          description: "Handles audio and video recording, photography, and digital content creation.",
+          name: "Library Unit",
+          description: "Maintains and manages the fellowship's collection of books, resources and archives.",
           icon: <Headphones className="h-12 w-12" />,
           activities: [
-            "Service recording",
-            "Event photography",
-            "Content editing",
-            "Archive management"
+            "Resource cataloging",
+            "Book lending system",
+            "Resource acquisition",
+            "Reading promotions"
           ],
           leaders: [
-            {name: "Michael Ojo", position: "Director"},
-            {name: "Blessing Eze", position: "Assistant Director"}
+            {name: "Michael Ojo", position: "Librarian"},
+            {name: "Blessing Eze", position: "Assistant Librarian"}
           ]
         }
       ]
@@ -238,13 +260,13 @@ const Units = () => {
           ]
         },
         {
-          name: "Protocol Unit",
-          description: "Handles logistics and ensures smooth running of events and services.",
+          name: "Sanctuary Unit",
+          description: "Maintains the cleanliness and setup of the fellowship venue before and after services.",
           icon: <Shield className="h-12 w-12" />,
           activities: [
-            "VIP reception",
-            "Event planning",
-            "Venue preparation",
+            "Venue cleaning",
+            "Chair arrangement",
+            "General maintenance",
             "Security coordination"
           ],
           leaders: [
@@ -273,48 +295,48 @@ const Units = () => {
           ]
         },
         {
-          name: "Literary Unit",
-          description: "Fosters reading, writing, and critical thinking through literary activities and publications.",
-          icon: <Pencil className="h-12 w-12" />,
-          activities: [
-            "Fellowship magazine",
-            "Writing workshops",
-            "Book reviews",
-            "Poetry sessions"
-          ],
-          leaders: [
-            {name: "Victoria Chukwu", position: "Editor-in-Chief"},
-            {name: "Philip Obi", position: "Assistant Editor"}
-          ]
-        },
-        {
-          name: "Counseling Unit",
-          description: "Provides spiritual and emotional guidance to members facing various challenges.",
-          icon: <MessageSquare className="h-12 w-12" />,
-          activities: [
-            "One-on-one counseling",
-            "Group therapy sessions",
-            "Spiritual direction",
-            "Life skills workshops"
-          ],
-          leaders: [
-            {name: "Dr. Esther Johnson", position: "Head Counselor"},
-            {name: "Pastor Mike Okafor", position: "Assistant Counselor"}
-          ]
-        },
-        {
-          name: "Love & Care Unit",
-          description: "Focuses on building relationships and fostering a sense of family within the fellowship.",
+          name: "Social Unit",
+          description: "Organizes social events and activities to build fellowship among members.",
           icon: <Heart className="h-12 w-12" />,
           activities: [
-            "Fellowship gatherings",
-            "Relationship seminars",
-            "Social events",
-            "Member integration"
+            "Fellowship games",
+            "Social outings",
+            "Sports activities",
+            "Fellowship dinner"
           ],
           leaders: [
-            {name: "Joy Nwankwo", position: "Coordinator"},
-            {name: "Paul Eze", position: "Assistant Coordinator"}
+            {name: "Victoria Chukwu", position: "Coordinator"},
+            {name: "Philip Obi", position: "Assistant Coordinator"}
+          ]
+        },
+        {
+          name: "Children Unit",
+          description: "Provides spiritual guidance and care for children during fellowship services.",
+          icon: <MessageSquare className="h-12 w-12" />,
+          activities: [
+            "Children's church",
+            "Bible lessons",
+            "Creative activities",
+            "Children's outings"
+          ],
+          leaders: [
+            {name: "Dr. Esther Johnson", position: "Head Teacher"},
+            {name: "Pastor Mike Okafor", position: "Assistant Teacher"}
+          ]
+        },
+        {
+          name: "Decorating Unit",
+          description: "Responsible for beautifying the fellowship venue for services and special events.",
+          icon: <Megaphone className="h-12 w-12" />,
+          activities: [
+            "Venue decoration",
+            "Aesthetic planning",
+            "Seasonal themes",
+            "Special event setups"
+          ],
+          leaders: [
+            {name: "Joy Nwankwo", position: "Lead Decorator"},
+            {name: "Paul Eze", position: "Assistant Decorator"}
           ]
         }
       ]
@@ -323,21 +345,40 @@ const Units = () => {
 
   return (
     <MainLayout>
-      <div className="bg-pfcu-light py-16 md:py-24">
-        <div className="container mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-6">Ministry Units</h1>
-          <p className="text-xl text-center max-w-3xl mx-auto text-gray-700">
-            16 specialized units working together to fulfill the vision of PFCU.
-          </p>
+      {/* Hero section with parallax effect */}
+      <section className="relative bg-pfcu-purple overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute inset-0 bg-gradient-to-b from-pfcu-dark/90 to-pfcu-purple/90"></div>
         </div>
-      </div>
+        <div className="container mx-auto relative z-10 py-20 md:py-28 px-6">
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="text-center"
+          >
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6">
+              Ministry Units
+            </h1>
+            <p className="text-xl text-center max-w-3xl mx-auto text-white/90">
+              16 specialized units working together to fulfill the vision of PFCU.
+            </p>
+          </motion.div>
+        </div>
+      </section>
 
       <section className="py-16">
-        <div className="container mx-auto">
+        <div className="container mx-auto px-4">
           <Tabs defaultValue="Worship" className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8">
+            <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8 bg-pfcu-light p-1 rounded-lg">
               {unitsData.map((category) => (
-                <TabsTrigger key={category.category} value={category.category}>{category.category}</TabsTrigger>
+                <TabsTrigger 
+                  key={category.category} 
+                  value={category.category}
+                  className="data-[state=active]:bg-pfcu-purple data-[state=active]:text-white"
+                >
+                  {category.category}
+                </TabsTrigger>
               ))}
             </TabsList>
             
@@ -352,18 +393,25 @@ const Units = () => {
         </div>
       </section>
 
-      <section className="py-16 bg-pfcu-purple text-white">
-        <div className="container mx-auto text-center">
-          <h2 className="text-3xl font-display font-bold mb-6">Join a Ministry Unit</h2>
-          <p className="max-w-2xl mx-auto mb-8">
-            Each ministry unit offers unique opportunities to serve and grow. Find where your gifts and passions align with our fellowship needs.
-          </p>
-          <a 
-            href="#" 
-            className="bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-pfcu-dark px-6 py-3 rounded-md transition-colors inline-flex items-center font-medium"
+      <section className="py-16 bg-gradient-to-br from-pfcu-purple to-pfcu-dark text-white">
+        <div className="container mx-auto text-center px-4">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
           >
-            Discover Your Ministry Fit
-          </a>
+            <h2 className="text-3xl font-display font-bold mb-6">Join a Ministry Unit</h2>
+            <p className="max-w-2xl mx-auto mb-8">
+              Each ministry unit offers unique opportunities to serve and grow. Find where your gifts and passions align with our fellowship needs.
+            </p>
+            <a 
+              href="#" 
+              className="bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-pfcu-dark px-6 py-3 rounded-md transition-colors inline-flex items-center font-medium"
+            >
+              Discover Your Ministry Fit
+            </a>
+          </motion.div>
         </div>
       </section>
     </MainLayout>

@@ -119,16 +119,21 @@ const LeadershipSection = () => {
             }
           }));
           
-          setLeaders(mappedLeaders);
+          // Sort leaders according to the specified hierarchy
+          const sortedLeaders = sortLeadersByHierarchy(mappedLeaders);
+          setLeaders(sortedLeaders);
         } else {
           // Fallback to localStorage if needed
           const storedLeaders = localStorage.getItem("pfcu_leaders");
           const storedTenure = localStorage.getItem("pfcu_tenure");
           
           if (storedLeaders) {
-            setLeaders(JSON.parse(storedLeaders));
+            const parsedLeaders = JSON.parse(storedLeaders);
+            // Sort leaders according to the specified hierarchy
+            const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
+            setLeaders(sortedLeaders);
           } else {
-            // Default leaders if none are stored
+            // Default leaders with the correct hierarchy
             const defaultLeaders = [
               {
                 name: "Emmanuel R.C. Moghalu",
@@ -176,7 +181,7 @@ const LeadershipSection = () => {
             const parsedTenure = JSON.parse(storedTenure);
             setTenureInfo({
               year: parsedTenure.year,
-              declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+              declaration: parsedTenure.slogan || parsedTenure.declaration || "Many but one in Christ" // Convert slogan to declaration
             });
           } else {
             localStorage.setItem("pfcu_tenure", JSON.stringify(tenureInfo));
@@ -188,7 +193,9 @@ const LeadershipSection = () => {
         // Fallback to localStorage if needed
         const storedLeaders = localStorage.getItem("pfcu_leaders");
         if (storedLeaders) {
-          setLeaders(JSON.parse(storedLeaders));
+          const parsedLeaders = JSON.parse(storedLeaders);
+          const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
+          setLeaders(sortedLeaders);
         }
       } finally {
         setLoading(false);
@@ -201,12 +208,30 @@ const LeadershipSection = () => {
       const parsedTenure = JSON.parse(storedTenure);
       setTenureInfo({
         year: parsedTenure.year,
-        declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+        declaration: parsedTenure.slogan || parsedTenure.declaration || "Many but one in Christ" // Convert slogan to declaration
       });
     }
     
     fetchLeaders();
   }, []);
+
+  // Function to sort leaders according to the specified hierarchy
+  const sortLeadersByHierarchy = (leadersList: LeaderData[]): LeaderData[] => {
+    const positionOrder: Record<string, number> = {
+      "Pastor/President": 1,
+      "Assistant Pastor/VP": 2,
+      "General Secretary": 3,
+      "Asst. Secretary & Treasurer": 4,
+      "P.R.O & Financial Secretary": 5,
+      "Provost": 6
+    };
+    
+    return [...leadersList].sort((a, b) => {
+      const posA = positionOrder[a.position] || 99;
+      const posB = positionOrder[b.position] || 99;
+      return posA - posB;
+    });
+  };
 
   return (
     <section className="section-padding bg-white">

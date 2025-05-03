@@ -1,7 +1,8 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Church, BookOpen, Users, Music, Calendar, MessageSquare, Video, Image, Headphones, Heart, School, Pencil, Bell, Package, Shield, HandHeart } from "lucide-react";
+import { Church, BookOpen, Users, Music, Calendar, MessageSquare, Video, Image, Headphones, Heart, School, Pencil, Bell, Shield, HandHeart, Globe } from "lucide-react";
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
 
 interface UnitCardProps {
   name: string;
@@ -11,15 +12,23 @@ interface UnitCardProps {
 
 const UnitCard = ({ name, description, icon }: UnitCardProps) => {
   return (
-    <Card className="overflow-hidden hover:shadow-lg transition-shadow group">
-      <CardContent className="p-6">
-        <div className="mb-4 text-pfcu-purple group-hover:text-pfcu-gold transition-colors">
-          {icon}
-        </div>
-        <h3 className="font-display text-xl font-bold mb-2">{name}</h3>
-        <p className="text-gray-600 text-sm">{description}</p>
-      </CardContent>
-    </Card>
+    <motion.div
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.5 }}
+    >
+      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full border-t-2 border-t-pfcu-purple/30 hover:border-t-pfcu-purple">
+        <CardContent className="p-6 h-full flex flex-col">
+          <div className="mb-4 text-pfcu-purple group-hover:text-pfcu-gold transition-colors bg-pfcu-light p-3 rounded-full w-16 h-16 flex items-center justify-center">
+            {icon}
+          </div>
+          <h3 className="font-display text-xl font-bold mb-2">{name}</h3>
+          <p className="text-gray-600 text-sm flex-grow">{description}</p>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 };
 
@@ -70,30 +79,50 @@ const UnitsSection = () => {
   return (
     <section className="section-padding bg-pfcu-light">
       <div className="container">
-        <div className="text-center mb-12">
+        <motion.div 
+          className="text-center mb-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          viewport={{ once: true }}
+        >
           <h2 className="section-title">Our Ministry Units</h2>
           <p className="section-subtitle">
             16 units working together to build the body of Christ
           </p>
-        </div>
+        </motion.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {units.map((unit) => (
-            <UnitCard key={unit.name} {...unit} />
+          {units.map((unit, index) => (
+            <motion.div
+              key={unit.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <UnitCard {...unit} />
+            </motion.div>
           ))}
         </div>
 
-        <div className="text-center mt-12">
+        <motion.div 
+          className="text-center mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          viewport={{ once: true }}
+        >
           <Link 
             to="/units" 
-            className="inline-flex items-center text-pfcu-purple hover:text-pfcu-gold font-medium transition-colors"
+            className="inline-flex items-center bg-pfcu-purple hover:bg-pfcu-dark text-white px-6 py-3 rounded-md transition-all duration-300 hover:shadow-lg group"
           >
             View All 16 Ministry Units
-            <svg className="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-5 h-5 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
             </svg>
           </Link>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
