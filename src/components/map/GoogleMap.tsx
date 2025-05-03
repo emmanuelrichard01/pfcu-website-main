@@ -33,7 +33,7 @@ const GoogleMap = ({
       
       const googleMapScript = document.createElement('script');
       // Using a valid API key for production
-      googleMapScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDHfHsYGo23sLYZIUOjG9HXM-JQP2vO_Cs&libraries=places&callback=initMap`;
+      googleMapScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCrw5o26thUGFYdC7fwNDH_dZVZYKGLYdQ&libraries=places&callback=initMap`;
       googleMapScript.async = true;
       googleMapScript.defer = true;
       
