@@ -24,7 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout, currentUser } = useAuth(); // Changed from user to currentUser to match AuthContextType
+  const { logout, isAuthenticated } = useAuth(); // Updated to use isAuthenticated instead of currentUser
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<{ email: string; initials: string } | null>(null);
   const [currentTenure, setCurrentTenure] = useState({
