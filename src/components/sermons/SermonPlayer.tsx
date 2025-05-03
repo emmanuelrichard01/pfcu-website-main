@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -301,14 +300,14 @@ const SermonPlayer = ({ title, preacher, coverImage, audioUrl }: SermonPlayerPro
 
               <Button 
                 size="icon" 
-                className="rounded-full w-12 h-12 bg-pfcu-gold text-pfcu-dark hover:bg-pfcu-gold/80 transition-all hover:scale-110 shadow-lg"
+                className="rounded-full w-12 h-12 bg-pfcu-gold text-pfcu-dark hover:bg-pfcu-gold/80 transition-all hover:scale-110 shadow-lg flex items-center justify-center"
                 onClick={togglePlayPause}
                 disabled={loading || !!error}
               >
                 {isPlaying ? (
                   <Pause size={24} />
                 ) : (
-                  <Play size={24} className="ml-1" />
+                  <Play size={24} />
                 )}
               </Button>
 

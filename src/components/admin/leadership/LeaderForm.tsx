@@ -10,12 +10,11 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DialogFooter } from "@/components/ui/dialog";
-import { Save, Clock, Camera } from "lucide-react";
-import { useRef, useState, useEffect } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { Save, Clock } from "lucide-react";
+import { useState, useEffect } from "react";
+import LeaderImageUpload from "./LeaderImageUpload";
 
 interface LeaderData {
   id?: string;
@@ -41,10 +40,6 @@ interface LeaderFormProps {
 
 const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFormProps) => {
   const [activeTab, setActiveTab] = useState("basic");
-  const [tempImageUrl, setTempImageUrl] = useState<string | null>(null);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
   
   const leaderForm = useForm<LeaderData>({
     defaultValues: initialData
@@ -53,51 +48,10 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
   // Update form when initialData changes
   useEffect(() => {
     leaderForm.reset(initialData);
-    setTempImageUrl(initialData.profileImage || null);
   }, [initialData, leaderForm]);
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Invalid file type",
-        description: "Please select an image file.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Check file size (max 2MB)
-    if (file.size > 2 * 1024 * 1024) {
-      toast({
-        title: "File too large",
-        description: "Image size should be less than 2MB.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    // Store the file for later use
-    setImageFile(file);
-    
-    // Create a preview URL
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const dataUrl = event.target?.result as string;
-      setTempImageUrl(dataUrl);
-      // Important: We're storing the data URL in the form
-      leaderForm.setValue("profileImage", dataUrl);
-    };
-    reader.readAsDataURL(file);
-  };
 
   const handleFormSubmit = async (data: LeaderData) => {
     console.log("Form submitted with data:", data);
-    
-    // Forward the form data to the parent onSubmit handler
     await onSubmit(data);
   };
   
@@ -106,10 +60,14 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
     { value: "Pastor/President", label: "Pastor/President" },
     { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP" },
     { value: "General Secretary", label: "General Secretary" },
-    { value: "Asst. Secretary & Treasurer", label: "Asst. Secretary & Treasurer" },
+    { value: "Assistant Secretary & Treasurer", label: "Assistant Secretary & Treasurer" },
     { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary" },
     { value: "Provost", label: "Provost" }
   ];
+
+  const handleImageChange = (imageUrl: string | null) => {
+    leaderForm.setValue("profileImage", imageUrl || "");
+  };
 
   return (
     <Form {...leaderForm}>
@@ -190,70 +148,19 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
           </TabsContent>
           
           <TabsContent value="profile" className="mt-0">
-            <div className="flex flex-col items-center">
-              <Avatar className="w-32 h-32 mb-4">
-                {tempImageUrl ? (
-                  <AvatarImage src={tempImageUrl} alt="Profile preview" />
-                ) : (
-                  <AvatarFallback className="bg-pfcu-purple text-white text-2xl">
-                    {leaderForm.getValues("initial") || "?"}
-                  </AvatarFallback>
-                )}
-              </Avatar>
-              
-              <FormField
-                control={leaderForm.control}
-                name="profileImage"
-                render={({ field: { value, onChange, ...rest } }) => (
-                  <FormItem className="w-full">
-                    <FormLabel className="flex justify-center">
-                      <Button 
-                        type="button" 
-                        variant="secondary" 
-                        className="flex items-center gap-2"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        <Camera className="h-4 w-4" />
-                        <span>Choose Image</span>
-                      </Button>
-                    </FormLabel>
-                    <input 
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      onChange={(e) => {
-                        handleImageUpload(e);
-                      }}
-                      accept="image/*"
-                      {...rest}
-                    />
-                    <p className="text-xs text-center text-gray-500 mt-2">
-                      Select a profile picture (max 2MB)
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              {tempImageUrl && (
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  className="mt-2 text-xs h-8"
-                  onClick={() => {
-                    setTempImageUrl(null);
-                    setImageFile(null);
-                    leaderForm.setValue("profileImage", "");
-                    
-                    if (fileInputRef.current) {
-                      fileInputRef.current.value = "";
-                    }
-                  }}
-                >
-                  Remove Image
-                </Button>
+            <FormField
+              control={leaderForm.control}
+              name="profileImage"
+              render={({ field }) => (
+                <FormItem>
+                  <LeaderImageUpload
+                    initial={leaderForm.getValues("initial")}
+                    profileImage={field.value}
+                    onImageChange={handleImageChange}
+                  />
+                </FormItem>
               )}
-            </div>
+            />
           </TabsContent>
           
           <TabsContent value="social" className="mt-0">

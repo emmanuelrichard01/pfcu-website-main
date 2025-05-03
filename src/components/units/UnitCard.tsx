@@ -1,11 +1,12 @@
 
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { LucideIcon } from "lucide-react";
 
 interface UnitProps {
   name: string;
   description: string;
-  icon: React.ElementType;
+  icon: LucideIcon;
   activities: string[];
   leaders: {name: string; position: string}[];
 }
@@ -18,7 +19,7 @@ const UnitCard = ({ name, description, icon: Icon, activities, leaders }: UnitPr
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
     >
-      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 border-t-4 border-t-pfcu-purple">
+      <Card className="overflow-hidden hover:shadow-xl transition-shadow duration-300 h-full border-t-4 border-t-pfcu-purple">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row gap-6">
             <div className="text-pfcu-purple bg-pfcu-light p-4 rounded-full h-16 w-16 flex items-center justify-center">

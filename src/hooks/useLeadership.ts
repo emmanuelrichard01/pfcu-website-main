@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +29,7 @@ export const useLeadership = () => {
     "Pastor/President": 1,
     "Assistant Pastor/VP": 2,
     "General Secretary": 3,
-    "Asst. Secretary & Treasurer": 4,
+    "Assistant Secretary & Treasurer": 4,
     "P.R.O & Financial Secretary": 5,
     "Provost": 6
   };
