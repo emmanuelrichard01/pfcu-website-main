@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { useSermonStorage } from "./useSermonStorage";
 
-interface Sermon {
+export interface Sermon {
   id: string;
   title: string;
   preacher: string;
@@ -13,6 +14,7 @@ interface Sermon {
   audio_url: string | null;
   cover_image: string | null;
   created_at: string;
+  updated_at?: string;
 }
 
 export const useSermons = () => {
@@ -20,90 +22,55 @@ export const useSermons = () => {
   const [loading, setLoading] = useState(true);
   const [count, setCount] = useState(0);
   const { toast } = useToast();
+  const { uploadFile, deleteFile } = useSermonStorage();
 
+  /**
+   * Fetch all sermons from the database
+   */
   const fetchSermons = async () => {
     setLoading(true);
     try {
-      // Use direct query instead of RPC
-      const { data, error } = await supabase
+      const { data, error, count: rowCount } = await supabase
         .from('sermons')
         .select('*', { count: 'exact' })
         .order('created_at', { ascending: false });
           
       if (error) {
         console.error("Supabase query error:", error);
-        
-        // Fall back to localStorage if there are RLS/permission issues
-        const storedSermons = localStorage.getItem("pfcu_sermons");
-        if (storedSermons) {
-          const parsedData = JSON.parse(storedSermons);
-          setSermons(parsedData || []);
-          setCount(parsedData?.length || 0);
-        } else {
-          throw error;
-        }
-      } else {
-        setSermons(data || []);
-        setCount(data?.length || 0);
-        
-        // Cache sermons in localStorage for fallback
-        localStorage.setItem("pfcu_sermons", JSON.stringify(data || []));
+        throw error;
       }
+      
+      setSermons(data || []);
+      setCount(rowCount || 0);
+        
+      // Cache sermons in localStorage for fallback
+      localStorage.setItem("pfcu_sermons", JSON.stringify(data || []));
     } catch (error: any) {
       console.error("Error in fetchSermons:", error);
-      toast({
-        title: "Error fetching sermons",
-        description: error.message,
-        variant: "destructive"
-      });
+      
+      // Attempt to load from cache if available
+      const storedSermons = localStorage.getItem("pfcu_sermons");
+      if (storedSermons) {
+        const parsedData = JSON.parse(storedSermons);
+        setSermons(parsedData || []);
+        setCount(parsedData?.length || 0);
+      } else {
+        toast({
+          title: "Error fetching sermons",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const uploadFile = async (file: File, bucket: string, folder: string, onProgress?: (progress: number) => void): Promise<string> => {
-    try {
-      // Create buckets if they don't exist (will be silently ignored if they exist)
-      try {
-        await supabase.storage.createBucket(bucket, {
-          public: true
-        });
-      } catch (error) {
-        console.log("Bucket might already exist:", error);
-      }
-
-      const filePath = `${folder}/${Date.now()}_${file.name}`;
-      
-      // Simple upload approach - no chunks needed for typical sermon files
-      const { error, data } = await supabase.storage
-        .from(bucket)
-        .upload(filePath, file, {
-          cacheControl: "3600",
-          upsert: true
-        });
-      
-      if (error) throw error;
-      
-      // Manual progress tracking if provided
-      if (onProgress) {
-        onProgress(100); // Since we can't track progress directly, simulate completion
-      }
-      
-      // Get the public URL
-      const { data: urlData } = supabase.storage
-        .from(bucket)
-        .getPublicUrl(filePath);
-      
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error("Error in uploadFile:", error);
-      throw error;
-    }
-  };
-
+  /**
+   * Add a sermon to the database
+   */
   const addSermon = async (sermon: Omit<Sermon, 'id' | 'created_at'>) => {
     try {
-      // Use direct insert instead of RPC
       const { data, error } = await supabase
         .from('sermons')
         .insert(sermon)
@@ -131,9 +98,12 @@ export const useSermons = () => {
     }
   };
 
+  /**
+   * Update a sermon in the database
+   */
   const updateSermon = async (id: string, sermon: Partial<Sermon>) => {
     try {
-      // Use direct update instead of RPC
+      // Use direct update
       const { error } = await supabase
         .from('sermons')
         .update(sermon)
@@ -160,6 +130,9 @@ export const useSermons = () => {
     }
   };
 
+  /**
+   * Delete a sermon from the database
+   */
   const deleteSermon = async (id: string) => {
     try {
       // Get the sermon to find associated files
@@ -171,28 +144,20 @@ export const useSermons = () => {
       
       if (fetchError) {
         console.warn("Could not fetch sermon before deletion:", fetchError);
-        // Continue with deletion anyway
       }
       
       // Delete associated files from storage if they exist
       if (sermon) {
-        try {
-          if (sermon.audio_url) {
-            const audioPath = new URL(sermon.audio_url).pathname.split('/').slice(-2).join('/');
-            await supabase.storage.from('sermons').remove([audioPath]);
-          }
-          
-          if (sermon.cover_image) {
-            const imagePath = new URL(sermon.cover_image).pathname.split('/').slice(-2).join('/');
-            await supabase.storage.from('sermons').remove([imagePath]);
-          }
-        } catch (storageError) {
-          console.warn("Error removing files:", storageError);
-          // Continue with deleting the record
+        if (sermon.audio_url) {
+          await deleteFile(sermon.audio_url);
+        }
+        
+        if (sermon.cover_image) {
+          await deleteFile(sermon.cover_image);
         }
       }
       
-      // Use direct delete instead of RPC
+      // Delete the sermon record
       const { error } = await supabase
         .from('sermons')
         .delete()
@@ -221,7 +186,7 @@ export const useSermons = () => {
 
   // Create storage bucket for sermons if it doesn't exist
   useEffect(() => {
-    const createSermonsBuckets = async () => {
+    const setupStorage = async () => {
       try {
         // Create buckets if they don't exist
         await supabase.storage.createBucket('sermons', {
@@ -233,7 +198,7 @@ export const useSermons = () => {
       }
     };
     
-    createSermonsBuckets();
+    setupStorage();
     fetchSermons();
   }, []);
 
@@ -245,6 +210,6 @@ export const useSermons = () => {
     addSermon,
     updateSermon,
     deleteSermon,
-    uploadFile
+    uploadFile,
   };
 };

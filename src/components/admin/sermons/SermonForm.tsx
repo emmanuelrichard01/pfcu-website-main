@@ -25,9 +25,19 @@ interface SermonFormProps {
   defaultValues: SermonFormValues;
   onSubmit: (data: SermonFormValues) => Promise<void>;
   formId?: string;
+  sermon?: {
+    id: string;
+    audio_url: string | null;
+    cover_image: string | null;
+  } | null;
 }
 
-const SermonForm = ({ defaultValues, onSubmit, formId = "sermon-form" }: SermonFormProps) => {
+const SermonForm = ({ 
+  defaultValues, 
+  onSubmit, 
+  formId = "sermon-form",
+  sermon
+}: SermonFormProps) => {
   const form = useForm<SermonFormValues>({
     defaultValues
   });
@@ -114,7 +124,9 @@ const SermonForm = ({ defaultValues, onSubmit, formId = "sermon-form" }: SermonF
           name="sermonFile"
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
-              <FormLabel>Sermon File (Audio or PDF)</FormLabel>
+              <FormLabel>
+                {sermon?.audio_url ? "Sermon File (Leave empty to keep current)" : "Sermon File (Audio or PDF)"}
+              </FormLabel>
               <FormControl>
                 <div className="flex flex-col gap-2">
                   <Input
@@ -124,7 +136,21 @@ const SermonForm = ({ defaultValues, onSubmit, formId = "sermon-form" }: SermonF
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
                     {...fieldProps}
                   />
-                  <p className="text-xs text-gray-500">Accepted formats: MP3, WAV, PDF, DOC, DOCX</p>
+                  {sermon?.audio_url ? (
+                    <div className="text-xs text-gray-600 flex items-center">
+                      <span className="mr-2">Current file:</span>
+                      <a 
+                        href={sermon.audio_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-pfcu-purple hover:underline"
+                      >
+                        View current file
+                      </a>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">Accepted formats: MP3, WAV, PDF, DOC, DOCX</p>
+                  )}
                 </div>
               </FormControl>
               <FormMessage />
@@ -137,7 +163,9 @@ const SermonForm = ({ defaultValues, onSubmit, formId = "sermon-form" }: SermonF
           name="coverImage"
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
-              <FormLabel>Cover Image (Optional)</FormLabel>
+              <FormLabel>
+                {sermon?.cover_image ? "Cover Image (Leave empty to keep current)" : "Cover Image (Optional)"}
+              </FormLabel>
               <FormControl>
                 <div className="flex flex-col gap-2">
                   <Input
@@ -147,7 +175,18 @@ const SermonForm = ({ defaultValues, onSubmit, formId = "sermon-form" }: SermonF
                     className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
                     {...fieldProps}
                   />
-                  <p className="text-xs text-gray-500">Recommended: 16:9 aspect ratio, JPG or PNG</p>
+                  {sermon?.cover_image ? (
+                    <div className="flex items-start gap-2">
+                      <img 
+                        src={sermon.cover_image} 
+                        alt="Current cover" 
+                        className="w-16 h-16 object-cover rounded border"
+                      />
+                      <span className="text-xs text-gray-600">Current cover image</span>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-500">Recommended: 16:9 aspect ratio, JPG or PNG</p>
+                  )}
                 </div>
               </FormControl>
               <FormMessage />

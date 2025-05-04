@@ -12,26 +12,21 @@ import {
   LogOut,
   Menu,
   X,
-  Shield,
-  User
+  Shield
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { logout, isAuthenticated } = useAuth(); // Updated to use isAuthenticated instead of currentUser
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [userInfo, setUserInfo] = useState<{ email: string; initials: string } | null>(null);
-  const [currentTenure, setCurrentTenure] = useState({
-    year: "2024/2025",
-    declaration: "Realignment"
-  });
-
+  
   const navItems = [
     { name: "Dashboard", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> },
     { name: "Sermons", path: "/admin/sermons", icon: <FileText className="h-5 w-5" /> },
@@ -65,16 +60,6 @@ const AdminLayout = () => {
     };
     
     fetchCurrentUser();
-
-    // Fetch tenure data
-    const storedTenure = localStorage.getItem("pfcu_tenure");
-    if (storedTenure) {
-      const parsedTenure = JSON.parse(storedTenure);
-      setCurrentTenure({
-        year: parsedTenure.year,
-        declaration: parsedTenure.slogan || parsedTenure.declaration || "Many but one in Christ" // Handle different property names
-      });
-    }
   }, []);
 
   const toggleSidebar = () => {
@@ -170,18 +155,6 @@ const AdminLayout = () => {
                 </TooltipProvider>
               </div>
             )}
-            
-            {/* Motto and tenure declaration - positioned at bottom but before logout */}
-            <div className="mt-auto mb-4 mx-4 px-3 py-4 bg-pfcu-purple/10 rounded-md hover:bg-pfcu-purple/20 transition-colors">
-              <div className="mb-3">
-                <h3 className="font-semibold text-sm text-pfcu-gold">Fellowship's Motto</h3>
-                <p className="text-sm text-white">"Many but one in Christ"</p>
-              </div>
-              <div>
-                <h3 className="font-semibold text-sm text-pfcu-gold">Tenure Declaration</h3>
-                <p className="text-sm text-white">{currentTenure.declaration}</p>
-              </div>
-            </div>
           
             {/* Logout button */}
             <div className="p-4 border-t border-pfcu-purple">

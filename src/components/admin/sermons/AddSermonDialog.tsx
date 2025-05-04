@@ -27,7 +27,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
-  const { uploadFile } = useSermons();
+  const { uploadFile, addSermon } = useSermons();
   
   const defaultValues: SermonFormValues = {
     title: "",
@@ -67,28 +67,21 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
         });
       }
       
-      // Save sermon data to the database
-      const { error } = await supabase
-        .from('sermons')
-        .insert({
-          title: data.title,
-          preacher: data.preacher,
-          sermon_date: data.sermon_date,
-          description: data.description,
-          duration: data.duration,
-          audio_url: audioUrl,
-          cover_image: coverImageUrl
-        });
-      
-      if (error) throw error;
-      
-      toast({
-        title: "Sermon uploaded successfully",
-        description: "The sermon has been added to the library.",
+      // Add sermon using the hook's method
+      const success = await addSermon({
+        title: data.title,
+        preacher: data.preacher,
+        sermon_date: data.sermon_date,
+        description: data.description,
+        duration: data.duration,
+        audio_url: audioUrl,
+        cover_image: coverImageUrl
       });
       
-      onOpenChange(false);
-      onSermonAdded();
+      if (success) {
+        onOpenChange(false);
+        onSermonAdded();
+      }
     } catch (error: any) {
       toast({
         title: "Error uploading sermon",

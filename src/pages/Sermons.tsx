@@ -2,14 +2,13 @@
 import { useState, useEffect, useRef } from "react";
 import MainLayout from "@/components/layout/MainLayout";
 import { motion } from "framer-motion";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, Search, User } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import SermonPlayer from "@/components/sermons/SermonPlayer";
+import SermonSearch from "@/components/sermons/SermonSearch";
+import SermonList from "@/components/sermons/SermonList";
 
 interface Sermon {
   id: string;
@@ -153,27 +152,12 @@ const Sermons = () => {
           {/* Sermon List - Takes up full width on mobile, 2/3 on desktop */}
           <div className="lg:w-2/3">
             {/* Search */}
-            <div className="relative mb-6">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <Input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search sermons by title, preacher, or keywords..."
-                value={searchQuery}
-                onChange={handleSearchChange}
-                className="pl-10 pr-10 py-6 h-auto"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
-                  onClick={clearSearch}
-                >
-                  ✕
-                </Button>
-              )}
-            </div>
+            <SermonSearch 
+              searchQuery={searchQuery}
+              onChange={handleSearchChange}
+              onClear={clearSearch}
+              inputRef={searchInputRef}
+            />
 
             {loading ? (
               <div className="flex justify-center py-12">
@@ -188,50 +172,12 @@ const Sermons = () => {
                 <Button onClick={clearSearch}>Clear Search</Button>
               </div>
             ) : (
-              <div className="space-y-6">
-                {filteredSermons.map((sermon) => (
-                  <Card
-                    key={sermon.id}
-                    className={`overflow-hidden transition-all cursor-pointer hover:shadow-md ${
-                      selectedSermon?.id === sermon.id ? "ring-2 ring-pfcu-purple" : ""
-                    }`}
-                    onClick={() => handleSermonSelect(sermon)}
-                  >
-                    <CardHeader className="pb-2">
-                      <CardTitle className="flex justify-between items-start">
-                        <div className="truncate text-lg">{sermon.title}</div>
-                      </CardTitle>
-                      
-                      <CardDescription className="flex items-center gap-1 text-sm">
-                        <Calendar className="h-4 w-4" />
-                        {formatSermonDate(sermon.sermon_date)}
-                      </CardDescription>
-                    </CardHeader>
-                    
-                    <CardContent className="pb-2">
-                      {sermon.description && (
-                        <p className="text-gray-700 line-clamp-2 text-sm">
-                          {sermon.description}
-                        </p>
-                      )}
-                    </CardContent>
-                    
-                    <CardFooter className="flex justify-between items-center pt-0">
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <User className="h-4 w-4" />
-                        {sermon.preacher}
-                      </div>
-                      
-                      {sermon.duration && (
-                        <div className="flex items-center gap-1 text-sm text-gray-600">
-                          <Clock className="h-4 w-4" />
-                          {sermon.duration}
-                        </div>
-                      )}
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
+              <SermonList 
+                sermons={filteredSermons}
+                selectedSermonId={selectedSermon?.id}
+                onSelectSermon={handleSermonSelect}
+                formatSermonDate={formatSermonDate}
+              />
             )}
           </div>
         </div>
