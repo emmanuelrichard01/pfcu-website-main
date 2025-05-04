@@ -7,7 +7,7 @@ import { formatTime } from '@/lib/utils';
 interface SermonPlayerProps {
   title: string;
   preacher: string;
-  date: string;
+  date?: string;
   audioUrl: string;
   coverImage?: string;
 }
@@ -74,6 +74,7 @@ const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPla
   };
   
   const defaultCover = "/placeholder.svg";
+  const formattedDate = date || "";
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -103,7 +104,7 @@ const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPla
             {isPlaying ? (
               <Pause className="h-8 w-8" />
             ) : (
-              <Play className="h-8 w-8 ml-1" />
+              <Play className="h-8 w-8" style={{ marginLeft: '2px' }} />
             )}
           </Button>
         </div>
@@ -113,7 +114,7 @@ const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPla
       
       <div className="p-4">
         <h2 className="text-xl font-bold mb-1">{title}</h2>
-        <p className="text-gray-600 mb-2">{preacher} • {date}</p>
+        <p className="text-gray-600 mb-2">{preacher} {formattedDate && `• ${formattedDate}`}</p>
         
         <div className="mt-4">
           <div className="flex items-center justify-between mb-2">
@@ -159,7 +160,7 @@ const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPla
                 {isPlaying ? (
                   <Pause className="h-5 w-5" />
                 ) : (
-                  <Play className="h-5 w-5 ml-0.5" />
+                  <Play className="h-5 w-5" style={{ marginLeft: '1px' }} />
                 )}
               </Button>
               

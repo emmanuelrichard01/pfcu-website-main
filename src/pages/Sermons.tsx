@@ -136,6 +136,7 @@ const Sermons = () => {
               <SermonPlayer
                 title={selectedSermon.title}
                 preacher={selectedSermon.preacher}
+                date={selectedSermon.sermon_date ? formatSermonDate(selectedSermon.sermon_date) : undefined}
                 coverImage={selectedSermon.cover_image || undefined}
                 audioUrl={selectedSermon.audio_url}
               />
