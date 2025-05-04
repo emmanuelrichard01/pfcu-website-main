@@ -24,33 +24,16 @@ export const useLeadershipData = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Function to sort leaders according to the specified hierarchy
-  const sortLeadersByHierarchy = (leadersList: LeaderData[]): LeaderData[] => {
-    const positionOrder: Record<string, number> = {
-      "Pastor/President": 1,
-      "Assistant Pastor/VP": 2,
-      "General Secretary": 3,
-      "Assistant Secretary & Treasurer": 4,
-      "P.R.O & Financial Secretary": 5,
-      "Provost": 6
-    };
-    
-    return [...leadersList].sort((a, b) => {
-      const posA = positionOrder[a.position] || 99;
-      const posB = positionOrder[b.position] || 99;
-      return posA - posB;
-    });
-  };
-
   useEffect(() => {
     const fetchLeaders = async () => {
       setLoading(true);
       
       try {
-        // Try to fetch leaders from Supabase database
+        // Fetch leaders from Supabase database, ordered by position_order
         const { data, error } = await supabase
           .from('leaders')
-          .select('*');
+          .select('*')
+          .order('position_order', { ascending: true });
           
         if (error) throw error;
         
@@ -70,18 +53,14 @@ export const useLeadershipData = () => {
             }
           }));
           
-          // Sort leaders according to the specified hierarchy
-          const sortedLeaders = sortLeadersByHierarchy(mappedLeaders);
-          setLeaders(sortedLeaders);
+          setLeaders(mappedLeaders);
         } else {
           // Fallback to localStorage if needed
           const storedLeaders = localStorage.getItem("pfcu_leaders");
           
           if (storedLeaders) {
             const parsedLeaders = JSON.parse(storedLeaders);
-            // Sort leaders according to the specified hierarchy
-            const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
-            setLeaders(sortedLeaders);
+            setLeaders(parsedLeaders);
           } else {
             // Default leaders with the correct hierarchy
             const defaultLeaders = [
@@ -134,8 +113,7 @@ export const useLeadershipData = () => {
         const storedLeaders = localStorage.getItem("pfcu_leaders");
         if (storedLeaders) {
           const parsedLeaders = JSON.parse(storedLeaders);
-          const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
-          setLeaders(sortedLeaders);
+          setLeaders(parsedLeaders);
         }
       } finally {
         setLoading(false);

@@ -137,6 +137,7 @@ export type Database = {
           linkedin_url: string | null
           name: string
           position: string
+          position_order: number
           profile_image: string | null
           twitter_url: string | null
           updated_at: string
@@ -151,6 +152,7 @@ export type Database = {
           linkedin_url?: string | null
           name: string
           position: string
+          position_order?: number
           profile_image?: string | null
           twitter_url?: string | null
           updated_at?: string
@@ -165,6 +167,7 @@ export type Database = {
           linkedin_url?: string | null
           name?: string
           position?: string
+          position_order?: number
           profile_image?: string | null
           twitter_url?: string | null
           updated_at?: string

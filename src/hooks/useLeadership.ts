@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +23,7 @@ export const useLeadership = () => {
   const [count, setCount] = useState(0);
   const { toast } = useToast();
 
-  // Define the leadership position hierarchy for sorting
+  // Define the leadership position hierarchy for ordering in the UI
   const positionOrder: Record<string, number> = {
     "Pastor/President": 1,
     "Assistant Pastor/VP": 2,
@@ -34,22 +33,14 @@ export const useLeadership = () => {
     "Provost": 6
   };
 
-  // Function to sort leaders by position
-  const sortLeadersByHierarchy = (leadersList: Leader[]): Leader[] => {
-    return [...leadersList].sort((a, b) => {
-      const posA = positionOrder[a.position] || 99;
-      const posB = positionOrder[b.position] || 99;
-      return posA - posB;
-    });
-  };
-
   const fetchLeaders = async () => {
     setLoading(true);
     try {
-      // Try to fetch leaders from the Supabase database
+      // Fetch leaders from the Supabase database, ordered by position_order
       const { data, error } = await supabase
         .from('leaders')
-        .select('*');
+        .select('*')
+        .order('position_order', { ascending: true });
       
       if (error) {
         throw error;
@@ -72,17 +63,14 @@ export const useLeadership = () => {
           }
         }));
         
-        // Sort leaders according to the specified hierarchy
-        const sortedLeaders = sortLeadersByHierarchy(mappedLeaders);
-        setLeaders(sortedLeaders);
+        setLeaders(mappedLeaders);
         setCount(mappedLeaders.length);
       } else {
         // If no data in database, check localStorage
         const storedLeaders = localStorage.getItem("pfcu_leaders");
         if (storedLeaders) {
           const parsedLeaders = JSON.parse(storedLeaders);
-          const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
-          setLeaders(sortedLeaders);
+          setLeaders(parsedLeaders);
           setCount(parsedLeaders.length);
           
           // Migrate localStorage data to database
@@ -112,7 +100,7 @@ export const useLeadership = () => {
             },
             {
               name: "Emmanuella Y. Ufe",
-              position: "Asst. Secretary & Treasurer",
+              position: "Assistant Secretary & Treasurer",
               initial: "EU",
               bio: "Managing resources and finances",
             },
@@ -150,8 +138,7 @@ export const useLeadership = () => {
       const storedLeaders = localStorage.getItem("pfcu_leaders");
       if (storedLeaders) {
         const parsedLeaders = JSON.parse(storedLeaders);
-        const sortedLeaders = sortLeadersByHierarchy(parsedLeaders);
-        setLeaders(sortedLeaders);
+        setLeaders(parsedLeaders);
         setCount(parsedLeaders.length);
       } else {
         setLeaders([]);
@@ -165,6 +152,9 @@ export const useLeadership = () => {
   // Helper function to add a leader to the database
   const addLeaderToDatabase = async (leader: Leader) => {
     try {
+      // Get position order from the positionOrder object
+      const position_order = positionOrder[leader.position] || 99;
+      
       const { error } = await supabase.from('leaders').insert({
         name: leader.name,
         position: leader.position,
@@ -174,7 +164,8 @@ export const useLeadership = () => {
         facebook_url: leader.socialMedia?.facebook || null,
         twitter_url: leader.socialMedia?.twitter || null,
         instagram_url: leader.socialMedia?.instagram || null,
-        linkedin_url: leader.socialMedia?.linkedin || null
+        linkedin_url: leader.socialMedia?.linkedin || null,
+        position_order: position_order
       });
       
       if (error) {
@@ -187,6 +178,9 @@ export const useLeadership = () => {
   
   const addLeader = async (leader: Omit<Leader, "id">) => {
     try {
+      // Get position order from the positionOrder object
+      const position_order = positionOrder[leader.position] || 99;
+      
       // First, add to Supabase
       const { data, error } = await supabase.from('leaders').insert({
         name: leader.name,
@@ -197,7 +191,8 @@ export const useLeadership = () => {
         facebook_url: leader.socialMedia?.facebook || null,
         twitter_url: leader.socialMedia?.twitter || null,
         instagram_url: leader.socialMedia?.instagram || null,
-        linkedin_url: leader.socialMedia?.linkedin || null
+        linkedin_url: leader.socialMedia?.linkedin || null,
+        position_order: position_order
       }).select('*').single();
       
       if (error) throw error;
@@ -218,8 +213,8 @@ export const useLeadership = () => {
         }
       };
       
-      // Update local state with sorted leaders
-      const updatedLeaders = sortLeadersByHierarchy([...leaders, newLeader]);
+      // Update local state
+      const updatedLeaders = [...leaders, newLeader];
       setLeaders(updatedLeaders);
       setCount(updatedLeaders.length);
       
@@ -242,7 +237,7 @@ export const useLeadership = () => {
       // Try to use localStorage as fallback
       try {
         const newLeader = { ...leader, id: Date.now().toString() };
-        const updatedLeaders = sortLeadersByHierarchy([...leaders, newLeader]);
+        const updatedLeaders = [...leaders, newLeader];
         
         setLeaders(updatedLeaders);
         setCount(updatedLeaders.length);
@@ -261,6 +256,9 @@ export const useLeadership = () => {
       console.log("Updating leader with ID:", id);
       console.log("Updated data:", updatedData);
       
+      // Calculate position_order if position is being updated
+      const position_order = updatedData.position ? (positionOrder[updatedData.position] || 99) : undefined;
+      
       // Update database first
       const dbUpdateData = {
         name: updatedData.name,
@@ -271,7 +269,8 @@ export const useLeadership = () => {
         facebook_url: updatedData.socialMedia?.facebook,
         twitter_url: updatedData.socialMedia?.twitter,
         instagram_url: updatedData.socialMedia?.instagram,
-        linkedin_url: updatedData.socialMedia?.linkedin
+        linkedin_url: updatedData.socialMedia?.linkedin,
+        position_order: position_order
       };
       
       // Remove undefined values (keep nulls)
@@ -295,12 +294,11 @@ export const useLeadership = () => {
         leader.id === id ? { ...leader, ...updatedData } : leader
       );
       
-      // Sort leaders by hierarchy
-      const sortedLeaders = sortLeadersByHierarchy(updatedLeadersArray);
-      setLeaders(sortedLeaders);
+      // Refetch to ensure order is correct
+      fetchLeaders();
       
       // Keep localStorage in sync for backward compatibility
-      localStorage.setItem("pfcu_leaders", JSON.stringify(sortedLeaders));
+      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeadersArray));
       
       toast({
         title: "Leader updated successfully",
@@ -323,9 +321,8 @@ export const useLeadership = () => {
           leader.id === id ? { ...leader, ...updatedData } : leader
         );
         
-        const sortedLeaders = sortLeadersByHierarchy(updatedLeadersArray);
-        setLeaders(sortedLeaders);
-        localStorage.setItem("pfcu_leaders", JSON.stringify(sortedLeaders));
+        setLeaders(updatedLeadersArray);
+        localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeadersArray));
         
         return true;
       } catch (fallbackError) {

@@ -23,6 +23,7 @@ interface LeaderData {
   initial: string;
   bio?: string;
   profileImage?: string;
+  position_order?: number;
   socialMedia?: {
     facebook?: string;
     twitter?: string;
@@ -57,16 +58,24 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
   
   // Define position options with the correct hierarchy
   const positionOptions = [
-    { value: "Pastor/President", label: "Pastor/President" },
-    { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP" },
-    { value: "General Secretary", label: "General Secretary" },
-    { value: "Assistant Secretary & Treasurer", label: "Assistant Secretary & Treasurer" },
-    { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary" },
-    { value: "Provost", label: "Provost" }
+    { value: "Pastor/President", label: "Pastor/President", order: 1 },
+    { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP", order: 2 },
+    { value: "General Secretary", label: "General Secretary", order: 3 },
+    { value: "Assistant Secretary & Treasurer", label: "Assistant Secretary & Treasurer", order: 4 },
+    { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary", order: 5 },
+    { value: "Provost", label: "Provost", order: 6 }
   ];
 
   const handleImageChange = (imageUrl: string | null) => {
     leaderForm.setValue("profileImage", imageUrl || "");
+  };
+
+  const handlePositionChange = (position: string) => {
+    // Find the position in positionOptions
+    const selectedPosition = positionOptions.find(p => p.value === position);
+    // Set position and position_order
+    leaderForm.setValue("position", position);
+    leaderForm.setValue("position_order", selectedPosition?.order || 99);
   };
 
   return (
@@ -103,7 +112,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                   <FormControl>
                     <select 
                       className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-purple"
-                      onChange={(e) => field.onChange(e.target.value)}
+                      onChange={(e) => handlePositionChange(e.target.value)}
                       value={field.value}
                     >
                       {positionOptions.map((option) => (
