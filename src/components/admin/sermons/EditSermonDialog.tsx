@@ -80,8 +80,8 @@ const EditSermonDialog = ({
         preacher: data.preacher,
         sermon_date: data.sermon_date,
         description: data.description,
-        duration: data.duration,
-        updated_at: new Date().toISOString()
+        duration: data.duration
+        // Remove the updated_at property as it's not in the Sermon type
       };
       
       // Only update files if new ones are provided
