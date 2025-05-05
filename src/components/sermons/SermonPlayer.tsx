@@ -1,210 +1,279 @@
 
-import { useState, useRef, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX } from 'lucide-react';
-import { formatTime } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, RotateCcw, RotateCw } from "lucide-react";
+import { formatTime } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface SermonPlayerProps {
+  audioUrl: string;
   title: string;
   preacher: string;
-  date?: string;
-  audioUrl: string;
-  coverImage?: string;
+  coverImage?: string | null;
 }
 
-const SermonPlayer = ({ title, preacher, date, audioUrl, coverImage }: SermonPlayerProps) => {
+const SermonPlayer = ({ audioUrl, title, preacher, coverImage }: SermonPlayerProps) => {
+  const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [showVolumeControl, setShowVolumeControl] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-    
-    const setAudioData = () => setDuration(audio.duration);
-    const setAudioTime = () => setCurrentTime(audio.currentTime);
-    
-    audio.addEventListener('loadeddata', setAudioData);
-    audio.addEventListener('timeupdate', setAudioTime);
-    
-    return () => {
-      audio.removeEventListener('loadeddata', setAudioData);
-      audio.removeEventListener('timeupdate', setAudioTime);
+
+    const handleLoadedMetadata = () => {
+      setDuration(audio.duration);
+      setLoading(false);
     };
-  }, [audioRef]);
+
+    const handleTimeUpdate = () => {
+      setCurrentTime(audio.currentTime);
+    };
+
+    const handleEnded = () => {
+      setIsPlaying(false);
+      setCurrentTime(0);
+      audio.currentTime = 0;
+    };
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, [audioUrl]);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
-    
+    const audio = audioRef.current;
+    if (!audio) return;
+
     if (isPlaying) {
-      audioRef.current.pause();
+      audio.pause();
     } else {
-      audioRef.current.play();
+      audio.play();
     }
     setIsPlaying(!isPlaying);
   };
-  
+
+  const handleSeek = (values: number[]) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    audio.currentTime = values[0];
+    setCurrentTime(values[0]);
+  };
+
+  const handleVolumeChange = (values: number[]) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const newVolume = values[0];
+    audio.volume = newVolume;
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+  };
+
   const toggleMute = () => {
-    if (!audioRef.current) return;
-    
-    audioRef.current.muted = !isMuted;
-    setIsMuted(!isMuted);
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isMuted) {
+      audio.volume = volume || 1;
+      setIsMuted(false);
+    } else {
+      audio.volume = 0;
+      setIsMuted(true);
+    }
   };
-  
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!audioRef.current) return;
-    
-    const time = parseFloat(e.target.value);
-    audioRef.current.currentTime = time;
-    setCurrentTime(time);
+
+  const skip = (seconds: number) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const newTime = Math.min(Math.max(currentTime + seconds, 0), duration);
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
   };
-  
-  const handleSkipBack = () => {
-    if (!audioRef.current) return;
-    
-    audioRef.current.currentTime -= 10;
-  };
-  
-  const handleSkipForward = () => {
-    if (!audioRef.current) return;
-    
-    audioRef.current.currentTime += 10;
-  };
-  
-  const defaultCover = "/placeholder.svg";
-  const formattedDate = date || "";
 
   return (
     <motion.div 
-      className="overflow-hidden rounded-2xl shadow-xl bg-white"
+      className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${isExpanded ? 'max-w-4xl mx-auto' : 'max-w-2xl mx-auto'}`}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div className="relative h-64 flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-pfcu-purple/80 to-pfcu-dark/90 z-10"></div>
-        {coverImage && (
-          <img 
-            src={coverImage} 
-            alt={title} 
-            className="absolute inset-0 w-full h-full object-cover opacity-50"
-          />
-        )}
-        
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      
+      <div className={`flex ${isExpanded ? 'flex-col md:flex-row' : 'flex-col'} overflow-hidden`}>
+        {/* Cover Image */}
         <motion.div 
-          className="z-20 flex flex-col items-center"
-          initial={{ scale: 0.9 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2 }}
+          layout
+          className={`relative ${isExpanded ? 'md:w-1/2 aspect-square md:aspect-auto' : 'aspect-video'} bg-pfcu-light overflow-hidden`}
         >
-          <motion.div 
-            className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-2xl mb-4"
-            whileHover={{ scale: 1.05 }}
-          >
+          {coverImage ? (
             <img 
-              src={coverImage || defaultCover} 
+              src={coverImage} 
               alt={title} 
               className="w-full h-full object-cover"
             />
-          </motion.div>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pfcu-purple/80 to-pfcu-dark">
+              <div className="text-center p-4">
+                <h3 className="text-white text-xl font-medium font-display">{title}</h3>
+                <p className="text-white/80 text-sm">{preacher}</p>
+              </div>
+            </div>
+          )}
           
-          <motion.button
-            className="rounded-full bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-white w-14 h-14 flex items-center justify-center shadow-lg"
-            onClick={togglePlay}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-            aria-label={isPlaying ? "Pause" : "Play"}
-          >
-            {isPlaying ? (
-              <Pause className="h-6 w-6" />
-            ) : (
-              <Play className="h-6 w-6 ml-1" />
-            )}
-          </motion.button>
-        </motion.div>
-      </div>
-
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
-      
-      <div className="p-6">
-        <h2 className="text-xl font-bold mb-1 line-clamp-1">{title}</h2>
-        <p className="text-gray-600 mb-4">{preacher} {formattedDate && `• ${formattedDate}`}</p>
-        
-        <div className="mt-4">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-medium text-gray-500">{formatTime(currentTime)}</span>
-            <span className="text-xs font-medium text-gray-500">{formatTime(duration)}</span>
-          </div>
-          
-          <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden">
-            <div 
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-pfcu-purple to-pfcu-gold" 
-              style={{ width: `${(currentTime / duration) * 100}%` }}
-            ></div>
-            <input
-              type="range"
-              min="0"
-              max={duration || 0}
-              value={currentTime}
-              onChange={handleSeek}
-              className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
-              aria-label="Seek audio playback position"
-            />
-          </div>
-          
-          <div className="flex items-center justify-between mt-6">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={toggleMute}
-              className="text-gray-600 hover:text-pfcu-purple"
-              aria-label={isMuted ? "Unmute" : "Mute"}
-            >
-              {isMuted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            </Button>
-            
-            <div className="flex items-center space-x-4">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSkipBack}
-                className="text-gray-600 hover:text-pfcu-purple hover:border-pfcu-purple rounded-full h-8 w-8 p-0 flex items-center justify-center"
-                aria-label="Skip back 10 seconds"
-              >
-                <SkipBack className="h-4 w-4" />
-              </Button>
-              
-              <motion.button 
+          {/* Big Play Button in Center */}
+          <AnimatePresence>
+            {loading ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                <div className="w-12 h-12 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
+              </div>
+            ) : !isPlaying && (
+              <motion.div 
+                className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm cursor-pointer"
                 onClick={togglePlay}
-                className="rounded-full bg-pfcu-purple text-white hover:bg-pfcu-gold w-12 h-12 flex items-center justify-center shadow-md"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                aria-label={isPlaying ? "Pause" : "Play"}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
               >
-                {isPlaying ? (
-                  <Pause className="h-5 w-5" />
-                ) : (
-                  <Play className="h-5 w-5 ml-0.5" />
-                )}
-              </motion.button>
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSkipForward}
-                className="text-gray-600 hover:text-pfcu-purple hover:border-pfcu-purple rounded-full h-8 w-8 p-0 flex items-center justify-center"
-                aria-label="Skip forward 10 seconds"
-              >
-                <SkipForward className="h-4 w-4" />
-              </Button>
+                <motion.div 
+                  className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Play className="h-8 w-8 text-white fill-white" />
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+        
+        {/* Controls */}
+        <motion.div 
+          layout
+          className={`${isExpanded ? 'md:w-1/2' : 'w-full'} p-4 md:p-6`}
+        >
+          <div className="mb-4">
+            <h3 className="text-lg font-semibold line-clamp-1">{title}</h3>
+            <p className="text-gray-500 text-sm">by {preacher}</p>
+          </div>
+          
+          <div className="space-y-4">
+            {/* Progress bar */}
+            <div className="space-y-2">
+              <Slider
+                value={[currentTime]}
+                min={0}
+                max={duration || 100}
+                step={0.1}
+                onValueChange={handleSeek}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
             </div>
             
-            <div className="w-5"></div>
+            {/* Main controls */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => skip(-10)}
+                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+                >
+                  <RotateCcw className="h-5 w-5" />
+                  <span className="sr-only">Rewind 10 seconds</span>
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="icon"
+                  onClick={togglePlay}
+                  className="rounded-full bg-pfcu-purple text-white hover:bg-pfcu-dark mx-2 h-12 w-12"
+                >
+                  {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
+                  <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
+                </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => skip(10)}
+                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+                >
+                  <RotateCw className="h-5 w-5" />
+                  <span className="sr-only">Forward 10 seconds</span>
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <div className="relative">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleMute}
+                    onMouseEnter={() => setShowVolumeControl(true)}
+                    onMouseLeave={() => setShowVolumeControl(false)}
+                    className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+                  >
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                    <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
+                  </Button>
+                  
+                  <AnimatePresence>
+                    {showVolumeControl && (
+                      <motion.div 
+                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-white shadow-lg rounded-full w-24"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        transition={{ duration: 0.2 }}
+                        onMouseEnter={() => setShowVolumeControl(true)}
+                        onMouseLeave={() => setShowVolumeControl(false)}
+                      >
+                        <Slider
+                          value={[isMuted ? 0 : volume]}
+                          min={0}
+                          max={1}
+                          step={0.01}
+                          onValueChange={handleVolumeChange}
+                          className="w-full"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+                >
+                  {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                  <span className="sr-only">{isExpanded ? 'Minimize' : 'Maximize'}</span>
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </motion.div>
   );

@@ -17,10 +17,10 @@ const LeadershipSection = () => {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl font-bold font-display mb-3">Our Leadership</h2>
-          <div className="w-24 h-1 bg-pfcu-purple mx-auto mb-6"></div>
+          <div className="w-24 h-1 bg-gradient-to-r from-pfcu-purple to-pfcu-gold mx-auto mb-6"></div>
           <p className="text-xl font-medium text-pfcu-purple mb-2">{tenureInfo.year} Tenure Leadership</p>
           <p className="text-center max-w-2xl mx-auto mb-8 text-gray-600">
-            <em className="text-pfcu-gold font-medium">"{tenureInfo.declaration}"</em> - Our leadership team is dedicated to guiding our fellowship
+            <em className="text-pfcu-gold font-medium italic">"{tenureInfo.declaration}"</em> - Our leadership team is dedicated to guiding our fellowship
             through the academic year from June {tenureInfo.year.split('/')[0]} to June {tenureInfo.year.split('/')[1]}.
           </p>
         </motion.div>

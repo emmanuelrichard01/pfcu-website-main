@@ -33,50 +33,77 @@ const LeaderCard = ({ name, role, bio, initial, profileImage, socialMedia }: Lea
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
+      whileHover={{ y: -5 }}
+      className="group"
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <Card className="overflow-hidden hover:shadow-xl transition-all duration-300 border-none bg-white">
         <CardContent className="p-0">
-          <div className="bg-pfcu-purple h-24"></div>
+          <div className="bg-gradient-to-r from-pfcu-purple to-pfcu-dark h-24 group-hover:from-pfcu-dark group-hover:to-pfcu-purple transition-all duration-500"></div>
           <div className="px-6 pb-6 -mt-12">
-            <Avatar className="w-24 h-24 border-4 border-white mb-4 shadow-md">
-              {profileImage ? (
-                <AvatarImage src={profileImage} alt={name} />
-              ) : (
-                <AvatarFallback className="bg-pfcu-gold text-pfcu-dark text-xl font-bold">
-                  {initial}
-                </AvatarFallback>
-              )}
-            </Avatar>
-            <h3 className="text-xl font-bold mb-1">{name}</h3>
-            <p className="text-pfcu-purple font-medium mb-3">{role}</p>
-            {bio && <p className="text-gray-600 text-sm mb-4">{bio}</p>}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-pfcu-purple/20 to-pfcu-gold/20 rounded-full transform scale-110 blur-lg opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
+              <Avatar className="w-24 h-24 border-4 border-white mb-4 shadow-xl group-hover:scale-105 transition-all duration-300">
+                {profileImage ? (
+                  <AvatarImage src={profileImage} alt={name} />
+                ) : (
+                  <AvatarFallback className="bg-gradient-to-br from-pfcu-gold to-amber-500 text-pfcu-dark text-xl font-bold">
+                    {initial}
+                  </AvatarFallback>
+                )}
+              </Avatar>
+            </div>
+            <h3 className="text-xl font-bold mb-1 group-hover:text-pfcu-purple transition-colors">{name}</h3>
+            <div className="inline-block px-3 py-1 bg-pfcu-light text-pfcu-purple text-sm font-medium rounded-full mb-3">
+              {role}
+            </div>
+            {bio && <p className="text-gray-600 text-sm mb-4 leading-relaxed">{bio}</p>}
             
             {socialMedia && (
-              <div className="flex gap-3">
+              <div className="flex gap-3 mt-2">
                 {socialMedia.facebook && (
-                  <a href={socialMedia.facebook} target="_blank" rel="noopener noreferrer" 
-                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                  <motion.a 
+                    href={socialMedia.facebook} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-500 hover:text-blue-600 transition-all"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
                     <Facebook size={18} />
-                  </a>
+                  </motion.a>
                 )}
                 {socialMedia.twitter && (
-                  <a href={socialMedia.twitter} target="_blank" rel="noopener noreferrer" 
-                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                  <motion.a 
+                    href={socialMedia.twitter} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-500 hover:text-sky-500 transition-all"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
                     <TwitterIcon size={18} />
                     <span className="sr-only">X (formerly Twitter)</span>
-                  </a>
+                  </motion.a>
                 )}
                 {socialMedia.instagram && (
-                  <a href={socialMedia.instagram} target="_blank" rel="noopener noreferrer" 
-                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                  <motion.a 
+                    href={socialMedia.instagram} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-500 hover:text-pink-600 transition-all"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
                     <Instagram size={18} />
-                  </a>
+                  </motion.a>
                 )}
                 {socialMedia.linkedin && (
-                  <a href={socialMedia.linkedin} target="_blank" rel="noopener noreferrer" 
-                     className="text-gray-500 hover:text-pfcu-purple transition-colors">
+                  <motion.a 
+                    href={socialMedia.linkedin} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-gray-500 hover:text-blue-700 transition-all"
+                    whileHover={{ scale: 1.2, rotate: 5 }}
+                  >
                     <Linkedin size={18} />
-                  </a>
+                  </motion.a>
                 )}
               </div>
             )}
@@ -202,25 +229,72 @@ const Leadership = () => {
   return (
     <MainLayout>
       <motion.div 
-        className="bg-pfcu-light py-16 md:py-24"
+        className="bg-gradient-to-b from-white to-pfcu-light/50 py-16 md:py-24"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.8 }}
       >
         <div className="container mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-6 animate-fade-in">Our Leadership</h1>
-          <p className="text-xl text-center max-w-3xl mx-auto text-gray-700 animate-fade-in">
-            Meet the dedicated team guiding our fellowship with vision and purpose.
-          </p>
+          <div className="text-center mb-12">
+            <motion.h1 
+              className="text-4xl md:text-5xl lg:text-6xl font-display font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-pfcu-purple to-pfcu-dark"
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.7 }}
+            >
+              Our Leadership
+            </motion.h1>
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: "5rem" }}
+              transition={{ delay: 0.4, duration: 0.6 }}
+              className="h-1 mx-auto bg-gradient-to-r from-pfcu-purple to-pfcu-gold mb-6"
+            />
+            <motion.p 
+              className="text-xl text-center max-w-3xl mx-auto text-gray-700"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.6, duration: 0.7 }}
+            >
+              Meet the dedicated team guiding our fellowship with vision and purpose.
+            </motion.p>
+          </div>
         </div>
       </motion.div>
 
       <section className="py-16">
         <div className="container mx-auto">
-          <h2 className="text-3xl font-display font-bold mb-8 text-center">Current Leadership Team</h2>
-          <p className="text-center max-w-2xl mx-auto mb-8">
-            <strong>{tenureInfo.year} Tenure</strong> - <em>{tenureInfo.declaration}</em>
-          </p>
+          <div className="max-w-2xl mx-auto mb-12 text-center">
+            <motion.h2 
+              className="text-3xl font-display font-bold mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5 }}
+            >
+              Current Leadership Team
+            </motion.h2>
+            <motion.p 
+              className="mb-4"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1, duration: 0.5 }}
+            >
+              <strong className="text-pfcu-purple">{tenureInfo.year} Tenure</strong>
+            </motion.p>
+            <motion.div 
+              className="bg-pfcu-light rounded-lg p-4 shadow-inner mb-8"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+            >
+              <blockquote className="italic text-pfcu-purple text-center text-lg">
+                "{tenureInfo.declaration}"
+              </blockquote>
+            </motion.div>
+          </div>
           
           {loading ? (
             <div className="flex justify-center py-12">

@@ -1,6 +1,5 @@
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Calendar, Users, DollarSign } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FileText, Calendar, Users, DollarSign, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSermons } from "@/hooks/useSermons";
@@ -9,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Donation } from "@/types/donations";
 import { useLeadership } from "@/hooks/useLeadership";
+import { motion } from "framer-motion";
 
 const AdminDashboard = () => {
   const { sermons, count: sermonCount } = useSermons();
@@ -101,133 +101,206 @@ const AdminDashboard = () => {
     fetchRecentEvents();
   }, []);
 
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+  
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   const stats = [
     {
       title: "Total Sermons",
       value: loading ? "..." : sermonCount.toString(),
-      icon: <FileText className="h-8 w-8 text-pfcu-purple" />,
+      icon: <FileText className="h-8 w-8 text-white" />,
       description: "Sermons uploaded",
-      link: "/admin/sermons"
+      link: "/admin/sermons",
+      color: "from-blue-500 to-indigo-600"
     },
     {
       title: "Upcoming Events",
       value: loading ? "..." : eventCount.toString(),
-      icon: <Calendar className="h-8 w-8 text-pfcu-purple" />,
+      icon: <Calendar className="h-8 w-8 text-white" />,
       description: "Events scheduled",
-      link: "/admin/events"
+      link: "/admin/events",
+      color: "from-green-500 to-emerald-600"
     },
     {
       title: "Leadership",
       value: loading ? "..." : leadershipCount.toString(),
-      icon: <Users className="h-8 w-8 text-pfcu-purple" />,
+      icon: <Users className="h-8 w-8 text-white" />,
       description: "Current leaders",
-      link: "/admin/leadership"
+      link: "/admin/leadership",
+      color: "from-pfcu-purple to-pfcu-dark"
     },
     {
       title: "Total Donations",
       value: formatCurrency(totalDonations),
-      icon: <DollarSign className="h-8 w-8 text-pfcu-purple" />,
+      icon: <DollarSign className="h-8 w-8 text-white" />,
       description: "Recent donations",
-      link: "/admin/donations"
+      link: "/admin/donations",
+      color: "from-amber-500 to-yellow-600"
     }
   ];
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-display">Dashboard</h1>
-      <p className="text-gray-600">Welcome to the PFCU Administration Panel.</p>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat) => (
-          <Link to={stat.link} key={stat.title} className="block">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-gray-500">
-                  {stat.title}
-                </CardTitle>
-                {stat.icon}
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-                <Button variant="link" className="mt-2 p-0 h-auto text-pfcu-purple">
-                  Manage {stat.title}
-                </Button>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
+    <div className="space-y-8">
+      <div className="space-y-2">
+        <motion.h1 
+          className="text-3xl font-bold font-display"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          Welcome to PFCU Admin
+        </motion.h1>
+        <motion.p 
+          className="text-gray-600"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+        >
+          Manage your fellowship content and settings from this dashboard.
+        </motion.p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Sermons</CardTitle>
-            <CardDescription>The latest uploaded sermon content</CardDescription>
+      <motion.div 
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+        variants={container}
+        initial="hidden"
+        animate="show"
+      >
+        {stats.map((stat) => (
+          <motion.div key={stat.title} variants={item}>
+            <Link to={stat.link} className="block h-full">
+              <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300 border-none">
+                <CardHeader className={`flex flex-row items-center justify-between pb-2 bg-gradient-to-r ${stat.color} text-white p-4`}>
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
+                    {stat.icon}
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  <div className="text-3xl font-bold mb-2">{stat.value}</div>
+                  <p className="text-sm text-gray-500 mb-4">{stat.description}</p>
+                  <Button variant="ghost" className="group p-0 h-auto text-pfcu-purple hover:text-pfcu-dark hover:bg-transparent">
+                    <span>Manage {stat.title}</span>
+                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
+        <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b">
+            <CardTitle className="flex items-center">
+              <FileText className="mr-2 h-5 w-5 text-blue-500" />
+              Recent Sermons
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {loading ? (
               <div className="flex justify-center py-4">
                 <div className="w-6 h-6 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : recentSermons.length > 0 ? (
               recentSermons.map((sermon) => (
-                <div key={sermon.title + sermon.created_at} className="flex items-center justify-between border-b pb-2">
+                <div key={sermon.title + sermon.created_at} className="flex items-center justify-between border-b pb-3">
                   <div>
-                    <p className="font-medium">{sermon.title}</p>
-                    <div className="flex items-center gap-1">
-                      <p className="text-sm text-gray-500">{sermon.preacher}</p>
-                      <span className="text-xs text-gray-400">•</span>
-                      <p className="text-sm text-gray-500">{new Date(sermon.sermon_date).toLocaleDateString()}</p>
+                    <p className="font-medium text-gray-800">{sermon.title}</p>
+                    <div className="flex items-center gap-1 text-gray-500">
+                      <p className="text-sm">{sermon.preacher}</p>
+                      <span className="text-xs">•</span>
+                      <p className="text-sm">{new Date(sermon.sermon_date).toLocaleDateString()}</p>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500">
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Clock className="h-3 w-3 mr-1" />
                     {formatDate(sermon.created_at)}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-4">No sermons available</p>
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                <p className="text-gray-500">No sermons available</p>
+                <Link to="/admin/sermons">
+                  <Button variant="link" className="mt-2">Add your first sermon</Button>
+                </Link>
+              </div>
             )}
-            <Link to="/admin/sermons">
-              <Button variant="outline" className="w-full mt-2">View All Sermons</Button>
+            <Link to="/admin/sermons" className="block">
+              <Button variant="outline" className="w-full mt-2 group">
+                <span>View All Sermons</span>
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
             </Link>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Upcoming Events</CardTitle>
-            <CardDescription>Next scheduled fellowship events</CardDescription>
+        <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
+            <CardTitle className="flex items-center">
+              <Calendar className="mr-2 h-5 w-5 text-green-500" />
+              Upcoming Events
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             {loading ? (
               <div className="flex justify-center py-4">
                 <div className="w-6 h-6 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : recentEvents.length > 0 ? (
               recentEvents.map((event) => (
-                <div key={event.title + event.date} className="flex items-center justify-between border-b pb-2">
+                <div key={event.title + event.date} className="flex items-center justify-between border-b pb-3">
                   <div>
-                    <p className="font-medium">{event.title}</p>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-3 w-3 text-gray-400" />
-                      <p className="text-sm text-gray-500">{event.date}</p>
-                      <span className="text-xs text-gray-400">•</span>
-                      <p className="text-sm text-gray-500">{event.time}</p>
+                    <p className="font-medium text-gray-800">{event.title}</p>
+                    <div className="flex items-center gap-2 text-sm text-gray-500">
+                      <Calendar className="h-3 w-3" />
+                      <p>{event.date}</p>
+                      <span className="text-xs">•</span>
+                      <p>{event.time}</p>
                     </div>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-gray-500 py-4">No upcoming events</p>
+              <div className="text-center py-8 bg-gray-50 rounded-lg">
+                <Calendar className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                <p className="text-gray-500">No upcoming events</p>
+                <Link to="/admin/events">
+                  <Button variant="link" className="mt-2">Schedule your first event</Button>
+                </Link>
+              </div>
             )}
-            <Link to="/admin/events">
-              <Button variant="outline" className="w-full mt-2">View All Events</Button>
+            <Link to="/admin/events" className="block">
+              <Button variant="outline" className="w-full mt-2 group">
+                <span>View All Events</span>
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Button>
             </Link>
           </CardContent>
         </Card>
-      </div>
+      </motion.div>
     </div>
   );
 };
