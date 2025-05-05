@@ -1,77 +1,50 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-
-interface Leader {
-  id?: string;
-  name: string;
-  position: string;
-  initial: string;
-  bio?: string;
-  profileImage?: string;
-  socialMedia?: {
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-    linkedin?: string;
-  };
-}
+import { Leader, LeadershipState } from "@/types/leadership";
+import {
+  fetchLeadersFromDb,
+  getDefaultLeaders,
+  addLeaderToDatabase,
+  updateLeaderInDatabase,
+  deleteLeaderFromDatabase,
+  mapDbLeaderToLeader
+} from "@/services/leadershipService";
 
 export const useLeadership = () => {
-  const [leaders, setLeaders] = useState<Leader[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [count, setCount] = useState(0);
+  const [state, setState] = useState<LeadershipState>({
+    leaders: [],
+    loading: true,
+    count: 0
+  });
   const { toast } = useToast();
 
-  // Define the leadership position hierarchy for ordering in the UI
-  const positionOrder: Record<string, number> = {
-    "Pastor/President": 1,
-    "Assistant Pastor/VP": 2,
-    "General Secretary": 3,
-    "Assistant Secretary & Treasurer": 4,
-    "P.R.O & Financial Secretary": 5,
-    "Provost": 6
-  };
+  // Fetch leaders on component mount
+  useEffect(() => {
+    fetchLeaders();
+  }, []);
 
   const fetchLeaders = async () => {
-    setLoading(true);
+    setState(prev => ({ ...prev, loading: true }));
     try {
-      // Fetch leaders from the Supabase database, ordered by position_order
-      const { data, error } = await supabase
-        .from('leaders')
-        .select('*')
-        .order('position_order', { ascending: true });
+      // Fetch leaders from the Supabase database
+      const fetchedLeaders = await fetchLeadersFromDb();
       
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.length > 0) {
-        // Map database schema to our interface
-        const mappedLeaders: Leader[] = data.map(leader => ({
-          id: leader.id,
-          name: leader.name,
-          position: leader.position,
-          initial: leader.initial,
-          bio: leader.bio || undefined,
-          profileImage: leader.profile_image || undefined,
-          socialMedia: {
-            facebook: leader.facebook_url || undefined,
-            twitter: leader.twitter_url || undefined,
-            instagram: leader.instagram_url || undefined,
-            linkedin: leader.linkedin_url || undefined,
-          }
-        }));
-        
-        setLeaders(mappedLeaders);
-        setCount(mappedLeaders.length);
+      if (fetchedLeaders.length > 0) {
+        setState({
+          leaders: fetchedLeaders,
+          loading: false,
+          count: fetchedLeaders.length
+        });
       } else {
         // If no data in database, check localStorage
         const storedLeaders = localStorage.getItem("pfcu_leaders");
         if (storedLeaders) {
           const parsedLeaders = JSON.parse(storedLeaders);
-          setLeaders(parsedLeaders);
-          setCount(parsedLeaders.length);
+          setState({
+            leaders: parsedLeaders,
+            loading: false,
+            count: parsedLeaders.length
+          });
           
           // Migrate localStorage data to database
           parsedLeaders.forEach(async (leader: Leader) => {
@@ -79,47 +52,13 @@ export const useLeadership = () => {
           });
         } else {
           // Initialize with default leaders
-          const defaultLeaders = [
-            {
-              name: "Emmanuel R.C. Moghalu",
-              position: "Pastor/President",
-              initial: "EM",
-              bio: "Leading with vision and purpose",
-            },
-            {
-              name: "Chisom C. Mbagwu",
-              position: "Assistant Pastor/VP",
-              initial: "CM",
-              bio: "Supporting the team and community",
-            },
-            {
-              name: "Joshua E. Aforue",
-              position: "General Secretary",
-              initial: "JA",
-              bio: "Keeping records and documentation",
-            },
-            {
-              name: "Emmanuella Y. Ufe",
-              position: "Assistant Secretary & Treasurer",
-              initial: "EU",
-              bio: "Managing resources and finances",
-            },
-            {
-              name: "Dorci F. Donald",
-              position: "P.R.O & Financial Secretary",
-              initial: "DD",
-              bio: "Maintaining public relations",
-            },
-            {
-              name: "Samuel C. Oyenze",
-              position: "Provost",
-              initial: "SO",
-              bio: "Ensuring order and discipline",
-            }
-          ];
+          const defaultLeaders = getDefaultLeaders();
           
-          setLeaders(defaultLeaders);
-          setCount(defaultLeaders.length);
+          setState({
+            leaders: defaultLeaders,
+            loading: false,
+            count: defaultLeaders.length
+          });
           
           // Add default leaders to database
           defaultLeaders.forEach(async (leader) => {
@@ -138,85 +77,38 @@ export const useLeadership = () => {
       const storedLeaders = localStorage.getItem("pfcu_leaders");
       if (storedLeaders) {
         const parsedLeaders = JSON.parse(storedLeaders);
-        setLeaders(parsedLeaders);
-        setCount(parsedLeaders.length);
+        setState({
+          leaders: parsedLeaders,
+          loading: false,
+          count: parsedLeaders.length
+        });
       } else {
-        setLeaders([]);
-        setCount(0);
+        setState({
+          leaders: [],
+          loading: false,
+          count: 0
+        });
       }
-    } finally {
-      setLoading(false);
     }
   };
-  
-  // Helper function to add a leader to the database
-  const addLeaderToDatabase = async (leader: Leader) => {
-    try {
-      // Get position order from the positionOrder object
-      const position_order = positionOrder[leader.position] || 99;
-      
-      const { error } = await supabase.from('leaders').insert({
-        name: leader.name,
-        position: leader.position,
-        initial: leader.initial,
-        bio: leader.bio || null,
-        profile_image: leader.profileImage || null,
-        facebook_url: leader.socialMedia?.facebook || null,
-        twitter_url: leader.socialMedia?.twitter || null,
-        instagram_url: leader.socialMedia?.instagram || null,
-        linkedin_url: leader.socialMedia?.linkedin || null,
-        position_order: position_order
-      });
-      
-      if (error) {
-        console.error("Error migrating leader to database:", error);
-      }
-    } catch (err) {
-      console.error("Error in addLeaderToDatabase:", err);
-    }
-  };
-  
+
   const addLeader = async (leader: Omit<Leader, "id">) => {
     try {
-      // Get position order from the positionOrder object
-      const position_order = positionOrder[leader.position] || 99;
-      
       // First, add to Supabase
-      const { data, error } = await supabase.from('leaders').insert({
-        name: leader.name,
-        position: leader.position,
-        initial: leader.initial,
-        bio: leader.bio || null,
-        profile_image: leader.profileImage || null,
-        facebook_url: leader.socialMedia?.facebook || null,
-        twitter_url: leader.socialMedia?.twitter || null,
-        instagram_url: leader.socialMedia?.instagram || null,
-        linkedin_url: leader.socialMedia?.linkedin || null,
-        position_order: position_order
-      }).select('*').single();
+      const { data, error } = await addLeaderToDatabase(leader);
       
       if (error) throw error;
       
       // Map database response to our interface
-      const newLeader: Leader = {
-        id: data.id,
-        name: data.name,
-        position: data.position,
-        initial: data.initial,
-        bio: data.bio || undefined,
-        profileImage: data.profile_image || undefined,
-        socialMedia: {
-          facebook: data.facebook_url || undefined,
-          twitter: data.twitter_url || undefined,
-          instagram: data.instagram_url || undefined,
-          linkedin: data.linkedin_url || undefined,
-        }
-      };
+      const newLeader = mapDbLeaderToLeader(data);
       
       // Update local state
-      const updatedLeaders = [...leaders, newLeader];
-      setLeaders(updatedLeaders);
-      setCount(updatedLeaders.length);
+      const updatedLeaders = [...state.leaders, newLeader];
+      setState({
+        leaders: updatedLeaders,
+        loading: false,
+        count: updatedLeaders.length
+      });
       
       // Keep localStorage in sync for backward compatibility
       localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
@@ -237,10 +129,13 @@ export const useLeadership = () => {
       // Try to use localStorage as fallback
       try {
         const newLeader = { ...leader, id: Date.now().toString() };
-        const updatedLeaders = [...leaders, newLeader];
+        const updatedLeaders = [...state.leaders, newLeader];
         
-        setLeaders(updatedLeaders);
-        setCount(updatedLeaders.length);
+        setState({
+          leaders: updatedLeaders,
+          loading: false,
+          count: updatedLeaders.length
+        });
         localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
         
         return true;
@@ -253,52 +148,13 @@ export const useLeadership = () => {
   
   const updateLeader = async (id: string, updatedData: Partial<Leader>) => {
     try {
-      console.log("Updating leader with ID:", id);
-      console.log("Updated data:", updatedData);
-      
-      // Calculate position_order if position is being updated
-      const position_order = updatedData.position ? (positionOrder[updatedData.position] || 99) : undefined;
-      
       // Update database first
-      const dbUpdateData = {
-        name: updatedData.name,
-        position: updatedData.position,
-        initial: updatedData.initial,
-        bio: updatedData.bio,
-        profile_image: updatedData.profileImage,
-        facebook_url: updatedData.socialMedia?.facebook,
-        twitter_url: updatedData.socialMedia?.twitter,
-        instagram_url: updatedData.socialMedia?.instagram,
-        linkedin_url: updatedData.socialMedia?.linkedin,
-        position_order: position_order
-      };
-      
-      // Remove undefined values (keep nulls)
-      Object.keys(dbUpdateData).forEach(key => {
-        if (dbUpdateData[key as keyof typeof dbUpdateData] === undefined) {
-          delete dbUpdateData[key as keyof typeof dbUpdateData];
-        }
-      });
-      
-      console.log("Database update data:", dbUpdateData);
-      
-      const { error } = await supabase
-        .from('leaders')
-        .update(dbUpdateData)
-        .eq('id', id);
+      const { error } = await updateLeaderInDatabase(id, updatedData);
       
       if (error) throw error;
       
-      // Update local state - immutably creating a new array with updated leader
-      const updatedLeadersArray = leaders.map(leader => 
-        leader.id === id ? { ...leader, ...updatedData } : leader
-      );
-      
-      // Refetch to ensure order is correct
+      // Refetch to ensure order is correct instead of updating state directly
       fetchLeaders();
-      
-      // Keep localStorage in sync for backward compatibility
-      localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeadersArray));
       
       toast({
         title: "Leader updated successfully",
@@ -317,11 +173,15 @@ export const useLeadership = () => {
       
       try {
         // Fallback to direct localStorage update
-        const updatedLeadersArray = leaders.map(leader => 
+        const updatedLeadersArray = state.leaders.map(leader => 
           leader.id === id ? { ...leader, ...updatedData } : leader
         );
         
-        setLeaders(updatedLeadersArray);
+        setState({
+          leaders: updatedLeadersArray,
+          loading: false,
+          count: updatedLeadersArray.length
+        });
         localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeadersArray));
         
         return true;
@@ -335,18 +195,18 @@ export const useLeadership = () => {
   const deleteLeader = async (id: string) => {
     try {
       // Delete from database first
-      const { error } = await supabase
-        .from('leaders')
-        .delete()
-        .eq('id', id);
+      const { error } = await deleteLeaderFromDatabase(id);
       
       if (error) throw error;
       
       // Update local state
-      const updatedLeaders = leaders.filter(leader => leader.id !== id);
+      const updatedLeaders = state.leaders.filter(leader => leader.id !== id);
       
-      setLeaders(updatedLeaders);
-      setCount(updatedLeaders.length);
+      setState({
+        leaders: updatedLeaders,
+        loading: false,
+        count: updatedLeaders.length
+      });
       
       // Keep localStorage in sync for backward compatibility
       localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
@@ -366,10 +226,13 @@ export const useLeadership = () => {
       
       try {
         // Fallback to direct localStorage update
-        const updatedLeaders = leaders.filter(leader => leader.id !== id);
+        const updatedLeaders = state.leaders.filter(leader => leader.id !== id);
         
-        setLeaders(updatedLeaders);
-        setCount(updatedLeaders.length);
+        setState({
+          leaders: updatedLeaders,
+          loading: false,
+          count: updatedLeaders.length
+        });
         localStorage.setItem("pfcu_leaders", JSON.stringify(updatedLeaders));
         
         return true;
@@ -380,15 +243,10 @@ export const useLeadership = () => {
     }
   };
 
-  // Fetch leaders on component mount
-  useEffect(() => {
-    fetchLeaders();
-  }, []);
-
   return {
-    leaders,
-    loading,
-    count,
+    leaders: state.leaders,
+    loading: state.loading,
+    count: state.count,
     fetchLeaders,
     addLeader,
     updateLeader,

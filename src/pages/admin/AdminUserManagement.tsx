@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-// Import new component files
+// Import components
 import AdminUsersHeader from "@/components/admin/users/AdminUsersHeader";
 import SuperAdminAlert from "@/components/admin/users/SuperAdminAlert";
 import AdminUsersList from "@/components/admin/users/AdminUsersList";
@@ -23,6 +23,7 @@ const AdminUserManagement = () => {
     adminUsers,
     isLoading,
     currentUserIsSuperAdmin,
+    fetchAdminUsers,
     handleToggleSuperAdmin,
     handleDeleteAdmin
   } = useAdminUsers();
@@ -39,23 +40,13 @@ const AdminUserManagement = () => {
       
       if (success) {
         setIsDialogOpen(false);
+        toast({
+          title: "Admin created",
+          description: `${data.email} has been added as an admin`,
+        });
         
         // Refresh the admin users list
-        const { data: newAdminData, error: newAdminError } = await supabase
-          .from('admin_users')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .single();
-        
-        if (!newAdminError && newAdminData) {
-          toast({
-            title: "Admin created",
-            description: `${data.email} has been added as an admin`,
-          });
-          
-          // The useEffect in useAdminUsers will refresh the list
-        }
+        fetchAdminUsers();
       }
     } catch (error) {
       console.error("Error creating admin:", error);

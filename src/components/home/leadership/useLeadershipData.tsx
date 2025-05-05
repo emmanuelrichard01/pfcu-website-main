@@ -1,24 +1,11 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-
-interface LeaderData {
-  name: string;
-  position: string;
-  initial: string;
-  bio?: string;
-  profileImage?: string;
-  socialMedia?: {
-    facebook?: string;
-    twitter?: string;
-    instagram?: string;
-    linkedin?: string;
-  };
-}
+import { Leader, TenureInfo } from "@/types/leadership";
 
 export const useLeadershipData = () => {
-  const [leaders, setLeaders] = useState<LeaderData[]>([]);
-  const [tenureInfo, setTenureInfo] = useState({
+  const [leaders, setLeaders] = useState<Leader[]>([]);
+  const [tenureInfo, setTenureInfo] = useState<TenureInfo>({
     year: "2024/2025",
     declaration: "Many but one in Christ"
   });
@@ -39,7 +26,8 @@ export const useLeadershipData = () => {
         
         if (data && data.length > 0) {
           // Map database schema to our interface
-          const mappedLeaders: LeaderData[] = data.map(leader => ({
+          const mappedLeaders: Leader[] = data.map(leader => ({
+            id: leader.id,
             name: leader.name,
             position: leader.position,
             initial: leader.initial,

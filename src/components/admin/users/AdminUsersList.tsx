@@ -17,8 +17,8 @@ interface AdminUsersListProps {
   isLoading: boolean;
   adminUsers: AdminUser[];
   currentUserIsSuperAdmin: boolean;
-  onToggleSuperAdmin: (adminId: string, isSuperAdmin: boolean) => void;
-  onDeleteAdmin: (adminId: string, adminEmail: string) => void;
+  onToggleSuperAdmin: (adminId: string, userId: string, isSuperAdmin: boolean) => void;
+  onDeleteAdmin: (adminId: string, userId: string, adminEmail: string) => void;
 }
 
 const AdminUsersList = ({
@@ -72,7 +72,7 @@ const AdminUsersList = ({
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={() => onToggleSuperAdmin(admin.id, admin.is_super_admin)}
+                        onClick={() => onToggleSuperAdmin(admin.id, admin.user_id, admin.is_super_admin)}
                         className={admin.is_super_admin ? "text-amber-500" : "text-gray-500"}
                         title={admin.is_super_admin ? "Demote to Admin" : "Promote to Super Admin"}
                       >
@@ -82,7 +82,7 @@ const AdminUsersList = ({
                         variant="outline" 
                         size="sm" 
                         className="text-red-500 hover:text-red-600"
-                        onClick={() => onDeleteAdmin(admin.id, admin.email)}
+                        onClick={() => onDeleteAdmin(admin.id, admin.user_id, admin.email)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

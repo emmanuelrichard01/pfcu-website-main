@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Map as MapIcon } from "lucide-react";
+import { Map as MapIcon, Navigation } from "lucide-react";
 
 interface GoogleMapProps {
   address?: string;
@@ -16,7 +16,7 @@ declare global {
 }
 
 const GoogleMap = ({ 
-  address = "Caritas University, Enugu, Nigeria", 
+  address = "Caritas University, Amorji-Nike, Enugu", 
   height = "400px" 
 }: GoogleMapProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
@@ -32,7 +32,7 @@ const GoogleMap = ({
       }
       
       const googleMapScript = document.createElement('script');
-      // Using a valid API key for production
+      // Using the provided API key
       googleMapScript.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyCrw5o26thUGFYdC7fwNDH_dZVZYKGLYdQ&libraries=places&callback=initMap`;
       googleMapScript.async = true;
       googleMapScript.defer = true;
@@ -56,12 +56,12 @@ const GoogleMap = ({
       if (!mapRef.current || !window.google) return;
       
       try {
-        // Default to Caritas University coordinates
-        const defaultPosition = { lat: 6.4698, lng: 7.5101 };
+        // Default to Caritas University coordinates (more accurate)
+        const caritasPosition = { lat: 6.4700, lng: 7.5413 }; // Updated coordinates for accuracy
         
         const mapOptions = {
-          zoom: 15,
-          center: defaultPosition,
+          zoom: 16,
+          center: caritasPosition,
           mapTypeId: window.google.maps.MapTypeId.ROADMAP,
           mapTypeControl: true,
           fullscreenControl: true,
@@ -69,7 +69,17 @@ const GoogleMap = ({
           zoomControl: true,
           styles: [
             {
-              featureType: "poi",
+              featureType: "poi.business",
+              elementType: "labels",
+              stylers: [{ visibility: "off" }]
+            },
+            {
+              featureType: "poi.school",
+              elementType: "labels",
+              stylers: [{ visibility: "on" }]
+            },
+            {
+              featureType: "transit",
               elementType: "labels",
               stylers: [{ visibility: "off" }]
             }
@@ -89,53 +99,106 @@ const GoogleMap = ({
               const marker = new window.google.maps.Marker({
                 map,
                 position,
-                title: address,
+                title: "PFCU - " + address,
                 animation: window.google.maps.Animation.DROP,
+                icon: {
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  fillColor: '#8B5CF6', // Purple to match theme
+                  fillOpacity: 1,
+                  strokeColor: '#FFFFFF',
+                  strokeWeight: 2,
+                  scale: 10
+                }
               });
               
               // Add info window with address
               const infoWindow = new window.google.maps.InfoWindow({
-                content: `<div class="p-2 text-sm"><strong>PFCU</strong><br>${address}</div>`
+                content: `
+                  <div class="p-3">
+                    <div class="font-semibold text-purple-800 mb-1">Pentecostal Fellowship of Caritas University</div>
+                    <div class="text-sm text-gray-600">${address}</div>
+                  </div>
+                `
               });
               
               marker.addListener('click', () => {
                 infoWindow.open(map, marker);
               });
               
-              // Open info window by default
-              infoWindow.open(map, marker);
+              // Open info window by default after a short delay (better UX)
+              setTimeout(() => {
+                infoWindow.open(map, marker);
+              }, 1000);
             } else {
-              console.warn(`Geocoding failed for address: ${address}`);
-              setError(`Couldn't find exact location for: ${address}`);
+              console.warn(`Geocoding failed, using default coordinates for: ${address}`);
               // Fall back to default position
-              map.setCenter(defaultPosition);
-              new window.google.maps.Marker({
+              map.setCenter(caritasPosition);
+              const marker = new window.google.maps.Marker({
                 map,
-                position: defaultPosition,
-                title: "Caritas University",
+                position: caritasPosition,
+                title: "PFCU - Caritas University",
                 animation: window.google.maps.Animation.DROP,
+                icon: {
+                  path: window.google.maps.SymbolPath.CIRCLE,
+                  fillColor: '#8B5CF6',
+                  fillOpacity: 1,
+                  strokeColor: '#FFFFFF',
+                  strokeWeight: 2,
+                  scale: 10
+                }
               });
+              
+              const infoWindow = new window.google.maps.InfoWindow({
+                content: `
+                  <div class="p-3">
+                    <div class="font-semibold text-purple-800 mb-1">Pentecostal Fellowship of Caritas University</div>
+                    <div class="text-sm text-gray-600">Caritas University, Amorji-Nike, Enugu</div>
+                  </div>
+                `
+              });
+              
+              marker.addListener('click', () => {
+                infoWindow.open(map, marker);
+              });
+              
+              setTimeout(() => {
+                infoWindow.open(map, marker);
+              }, 1000);
             }
           });
         } else {
           // Use default position if no address
           const marker = new window.google.maps.Marker({
             map,
-            position: defaultPosition,
-            title: "Caritas University",
+            position: caritasPosition,
+            title: "PFCU - Caritas University",
             animation: window.google.maps.Animation.DROP,
+            icon: {
+              path: window.google.maps.SymbolPath.CIRCLE,
+              fillColor: '#8B5CF6',
+              fillOpacity: 1,
+              strokeColor: '#FFFFFF',
+              strokeWeight: 2,
+              scale: 10
+            }
           });
           
           const infoWindow = new window.google.maps.InfoWindow({
-            content: `<div class="p-2 text-sm"><strong>PFCU</strong><br>Caritas University</div>`
+            content: `
+              <div class="p-3">
+                <div class="font-semibold text-purple-800 mb-1">Pentecostal Fellowship of Caritas University</div>
+                <div class="text-sm text-gray-600">Caritas University, Amorji-Nike, Enugu</div>
+              </div>
+            `
           });
           
           marker.addListener('click', () => {
             infoWindow.open(map, marker);
           });
           
-          // Open info window by default
-          infoWindow.open(map, marker);
+          setTimeout(() => {
+            infoWindow.open(map, marker);
+          }, 1000);
         }
       } catch (err) {
         console.error('Error initializing map:', err);
@@ -166,7 +229,7 @@ const GoogleMap = ({
     <div className="relative w-full">
       <div 
         ref={mapRef} 
-        className="w-full rounded-lg overflow-hidden border border-gray-300 shadow-md relative"
+        className="w-full rounded-xl overflow-hidden border border-gray-200 shadow-md relative"
         style={{ height }}
       >
         {error && (
@@ -184,9 +247,9 @@ const GoogleMap = ({
           onClick={handleGetDirections}
           variant="outline"
           size="sm"
-          className="text-xs flex items-center gap-1"
+          className="flex items-center gap-1.5 hover:bg-pfcu-purple hover:text-white transition-colors"
         >
-          <MapIcon className="h-3 w-3" />
+          <Navigation className="h-3.5 w-3.5" />
           <span>Get Directions</span>
         </Button>
       </div>

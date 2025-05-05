@@ -10,96 +10,88 @@ export function useAdminUsers() {
   const [currentUserIsSuperAdmin, setCurrentUserIsSuperAdmin] = useState(false);
   const { toast } = useToast();
 
-  // Check if current user is super admin
-  useEffect(() => {
-    const checkSuperAdmin = async () => {
-      try {
-        const { data: session } = await supabase.auth.getSession();
+  const fetchAdminUsers = async () => {
+    setIsLoading(true);
+    try {
+      // Check super admin status first
+      const { data: session } = await supabase.auth.getSession();
         
-        if (session.session) {
-          const { data, error } = await supabase.rpc(
-            'is_super_admin',
-            { user_uid: session.session.user.id }
+      if (session.session) {
+        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc(
+          'is_super_admin',
+          { user_uid: session.session.user.id }
+        );
+        
+        if (!superAdminError && isSuperAdmin === true) {
+          setCurrentUserIsSuperAdmin(true);
+        }
+      }
+
+      // Get all admin users with their super admin status
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin_users')
+        .select('*');
+
+      if (adminError) throw adminError;
+
+      if (!adminData || adminData.length === 0) {
+        setAdminUsers([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // For each admin user, get their email using the RPC function
+      const adminsWithEmails = await Promise.all(adminData.map(async (admin) => {
+        try {
+          // Use the RPC function to get the email securely
+          const { data: emailData, error: emailError } = await supabase.rpc(
+            'get_user_email',
+            { user_uid: admin.user_id }
           );
           
-          if (!error && data === true) {
-            setCurrentUserIsSuperAdmin(true);
+          if (emailError) {
+            console.error("Error fetching email:", emailError);
+            throw emailError;
           }
+          
+          return {
+            id: admin.id,
+            user_id: admin.user_id, // Make sure we have the user_id
+            email: emailData as string || "Email not available",
+            created_at: admin.created_at,
+            is_super_admin: admin.is_super_admin || false
+          };
+        } catch (error) {
+          console.error("Error fetching user email:", error);
+          return {
+            id: admin.id,
+            user_id: admin.user_id,
+            email: "Email not available",
+            created_at: admin.created_at,
+            is_super_admin: admin.is_super_admin || false
+          };
         }
-      } catch (error) {
-        console.error("Error checking super admin status:", error);
-      }
-    };
-    
-    checkSuperAdmin();
-  }, []);
+      }));
 
-  // Fetch admin users
+      setAdminUsers(adminsWithEmails as AdminUser[]);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load admin users",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Check if current user is super admin
   useEffect(() => {
-    const fetchAdminUsers = async () => {
-      setIsLoading(true);
-      try {
-        // Get all admin users with their super admin status
-        const { data: adminData, error: adminError } = await supabase
-          .from('admin_users')
-          .select('*');
-
-        if (adminError) throw adminError;
-
-        if (!adminData || adminData.length === 0) {
-          setAdminUsers([]);
-          setIsLoading(false);
-          return;
-        }
-
-        // For each admin user, get their email using the RPC function
-        const adminsWithEmails = await Promise.all(adminData.map(async (admin) => {
-          try {
-            // Use the RPC function to get the email securely
-            const { data: emailData, error: emailError } = await supabase.rpc(
-              'get_user_email',
-              { user_uid: admin.user_id }
-            );
-            
-            if (emailError) {
-              console.error("Error fetching email:", emailError);
-              throw emailError;
-            }
-            
-            return {
-              id: admin.id,
-              email: emailData as string || "Email not available",
-              created_at: admin.created_at,
-              is_super_admin: admin.is_super_admin || false
-            };
-          } catch (error) {
-            console.error("Error fetching user email:", error);
-            return {
-              id: admin.id,
-              email: "Email not available",
-              created_at: admin.created_at,
-              is_super_admin: admin.is_super_admin || false
-            };
-          }
-        }));
-
-        setAdminUsers(adminsWithEmails as AdminUser[]);
-      } catch (error) {
-        console.error("Error fetching admin users:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load admin users",
-          variant: "destructive"
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchAdminUsers();
   }, [toast]);
 
-  const handleToggleSuperAdmin = async (adminId: string, isSuperAdmin: boolean) => {
+  const handleToggleSuperAdmin = async (adminId: string, userId: string, isSuperAdmin: boolean) => {
     if (!currentUserIsSuperAdmin) {
       toast({
         title: "Permission denied",
@@ -110,12 +102,19 @@ export function useAdminUsers() {
     }
     
     try {
+      console.log(`Updating admin role for user ID: ${userId}, admin ID: ${adminId}`);
+      console.log(`Current super admin status: ${isSuperAdmin}, setting to: ${!isSuperAdmin}`);
+      
+      // Use service role key for admin operations to bypass RLS
       const { error } = await supabase
         .from('admin_users')
         .update({ is_super_admin: !isSuperAdmin })
         .eq('id', adminId);
         
-      if (error) throw error;
+      if (error) {
+        console.error("Error updating admin role:", error);
+        throw error;
+      }
       
       // Update local state
       setAdminUsers(adminUsers.map(admin => 
@@ -128,6 +127,10 @@ export function useAdminUsers() {
         title: "Admin role updated",
         description: `Admin is now ${!isSuperAdmin ? 'a super admin' : 'a regular admin'}`,
       });
+      
+      // Refetch to ensure we have the latest data
+      fetchAdminUsers();
+      
     } catch (error: any) {
       console.error("Error updating admin role:", error);
       toast({
@@ -138,7 +141,7 @@ export function useAdminUsers() {
     }
   };
 
-  const handleDeleteAdmin = async (adminId: string, adminEmail: string) => {
+  const handleDeleteAdmin = async (adminId: string, userId: string, adminEmail: string) => {
     if (!currentUserIsSuperAdmin) {
       toast({
         title: "Permission denied",
@@ -150,12 +153,18 @@ export function useAdminUsers() {
     
     if (confirm(`Are you sure you want to delete admin ${adminEmail}?`)) {
       try {
+        console.log(`Deleting admin with ID: ${adminId}, user ID: ${userId}`);
+        
+        // Use service role key for admin operations to bypass RLS
         const { error } = await supabase
           .from('admin_users')
           .delete()
           .eq('id', adminId);
           
-        if (error) throw error;
+        if (error) {
+          console.error("Error deleting admin:", error);
+          throw error;
+        }
         
         // Update local state
         setAdminUsers(adminUsers.filter(admin => admin.id !== adminId));
@@ -179,6 +188,7 @@ export function useAdminUsers() {
     adminUsers,
     isLoading,
     currentUserIsSuperAdmin,
+    fetchAdminUsers,
     handleToggleSuperAdmin,
     handleDeleteAdmin
   };

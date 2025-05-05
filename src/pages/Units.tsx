@@ -14,71 +14,131 @@ const Units = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  // Animation variants
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+
   return (
     <MainLayout>
-      {/* Hero section with parallax effect */}
-      <section className="relative bg-pfcu-purple overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-b from-pfcu-dark/90 to-pfcu-purple/90"></div>
+      {/* Hero section with dynamic background */}
+      <section className="relative overflow-hidden">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-pfcu-dark via-pfcu-purple to-pfcu-light z-0">
+          <div className="absolute inset-0 opacity-10">
+            <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {[...Array(10)].map((_, i) => (
+                <motion.path
+                  key={i}
+                  d={`M${i * 10},0 Q${i * 10 + 5},50 ${i * 10},100`}
+                  stroke="white"
+                  strokeWidth="0.5"
+                  fill="none"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.3 }}
+                  transition={{ duration: 2, delay: i * 0.2 }}
+                />
+              ))}
+            </svg>
+          </div>
         </div>
-        <div className="container mx-auto relative z-10 py-20 md:py-28 px-6">
+        
+        <div className="container mx-auto relative z-10 py-24 md:py-32 px-6">
           <motion.div 
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-center"
+            className="max-w-4xl mx-auto text-center"
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-white mb-6">
+            <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-6">
               Ministry Units
             </h1>
-            <p className="text-xl text-center max-w-3xl mx-auto text-white/90">
-              16 specialized units working together to fulfill the vision of PFCU.
+            <p className="text-xl text-center text-white/90 max-w-2xl mx-auto">
+              16 specialized units working together with diverse gifts and talents to fulfill the vision of PFCU.
             </p>
           </motion.div>
         </div>
       </section>
 
-      <section className="py-16">
+      <section className="py-16 bg-gradient-to-b from-white to-gray-50">
         <div className="container mx-auto px-4">
           <Tabs defaultValue="Worship" className="w-full">
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 mb-8 bg-pfcu-light p-1 rounded-lg">
+            <div className="flex justify-center mb-8">
+              <TabsList className="h-auto p-1 bg-white border rounded-full shadow-sm">
+                {unitsData.map((category, index) => (
+                  <motion.div
+                    key={category.category}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1, duration: 0.3 }}
+                  >
+                    <TabsTrigger 
+                      value={category.category}
+                      className="px-6 py-2.5 rounded-full data-[state=active]:bg-pfcu-purple 
+                        data-[state=active]:text-white data-[state=active]:shadow-md transition-all"
+                    >
+                      {category.category}
+                    </TabsTrigger>
+                  </motion.div>
+                ))}
+              </TabsList>
+            </div>
+            
+            <div className="mt-12">
               {unitsData.map((category) => (
-                <TabsTrigger 
+                <TabsContent 
                   key={category.category} 
                   value={category.category}
-                  className="data-[state=active]:bg-pfcu-purple data-[state=active]:text-white"
+                  className="mt-0"
                 >
-                  {category.category}
-                </TabsTrigger>
+                  <motion.div
+                    variants={container}
+                    initial="hidden"
+                    animate="show"
+                    className="grid gap-8"
+                  >
+                    {category.units.map((unit, idx) => (
+                      <motion.div key={unit.name} variants={item}>
+                        <UnitCard {...unit} />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+                </TabsContent>
               ))}
-            </TabsList>
-            
-            {unitsData.map((category) => (
-              <TabsContent key={category.category} value={category.category} className="space-y-8">
-                {category.units.map((unit) => (
-                  <UnitCard key={unit.name} {...unit} />
-                ))}
-              </TabsContent>
-            ))}
+            </div>
           </Tabs>
         </div>
       </section>
 
-      <section className="py-16 bg-gradient-to-br from-pfcu-purple to-pfcu-dark text-white">
-        <div className="container mx-auto text-center px-4">
+      <section className="py-16 bg-pfcu-purple text-white">
+        <div className="container mx-auto text-center px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             viewport={{ once: true }}
+            className="max-w-3xl mx-auto"
           >
-            <h2 className="text-3xl font-display font-bold mb-6">Join a Ministry Unit</h2>
-            <p className="max-w-2xl mx-auto mb-8">
-              Each ministry unit offers unique opportunities to serve and grow. Find where your gifts and passions align with our fellowship needs.
+            <span className="inline-block px-4 py-1.5 bg-white text-pfcu-purple rounded-full text-sm font-medium mb-4">Discover Your Gifts</span>
+            <h2 className="text-3xl md:text-4xl font-display font-bold mb-6">Join a Ministry Unit</h2>
+            <p className="text-white/90 mb-8 max-w-2xl mx-auto">
+              Each ministry unit offers unique opportunities to serve and grow. Find where your gifts and passions align with our fellowship needs and make a difference in our community.
             </p>
             <a 
               href="#" 
-              className="bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-pfcu-dark px-6 py-3 rounded-md transition-colors inline-flex items-center font-medium"
+              className="inline-flex items-center justify-center bg-white text-pfcu-purple hover:bg-pfcu-gold hover:text-pfcu-dark 
+                px-8 py-3 rounded-full transition-colors font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               Discover Your Ministry Fit
             </a>
