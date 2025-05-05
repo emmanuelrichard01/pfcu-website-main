@@ -56,7 +56,7 @@ export function useAdminUsers() {
           
           return {
             id: admin.id,
-            user_id: admin.user_id, // Make sure we have the user_id
+            user_id: admin.user_id,
             email: emailData as string || "Email not available",
             created_at: admin.created_at,
             is_super_admin: admin.is_super_admin || false
@@ -89,7 +89,7 @@ export function useAdminUsers() {
   // Check if current user is super admin
   useEffect(() => {
     fetchAdminUsers();
-  }, [toast]);
+  }, []);
 
   const handleToggleSuperAdmin = async (adminId: string, userId: string, isSuperAdmin: boolean) => {
     if (!currentUserIsSuperAdmin) {
@@ -103,9 +103,8 @@ export function useAdminUsers() {
     
     try {
       console.log(`Updating admin role for user ID: ${userId}, admin ID: ${adminId}`);
-      console.log(`Current super admin status: ${isSuperAdmin}, setting to: ${!isSuperAdmin}`);
       
-      // Use service role key for admin operations to bypass RLS
+      // Use direct database update with service role to bypass RLS
       const { error } = await supabase
         .from('admin_users')
         .update({ is_super_admin: !isSuperAdmin })
@@ -117,11 +116,13 @@ export function useAdminUsers() {
       }
       
       // Update local state
-      setAdminUsers(adminUsers.map(admin => 
-        admin.id === adminId 
-          ? { ...admin, is_super_admin: !isSuperAdmin } 
-          : admin
-      ));
+      setAdminUsers(prevUsers => 
+        prevUsers.map(admin => 
+          admin.id === adminId 
+            ? { ...admin, is_super_admin: !isSuperAdmin } 
+            : admin
+        )
+      );
       
       toast({
         title: "Admin role updated",
@@ -129,7 +130,7 @@ export function useAdminUsers() {
       });
       
       // Refetch to ensure we have the latest data
-      fetchAdminUsers();
+      await fetchAdminUsers();
       
     } catch (error: any) {
       console.error("Error updating admin role:", error);
@@ -155,7 +156,7 @@ export function useAdminUsers() {
       try {
         console.log(`Deleting admin with ID: ${adminId}, user ID: ${userId}`);
         
-        // Use service role key for admin operations to bypass RLS
+        // Use direct database update to bypass RLS
         const { error } = await supabase
           .from('admin_users')
           .delete()
@@ -167,7 +168,7 @@ export function useAdminUsers() {
         }
         
         // Update local state
-        setAdminUsers(adminUsers.filter(admin => admin.id !== adminId));
+        setAdminUsers(prevUsers => prevUsers.filter(admin => admin.id !== adminId));
         
         toast({
           title: "Admin deleted",

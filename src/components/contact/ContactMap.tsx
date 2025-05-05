@@ -33,8 +33,11 @@ const ContactMap = () => {
           viewport={{ once: true }}
           className="max-w-5xl mx-auto"
         >
-          <div className="h-[450px] w-full rounded-xl overflow-hidden shadow-xl">
-            <GoogleMap address="Caritas University, Amorji-Nike, Enugu, Nigeria" height="450px" />
+          <div className="rounded-xl overflow-hidden shadow-xl">
+            <GoogleMap 
+              address="Caritas University, Amorji-Nike, Enugu, Nigeria" 
+              height="450px" 
+            />
           </div>
         </motion.div>
       </div>
