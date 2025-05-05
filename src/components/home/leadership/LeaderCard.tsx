@@ -25,84 +25,74 @@ interface LeaderCardProps {
 const LeaderCard = ({ leader, index }: LeaderCardProps) => {
   return (
     <motion.div 
-      className="group relative overflow-hidden rounded-2xl shadow-lg bg-white hover:shadow-xl transition-all duration-300"
+      className="bg-white rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-all duration-300"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: index * 0.1 }}
       viewport={{ once: true }}
-      whileHover={{ y: -5 }}
     >
-      <div className="h-32 bg-gradient-to-r from-pfcu-purple/90 to-pfcu-dark/90 group-hover:from-pfcu-purple group-hover:to-pfcu-dark transition-all duration-300"></div>
-      
-      <div className="px-6 pb-6 -mt-16 flex flex-col items-center">
-        <div className="relative">
-          <div className="absolute inset-0 bg-gradient-to-r from-pfcu-purple/20 to-pfcu-gold/20 rounded-full transform scale-110 blur-lg opacity-0 group-hover:opacity-100 transition-all duration-300"></div>
-          <Avatar className="w-32 h-32 border-4 border-white mb-4 shadow-xl transition-transform duration-300 group-hover:scale-105">
-            {leader.profileImage ? (
-              <AvatarImage src={leader.profileImage} alt={leader.name} className="object-cover" />
-            ) : (
-              <AvatarFallback className="bg-gradient-to-br from-pfcu-gold to-amber-500 text-white text-2xl font-bold">
-                {leader.initial}
-              </AvatarFallback>
-            )}
-          </Avatar>
-        </div>
+      <div className="p-6 flex flex-col items-center text-center">
+        <Avatar className="w-24 h-24 border-2 border-pfcu-light mb-4">
+          {leader.profileImage ? (
+            <AvatarImage src={leader.profileImage} alt={leader.name} className="object-cover" />
+          ) : (
+            <AvatarFallback className="bg-gradient-to-br from-pfcu-purple to-pfcu-dark text-white text-xl font-bold">
+              {leader.initial}
+            </AvatarFallback>
+          )}
+        </Avatar>
         
-        <h3 className="font-display text-xl font-bold mb-1 text-center group-hover:text-pfcu-purple transition-colors">{leader.name}</h3>
+        <h3 className="text-lg font-bold mb-1">{leader.name}</h3>
         <div className="px-3 py-1 bg-pfcu-light text-pfcu-purple text-sm font-medium rounded-full mb-3">
           {leader.position}
         </div>
         
         {leader.bio && (
-          <p className="text-sm text-gray-600 mt-2 text-center max-w-xs">{leader.bio}</p>
+          <p className="text-sm text-gray-600 mt-2 mb-3">{leader.bio}</p>
         )}
         
         {leader.socialMedia && (
-          <div className="flex justify-center gap-4 mt-4">
+          <div className="flex justify-center gap-3 mt-2">
             {leader.socialMedia.facebook && (
-              <motion.a 
+              <a 
                 href={leader.socialMedia.facebook} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-gray-400 hover:text-blue-600 transition-colors"
-                whileHover={{ scale: 1.2, rotate: 5 }}
               >
-                <Facebook size={18} />
-              </motion.a>
+                <Facebook size={16} />
+              </a>
             )}
             {leader.socialMedia.twitter && (
-              <motion.a 
+              <a 
                 href={leader.socialMedia.twitter} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-gray-400 hover:text-sky-500 transition-colors"
-                whileHover={{ scale: 1.2, rotate: 5 }}
               >
-                <TwitterIcon size={18} />
+                <TwitterIcon size={16} />
                 <span className="sr-only">X (formerly Twitter)</span>
-              </motion.a>
+              </a>
             )}
             {leader.socialMedia.instagram && (
-              <motion.a 
+              <a 
                 href={leader.socialMedia.instagram} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-gray-400 hover:text-pink-600 transition-colors"
-                whileHover={{ scale: 1.2, rotate: 5 }}
               >
-                <Instagram size={18} />
-              </motion.a>
+                <Instagram size={16} />
+              </a>
             )}
             {leader.socialMedia.linkedin && (
-              <motion.a 
+              <a 
                 href={leader.socialMedia.linkedin} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-gray-400 hover:text-blue-700 transition-colors"
-                whileHover={{ scale: 1.2, rotate: 5 }}
               >
-                <Linkedin size={18} />
-              </motion.a>
+                <Linkedin size={16} />
+              </a>
             )}
           </div>
         )}

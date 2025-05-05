@@ -1,281 +1,187 @@
 
-import { useState, useEffect, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
-import { Play, Pause, Volume2, VolumeX, Maximize2, Minimize2, RotateCcw, RotateCw } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Play, Pause, SkipForward, SkipBack, Volume2, VolumeX } from "lucide-react";
 import { formatTime } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
-interface SermonPlayerProps {
-  audioUrl: string;
+export interface SermonPlayerProps {
   title: string;
   preacher: string;
-  coverImage?: string | null;
+  date?: string;
+  coverImage: string;
+  audioUrl: string;
 }
 
-const SermonPlayer = ({ audioUrl, title, preacher, coverImage }: SermonPlayerProps) => {
-  const audioRef = useRef<HTMLAudioElement>(null);
+const SermonPlayer = ({ title, preacher, date, coverImage, audioUrl }: SermonPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [volume, setVolume] = useState(1);
+  const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
-  const [showVolumeControl, setShowVolumeControl] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (audio) {
+      audio.volume = volume;
+      audio.muted = isMuted;
 
-    const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-      setLoading(false);
-    };
-
-    const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
-    };
-
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setCurrentTime(0);
-      audio.currentTime = 0;
-    };
-
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('ended', handleEnded);
-
-    return () => {
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('ended', handleEnded);
-    };
-  }, [audioUrl]);
+      const updateTime = () => setCurrentTime(audio.currentTime);
+      const updateDuration = () => setDuration(audio.duration);
+      const playStateChange = () => setIsPlaying(!audio.paused);
+      
+      audio.addEventListener('timeupdate', updateTime);
+      audio.addEventListener('durationchange', updateDuration);
+      audio.addEventListener('play', playStateChange);
+      audio.addEventListener('pause', playStateChange);
+      
+      return () => {
+        audio.removeEventListener('timeupdate', updateTime);
+        audio.removeEventListener('durationchange', updateDuration);
+        audio.removeEventListener('play', playStateChange);
+        audio.removeEventListener('pause', playStateChange);
+      };
+    }
+  }, [audioRef, volume, isMuted]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
-    }
-    setIsPlaying(!isPlaying);
-  };
-
-  const handleSeek = (values: number[]) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    audio.currentTime = values[0];
-    setCurrentTime(values[0]);
-  };
-
-  const handleVolumeChange = (values: number[]) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const newVolume = values[0];
-    audio.volume = newVolume;
-    setVolume(newVolume);
-    setIsMuted(newVolume === 0);
-  };
-
-  const toggleMute = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    if (isMuted) {
-      audio.volume = volume || 1;
-      setIsMuted(false);
-    } else {
-      audio.volume = 0;
-      setIsMuted(true);
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
     }
   };
 
   const skip = (seconds: number) => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (audio) {
+      audio.currentTime = Math.min(Math.max(audio.currentTime + seconds, 0), audio.duration);
+    }
+  };
 
-    const newTime = Math.min(Math.max(currentTime + seconds, 0), duration);
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
+  const seek = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const audio = audioRef.current;
+    if (audio) {
+      const newTime = parseFloat(e.target.value);
+      audio.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
   };
 
   return (
-    <motion.div 
-      className={`bg-white rounded-2xl shadow-lg overflow-hidden transition-all duration-300 ${isExpanded ? 'max-w-4xl mx-auto' : 'max-w-2xl mx-auto'}`}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
-      
-      <div className={`flex ${isExpanded ? 'flex-col md:flex-row' : 'flex-col'} overflow-hidden`}>
-        {/* Cover Image */}
-        <motion.div 
-          layout
-          className={`relative ${isExpanded ? 'md:w-1/2 aspect-square md:aspect-auto' : 'aspect-video'} bg-pfcu-light overflow-hidden`}
-        >
-          {coverImage ? (
-            <img 
-              src={coverImage} 
-              alt={title} 
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-pfcu-purple/80 to-pfcu-dark">
-              <div className="text-center p-4">
-                <h3 className="text-white text-xl font-medium font-display">{title}</h3>
-                <p className="text-white/80 text-sm">{preacher}</p>
-              </div>
+    <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+      <div className="flex flex-col md:flex-row">
+        <div className="md:w-1/3 relative aspect-square md:aspect-auto">
+          <img 
+            src={coverImage || "/placeholder.svg"} 
+            alt={title} 
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex items-end p-4 md:hidden">
+            <div className="text-white">
+              <h3 className="text-lg font-bold line-clamp-1">{title}</h3>
+              <p className="text-sm opacity-90">{preacher}</p>
+              {date && <p className="text-xs opacity-75">{date}</p>}
             </div>
-          )}
-          
-          {/* Big Play Button in Center */}
-          <AnimatePresence>
-            {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                <div className="w-12 h-12 rounded-full border-4 border-white border-t-transparent animate-spin"></div>
-              </div>
-            ) : !isPlaying && (
-              <motion.div 
-                className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm cursor-pointer"
-                onClick={togglePlay}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-              >
-                <motion.div 
-                  className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Play className="h-8 w-8 text-white fill-white" />
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </motion.div>
+          </div>
+        </div>
         
-        {/* Controls */}
-        <motion.div 
-          layout
-          className={`${isExpanded ? 'md:w-1/2' : 'w-full'} p-4 md:p-6`}
-        >
-          <div className="mb-4">
-            <h3 className="text-lg font-semibold line-clamp-1">{title}</h3>
-            <p className="text-gray-500 text-sm">by {preacher}</p>
+        <div className="md:w-2/3 p-5 flex flex-col">
+          <div className="hidden md:block mb-4">
+            <h3 className="text-xl font-bold mb-1">{title}</h3>
+            <p className="text-gray-600">{preacher}</p>
+            {date && <p className="text-sm text-gray-500">{date}</p>}
           </div>
           
-          <div className="space-y-4">
-            {/* Progress bar */}
-            <div className="space-y-2">
-              <Slider
-                value={[currentTime]}
-                min={0}
-                max={duration || 100}
-                step={0.1}
-                onValueChange={handleSeek}
-                className="w-full"
+          <div className="mt-auto">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-xs text-gray-500 w-12 text-right">
+                {formatTime(currentTime)}
+              </span>
+              <input
+                type="range"
+                min="0"
+                max={duration || 0}
+                value={currentTime}
+                onChange={seek}
+                className="flex-1 h-2 accent-pfcu-purple cursor-pointer rounded-full"
               />
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>{formatTime(currentTime)}</span>
-                <span>{formatTime(duration)}</span>
-              </div>
+              <span className="text-xs text-gray-500 w-12">
+                {formatTime(duration)}
+              </span>
             </div>
-            
-            {/* Main controls */}
+
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => skip(-10)}
-                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => skip(-10)} 
+                  className="text-gray-500 hover:text-pfcu-purple transition-colors"
                 >
-                  <RotateCcw className="h-5 w-5" />
-                  <span className="sr-only">Rewind 10 seconds</span>
-                </Button>
+                  <SkipBack size={20} />
+                </button>
                 
-                <Button
-                  variant="default"
-                  size="icon"
+                <motion.button
                   onClick={togglePlay}
-                  className="rounded-full bg-pfcu-purple text-white hover:bg-pfcu-dark mx-2 h-12 w-12"
+                  className="bg-pfcu-purple h-12 w-12 rounded-full flex items-center justify-center text-white shadow-md hover:bg-pfcu-dark transition-colors"
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ scale: 1 }}
+                  animate={{ 
+                    scale: isPlaying ? [1, 1.05, 1] : 1,
+                    transition: { 
+                      duration: 0.3, 
+                      repeat: isPlaying ? Infinity : 0, 
+                      repeatDelay: 2 
+                    }
+                  }}
                 >
-                  {isPlaying ? <Pause className="h-6 w-6" /> : <Play className="h-6 w-6" />}
-                  <span className="sr-only">{isPlaying ? 'Pause' : 'Play'}</span>
-                </Button>
+                  {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
+                </motion.button>
                 
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => skip(10)}
-                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+                <button 
+                  onClick={() => skip(10)} 
+                  className="text-gray-500 hover:text-pfcu-purple transition-colors"
                 >
-                  <RotateCw className="h-5 w-5" />
-                  <span className="sr-only">Forward 10 seconds</span>
-                </Button>
+                  <SkipForward size={20} />
+                </button>
               </div>
               
-              <div className="flex items-center space-x-2">
-                <div className="relative">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleMute}
-                    onMouseEnter={() => setShowVolumeControl(true)}
-                    onMouseLeave={() => setShowVolumeControl(false)}
-                    className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
-                  >
-                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                    <span className="sr-only">{isMuted ? 'Unmute' : 'Mute'}</span>
-                  </Button>
-                  
-                  <AnimatePresence>
-                    {showVolumeControl && (
-                      <motion.div 
-                        className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-white shadow-lg rounded-full w-24"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        transition={{ duration: 0.2 }}
-                        onMouseEnter={() => setShowVolumeControl(true)}
-                        onMouseLeave={() => setShowVolumeControl(false)}
-                      >
-                        <Slider
-                          value={[isMuted ? 0 : volume]}
-                          min={0}
-                          max={1}
-                          step={0.01}
-                          onValueChange={handleVolumeChange}
-                          className="w-full"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-                
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setIsExpanded(!isExpanded)}
-                  className="rounded-full hover:bg-pfcu-light text-pfcu-purple"
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={toggleMute}
+                  className="text-gray-500 hover:text-pfcu-purple transition-colors"
                 >
-                  {isExpanded ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-                  <span className="sr-only">{isExpanded ? 'Minimize' : 'Maximize'}</span>
-                </Button>
+                  {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                </button>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="w-20 h-1 accent-pfcu-purple cursor-pointer"
+                />
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </motion.div>
+      
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+    </div>
   );
 };
 

@@ -103,7 +103,6 @@ export const useLeadershipData = () => {
             ];
             
             setLeaders(defaultLeaders);
-            localStorage.setItem("pfcu_leaders", JSON.stringify(defaultLeaders));
           }
         }
       } catch (error) {
@@ -126,7 +125,7 @@ export const useLeadershipData = () => {
       const parsedTenure = JSON.parse(storedTenure);
       setTenureInfo({
         year: parsedTenure.year,
-        declaration: parsedTenure.slogan || parsedTenure.declaration || "Many but one in Christ" // Convert slogan to declaration
+        declaration: parsedTenure.slogan || parsedTenure.declaration || "Many but one in Christ"
       });
     }
     

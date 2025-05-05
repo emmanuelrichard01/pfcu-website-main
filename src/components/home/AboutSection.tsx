@@ -84,17 +84,17 @@ const AboutSection = () => {
               }
             }}
           >
-            <div className="relative h-96 w-full overflow-hidden group">
-              {/* Replace with actual image when available */}
-              <div className="absolute inset-0 bg-gradient-to-br from-pfcu-purple/80 to-pfcu-dark/90 flex items-center justify-center transform group-hover:scale-110 transition-transform duration-1000">
-                <span className="text-white text-7xl font-display font-bold">PFCU</span>
-              </div>
-              <motion.div 
-                className="absolute inset-0 bg-gradient-to-t from-pfcu-dark to-transparent opacity-50"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                transition={{ duration: 1.5 }}
+            <div className="relative h-96 w-full overflow-hidden">
+              <img 
+                src="/lovable-uploads/33b8fdb0-4798-480e-ab47-40a91d170deb.png" 
+                alt="PFCU Fellowship Worship" 
+                className="w-full h-full object-cover"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-pfcu-dark/70 to-transparent flex flex-col items-center justify-end p-6">
+                <div className="text-white text-center mb-4">
+                  <p className="font-display text-xl italic">"Many but one in Christ"</p>
+                </div>
+              </div>
             </div>
           </motion.div>
         </div>
