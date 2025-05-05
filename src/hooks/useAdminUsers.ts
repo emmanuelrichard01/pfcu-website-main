@@ -104,15 +104,25 @@ export function useAdminUsers() {
     try {
       console.log(`Updating admin role for user ID: ${userId}, admin ID: ${adminId}`);
       
-      // Use direct database update with service role to bypass RLS
-      const { error } = await supabase
+      // Use service_role key to bypass RLS policies
+      const { error } = await supabase.auth.admin.updateUserById(
+        userId,
+        { app_metadata: { super_admin: !isSuperAdmin } }
+      );
+      
+      if (error) {
+        console.error("Error updating user app_metadata:", error);
+      }
+      
+      // Update the database record
+      const { error: updateError } = await supabase
         .from('admin_users')
         .update({ is_super_admin: !isSuperAdmin })
         .eq('id', adminId);
         
-      if (error) {
-        console.error("Error updating admin role:", error);
-        throw error;
+      if (updateError) {
+        console.error("Error updating admin role:", updateError);
+        throw updateError;
       }
       
       // Update local state
@@ -128,10 +138,6 @@ export function useAdminUsers() {
         title: "Admin role updated",
         description: `Admin is now ${!isSuperAdmin ? 'a super admin' : 'a regular admin'}`,
       });
-      
-      // Refetch to ensure we have the latest data
-      await fetchAdminUsers();
-      
     } catch (error: any) {
       console.error("Error updating admin role:", error);
       toast({
@@ -156,15 +162,15 @@ export function useAdminUsers() {
       try {
         console.log(`Deleting admin with ID: ${adminId}, user ID: ${userId}`);
         
-        // Use direct database update to bypass RLS
-        const { error } = await supabase
+        // Delete the database record
+        const { error: deleteError } = await supabase
           .from('admin_users')
           .delete()
           .eq('id', adminId);
           
-        if (error) {
-          console.error("Error deleting admin:", error);
-          throw error;
+        if (deleteError) {
+          console.error("Error deleting admin:", deleteError);
+          throw deleteError;
         }
         
         // Update local state

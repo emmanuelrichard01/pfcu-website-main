@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogFooter
 } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSermons } from "@/hooks/useSermons";
 import SermonForm, { SermonFormValues } from "./SermonForm";
@@ -51,9 +50,16 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
         setUploadingFile(file.name);
-        audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
-          setUploadProgress(progress);
-        });
+        
+        try {
+          audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
+            setUploadProgress(progress);
+          });
+          console.log("Successfully uploaded audio file:", audioUrl);
+        } catch (error) {
+          console.error("Error uploading audio file:", error);
+          throw new Error("Failed to upload audio file. Check storage permissions.");
+        }
       }
       
       // Reset progress before uploading cover image
@@ -62,9 +68,16 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
         setUploadingFile(file.name);
-        coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
-          setUploadProgress(progress);
-        });
+        
+        try {
+          coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
+            setUploadProgress(progress);
+          });
+          console.log("Successfully uploaded cover image:", coverImageUrl);
+        } catch (error) {
+          console.error("Error uploading cover image:", error);
+          throw new Error("Failed to upload cover image. Check storage permissions.");
+        }
       }
       
       // Add sermon using the hook's method
@@ -85,7 +98,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
     } catch (error: any) {
       toast({
         title: "Error uploading sermon",
-        description: error.message,
+        description: error.message || "An unknown error occurred",
         variant: "destructive"
       });
     } finally {

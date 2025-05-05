@@ -17,26 +17,56 @@ export const useSermonStorage = () => {
     onProgress?: (progress: number) => void
   ): Promise<string> => {
     try {
-      // Create buckets if they don't exist (will be silently ignored if they exist)
+      // Create bucket if it doesn't exist
       try {
-        await supabase.storage.createBucket(bucket, {
-          public: true
-        });
+        const { data: bucketData, error: bucketError } = await supabase.storage.listBuckets();
+        
+        if (bucketError) {
+          console.error("Error checking buckets:", bucketError);
+          throw bucketError;
+        }
+        
+        const bucketExists = bucketData?.some(b => b.name === bucket);
+        
+        if (!bucketExists) {
+          const { error: createError } = await supabase.storage.createBucket(bucket, {
+            public: true, // Make bucket public
+            fileSizeLimit: 52428800 // 50MB
+          });
+          
+          if (createError) {
+            console.error("Error creating bucket:", createError);
+            throw createError;
+          }
+          
+          // Add a public policy to the bucket
+          const { error: policyError } = await supabase.rpc('create_public_bucket_policy', {
+            bucket_name: bucket
+          });
+          
+          if (policyError) {
+            console.warn("Error setting bucket policy (not critical):", policyError);
+          }
+        }
       } catch (error) {
-        console.log("Bucket might already exist:", error);
+        console.log("Bucket error (continuing anyway):", error);
       }
 
       const filePath = `${folder}/${Date.now()}_${file.name}`;
       
-      // Upload file to storage
+      // Upload file to storage with max cacheControl and public access
       const { error, data } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
           cacheControl: "3600",
-          upsert: true
+          upsert: true,
+          contentType: file.type
         });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Upload error:", error);
+        throw error;
+      }
       
       // Manual progress tracking if provided
       if (onProgress) {
@@ -62,9 +92,15 @@ export const useSermonStorage = () => {
     if (!fileUrl) return true;
     
     try {
-      const path = new URL(fileUrl).pathname.split('/').slice(-2).join('/');
+      const url = new URL(fileUrl);
+      const pathParts = url.pathname.split('/');
+      const bucket = pathParts[1]; // The bucket name should be after the first slash
+      const path = pathParts.slice(2).join('/'); // The rest is the file path
+      
+      console.log(`Deleting file from bucket: ${bucket}, path: ${path}`);
+      
       const { error } = await supabase.storage
-        .from('sermons')
+        .from(bucket)
         .remove([path]);
       
       if (error) {
