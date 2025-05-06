@@ -17,44 +17,35 @@ export const useSermonStorage = () => {
     onProgress?: (progress: number) => void
   ): Promise<string> => {
     try {
-      // Check if bucket exists by trying to get bucket details
+      setIsUploading(true);
+      
+      // First, ensure the bucket exists
       try {
-        const { data: bucketData, error: bucketError } = await supabase.storage.listBuckets();
-        
-        if (bucketError) {
-          console.error("Error checking buckets:", bucketError);
-          throw bucketError;
-        }
-        
-        const bucketExists = bucketData?.some(b => b.name === bucket);
+        const { data: buckets } = await supabase.storage.listBuckets();
+        const bucketExists = buckets?.some(b => b.name === bucket);
         
         if (!bucketExists) {
-          const { error: createError } = await supabase.storage.createBucket(bucket, {
-            public: true, // Make bucket public
+          const { error } = await supabase.storage.createBucket(bucket, {
+            public: true,
             fileSizeLimit: 52428800 // 50MB
           });
           
-          if (createError) {
-            console.error("Error creating bucket:", createError);
-            throw createError;
+          if (error) {
+            console.error("Error creating bucket:", error);
+            throw new Error(`Failed to create storage bucket: ${error.message}`);
           }
-          
-          // Add a public policy to the bucket
-          try {
-            // Note: We're not trying to directly modify storage.buckets anymore
-            // The supabase.storage.createBucket method above already sets it as public
-            console.log(`Bucket ${bucket} created as public`);
-          } catch (policyError) {
-            console.warn("Error setting bucket policy (continuing anyway):", policyError);
-          }
+          console.log(`Bucket ${bucket} created successfully`);
         }
-      } catch (error) {
-        console.log("Bucket error (continuing anyway):", error);
+      } catch (error: any) {
+        console.warn("Error checking bucket:", error);
+        // Continue anyway, as the bucket might already exist
       }
 
-      const filePath = `${folder}/${Date.now()}_${file.name}`;
+      const filePath = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       
-      // Upload file to storage with max cacheControl and public access
+      console.log(`Uploading file to ${bucket}/${filePath}`);
+      
+      // Upload file to storage
       const { error, data } = await supabase.storage
         .from(bucket)
         .upload(filePath, file, {
@@ -79,9 +70,11 @@ export const useSermonStorage = () => {
         .getPublicUrl(filePath);
       
       return urlData.publicUrl;
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error in uploadFile:", error);
       throw error;
+    } finally {
+      setIsUploading(false);
     }
   };
 

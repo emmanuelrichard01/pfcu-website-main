@@ -56,8 +56,13 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
             setUploadProgress(progress);
           });
           console.log("Successfully uploaded audio file:", audioUrl);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error uploading audio file:", error);
+          toast({
+            title: "Failed to upload audio file",
+            description: "Check storage permissions or try again later",
+            variant: "destructive"
+          });
           throw new Error("Failed to upload audio file. Check storage permissions.");
         }
       }
@@ -74,8 +79,13 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
             setUploadProgress(progress);
           });
           console.log("Successfully uploaded cover image:", coverImageUrl);
-        } catch (error) {
+        } catch (error: any) {
           console.error("Error uploading cover image:", error);
+          toast({
+            title: "Failed to upload cover image",
+            description: "Check storage permissions or try again later",
+            variant: "destructive"
+          });
           throw new Error("Failed to upload cover image. Check storage permissions.");
         }
       }
@@ -92,6 +102,10 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
       });
       
       if (success) {
+        toast({
+          title: "Sermon added successfully",
+          description: "Your sermon has been uploaded and saved",
+        });
         onOpenChange(false);
         onSermonAdded();
       }

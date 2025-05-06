@@ -6,6 +6,11 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 BEGIN
+  -- Create bucket if it doesn't exist
+  INSERT INTO storage.buckets (id, name, public)
+  VALUES (bucket_name, bucket_name, true)
+  ON CONFLICT (id) DO NOTHING;
+  
   -- Allow public read access to files in this bucket
   EXECUTE format('
     CREATE POLICY "Allow public read access to %I bucket" 

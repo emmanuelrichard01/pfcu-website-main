@@ -102,19 +102,10 @@ export function useAdminUsers() {
     }
     
     try {
-      console.log(`Updating admin role for user ID: ${userId}, admin ID: ${adminId}`);
+      console.log(`Updating super admin status for admin ID: ${adminId}`);
       
-      // Use service_role key to bypass RLS policies
-      const { error } = await supabase.auth.admin.updateUserById(
-        userId,
-        { app_metadata: { super_admin: !isSuperAdmin } }
-      );
-      
-      if (error) {
-        console.error("Error updating user app_metadata:", error);
-      }
-      
-      // Update the database record
+      // We only need to update the database record since the service_role call is failing
+      // Update the database record with new super admin status
       const { error: updateError } = await supabase
         .from('admin_users')
         .update({ is_super_admin: !isSuperAdmin })
