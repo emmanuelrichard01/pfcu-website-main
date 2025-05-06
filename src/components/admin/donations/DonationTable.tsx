@@ -201,7 +201,7 @@ const DonationTable = ({
                 </TableCell>
                 <TableCell>{getStatusBadge(donation.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex justify-end gap-2 opacity-100 group-hover:opacity-100 transition-opacity">
                     <Button variant="ghost" size="icon" onClick={() => viewDonationDetails(donation)}>
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">View details</span>
