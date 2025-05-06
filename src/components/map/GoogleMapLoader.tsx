@@ -7,18 +7,12 @@ interface GoogleMapLoaderProps {
   onError: (error: string) => void;
 }
 
-interface WindowWithGoogle extends Window {
-  google?: any;
-  initMap?: () => void;
-}
-
 const GoogleMapLoader = ({ apiKey, onLoad, onError }: GoogleMapLoaderProps) => {
   const [isLoading, setIsLoading] = useState(false);
-  const windowWithGoogle = window as WindowWithGoogle;
-
+  
   useEffect(() => {
     // If Google Maps API is already loaded
-    if (windowWithGoogle.google?.maps) {
+    if (window.google?.maps) {
       onLoad();
       return;
     }
@@ -39,7 +33,7 @@ const GoogleMapLoader = ({ apiKey, onLoad, onError }: GoogleMapLoaderProps) => {
       googleMapScript.defer = true;
       
       // Define global callback function for when the API loads
-      windowWithGoogle.initMap = () => {
+      window.initMap = () => {
         setIsLoading(false);
         onLoad();
       };
@@ -56,7 +50,7 @@ const GoogleMapLoader = ({ apiKey, onLoad, onError }: GoogleMapLoaderProps) => {
       
       // Clean up
       return () => {
-        windowWithGoogle.initMap = undefined;
+        window.initMap = undefined;
         if (googleMapScript.parentNode) {
           googleMapScript.parentNode.removeChild(googleMapScript);
         }

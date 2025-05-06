@@ -8,27 +8,21 @@ interface GoogleMapMarkerProps {
   content: string;
 }
 
-interface WindowWithGoogle extends Window {
-  google?: any;
-}
-
 const GoogleMapMarker = ({ map, position, title, content }: GoogleMapMarkerProps) => {
-  const windowWithGoogle = window as WindowWithGoogle;
-  
   useEffect(() => {
-    if (!map || !windowWithGoogle.google?.maps) return;
+    if (!map || !window.google?.maps) return;
 
     try {
       // Create marker with animation
-      const marker = new windowWithGoogle.google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         map,
         position,
         title,
-        animation: windowWithGoogle.google.maps.Animation.DROP
+        animation: window.google.maps.Animation.DROP
       });
 
       // Create info window
-      const infoWindow = new windowWithGoogle.google.maps.InfoWindow({
+      const infoWindow = new window.google.maps.InfoWindow({
         content
       });
 
@@ -49,7 +43,7 @@ const GoogleMapMarker = ({ map, position, title, content }: GoogleMapMarkerProps
     } catch (err) {
       console.error("Error creating marker:", err);
     }
-  }, [map, position, title, content, windowWithGoogle]);
+  }, [map, position, title, content]);
 
   return null; // This is a behavior component, not a UI component
 };

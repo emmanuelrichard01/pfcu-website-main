@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 interface DonationHeaderProps {
   onAddClick: () => void;
   onExportClick: () => void;
+  isExporting?: boolean;
 }
 
-const DonationHeader = ({ onAddClick, onExportClick }: DonationHeaderProps) => {
+const DonationHeader = ({ onAddClick, onExportClick, isExporting = false }: DonationHeaderProps) => {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
@@ -29,9 +30,10 @@ const DonationHeader = ({ onAddClick, onExportClick }: DonationHeaderProps) => {
           variant="outline" 
           className="flex items-center gap-2"
           onClick={onExportClick}
+          disabled={isExporting}
         >
           <Download size={16} />
-          <span>Export</span>
+          <span>{isExporting ? 'Exporting...' : 'Export'}</span>
         </Button>
       </div>
     </div>

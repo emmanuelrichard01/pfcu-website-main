@@ -17,7 +17,7 @@ export const useSermonStorage = () => {
     onProgress?: (progress: number) => void
   ): Promise<string> => {
     try {
-      // Create bucket if it doesn't exist
+      // Check if bucket exists by trying to get bucket details
       try {
         const { data: bucketData, error: bucketError } = await supabase.storage.listBuckets();
         
@@ -41,15 +41,9 @@ export const useSermonStorage = () => {
           
           // Add a public policy to the bucket
           try {
-            // Try to create a basic policy directly without using RPC
-            const { error: policyError } = await supabase
-              .from('storage.buckets')
-              .update({ public: true })
-              .eq('id', bucket);
-            
-            if (policyError) {
-              console.warn("Error setting bucket policy (not critical):", policyError);
-            }
+            // Note: We're not trying to directly modify storage.buckets anymore
+            // The supabase.storage.createBucket method above already sets it as public
+            console.log(`Bucket ${bucket} created as public`);
           } catch (policyError) {
             console.warn("Error setting bucket policy (continuing anyway):", policyError);
           }
