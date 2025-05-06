@@ -7,10 +7,12 @@ import { supabase } from "@/integrations/supabase/client";
 export const useDonations = () => {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchDonations = async () => {
     setLoading(true);
+    setError(null);
     try {
       // Fetch donations from Supabase
       const { data, error } = await supabase
@@ -45,6 +47,7 @@ export const useDonations = () => {
       }
     } catch (error: any) {
       console.error("Error fetching donations:", error);
+      setError(error.message || "Failed to load donations");
       toast({
         title: "Error fetching donations",
         description: error.message || "Failed to load donations",
@@ -52,9 +55,13 @@ export const useDonations = () => {
       });
       
       // Fall back to localStorage if there's any error
-      const storedDonations = localStorage.getItem("pfcu_donations");
-      if (storedDonations) {
-        setDonations(JSON.parse(storedDonations));
+      try {
+        const storedDonations = localStorage.getItem("pfcu_donations");
+        if (storedDonations) {
+          setDonations(JSON.parse(storedDonations));
+        }
+      } catch (localError) {
+        console.error("Error loading from localStorage:", localError);
       }
     } finally {
       setLoading(false);
@@ -124,7 +131,11 @@ export const useDonations = () => {
         // Update local state and localStorage
         const updatedDonations = [newDonationWithId, ...donations];
         setDonations(updatedDonations);
-        localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+        try {
+          localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
+        } catch (storageError) {
+          console.error("Error saving to localStorage:", storageError);
+        }
       } catch (fallbackError) {
         console.error("Even fallback storage failed:", fallbackError);
       }
@@ -169,11 +180,6 @@ export const useDonations = () => {
       
       setDonations(updatedDonations);
       
-      toast({
-        title: "Donation updated",
-        description: "The donation has been updated successfully."
-      });
-      
       return true;
     } catch (error: any) {
       console.error("Error updating donation:", error);
@@ -184,6 +190,10 @@ export const useDonations = () => {
       });
       return false;
     }
+  };
+
+  const updateStatus = async (id: string, newStatus: "completed" | "pending" | "failed") => {
+    return updateDonation(id, { status: newStatus });
   };
 
   const deleteDonation = async (id: string) => {
@@ -198,11 +208,6 @@ export const useDonations = () => {
       
       // Update local state
       setDonations(donations.filter(d => d.id !== id));
-      
-      toast({
-        title: "Donation deleted",
-        description: "The donation has been deleted successfully.",
-      });
       
       return true;
     } catch (error: any) {
@@ -225,9 +230,11 @@ export const useDonations = () => {
   return {
     donations,
     loading,
+    error,
     fetchDonations,
     addDonation,
     updateDonation,
+    updateStatus,
     deleteDonation
   };
 };

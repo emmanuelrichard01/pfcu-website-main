@@ -40,12 +40,18 @@ export const useSermonStorage = () => {
           }
           
           // Add a public policy to the bucket
-          const { error: policyError } = await supabase.rpc('create_public_bucket_policy', {
-            bucket_name: bucket
-          });
-          
-          if (policyError) {
-            console.warn("Error setting bucket policy (not critical):", policyError);
+          try {
+            // Try to create a basic policy directly without using RPC
+            const { error: policyError } = await supabase
+              .from('storage.buckets')
+              .update({ public: true })
+              .eq('id', bucket);
+            
+            if (policyError) {
+              console.warn("Error setting bucket policy (not critical):", policyError);
+            }
+          } catch (policyError) {
+            console.warn("Error setting bucket policy (continuing anyway):", policyError);
           }
         }
       } catch (error) {
