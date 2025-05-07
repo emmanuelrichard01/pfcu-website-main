@@ -19,28 +19,9 @@ export const useSermonStorage = () => {
     try {
       setIsUploading(true);
       
-      // First, ensure the bucket exists
-      try {
-        const { data: buckets } = await supabase.storage.listBuckets();
-        const bucketExists = buckets?.some(b => b.name === bucket);
-        
-        if (!bucketExists) {
-          const { error } = await supabase.storage.createBucket(bucket, {
-            public: true,
-            fileSizeLimit: 52428800 // 50MB
-          });
-          
-          if (error) {
-            console.error("Error creating bucket:", error);
-            throw new Error(`Failed to create storage bucket: ${error.message}`);
-          }
-          console.log(`Bucket ${bucket} created successfully`);
-        }
-      } catch (error: any) {
-        console.warn("Error checking bucket:", error);
-        // Continue anyway, as the bucket might already exist
-      }
-
+      // We no longer need to create buckets as they should already exist
+      // and RLS policies are in place to control access
+      
       const filePath = `${folder}/${Date.now()}_${file.name.replace(/\s+/g, '_')}`;
       
       console.log(`Uploading file to ${bucket}/${filePath}`);

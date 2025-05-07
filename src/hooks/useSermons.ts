@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -184,21 +183,8 @@ export const useSermons = () => {
     }
   };
 
-  // Create storage bucket for sermons if it doesn't exist
+  // Remove the bucket creation code and just fetch sermons on component mount
   useEffect(() => {
-    const setupStorage = async () => {
-      try {
-        // Create buckets if they don't exist
-        await supabase.storage.createBucket('sermons', {
-          public: true
-        });
-        console.log("Sermons bucket created or already exists");
-      } catch (error: any) {
-        console.error("Error setting up storage:", error.message);
-      }
-    };
-    
-    setupStorage();
     fetchSermons();
   }, []);
 

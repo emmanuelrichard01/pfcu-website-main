@@ -60,7 +60,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
           console.error("Error uploading audio file:", error);
           toast({
             title: "Failed to upload audio file",
-            description: "Check storage permissions or try again later",
+            description: error.message || "Storage permissions error. Please try again or contact support.",
             variant: "destructive"
           });
           throw new Error("Failed to upload audio file. Check storage permissions.");
@@ -83,7 +83,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
           console.error("Error uploading cover image:", error);
           toast({
             title: "Failed to upload cover image",
-            description: "Check storage permissions or try again later",
+            description: error.message || "Storage permissions error. Please try again or contact support.",
             variant: "destructive"
           });
           throw new Error("Failed to upload cover image. Check storage permissions.");
