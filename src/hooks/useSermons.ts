@@ -1,20 +1,9 @@
+
 import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { useSermonStorage } from "./useSermonStorage";
-
-export interface Sermon {
-  id: string;
-  title: string;
-  preacher: string;
-  sermon_date: string;
-  description: string | null;
-  duration: string | null;
-  audio_url: string | null;
-  cover_image: string | null;
-  created_at: string;
-  updated_at?: string;
-}
+import { Sermon } from "@/types/sermons";
+import * as sermonService from "@/services/sermonService";
 
 export const useSermons = () => {
   const [sermons, setSermons] = useState<Sermon[]>([]);
@@ -29,21 +18,13 @@ export const useSermons = () => {
   const fetchSermons = async () => {
     setLoading(true);
     try {
-      const { data, error, count: rowCount } = await supabase
-        .from('sermons')
-        .select('*', { count: 'exact' })
-        .order('created_at', { ascending: false });
-          
-      if (error) {
-        console.error("Supabase query error:", error);
-        throw error;
-      }
+      const { data, count: rowCount } = await sermonService.fetchSermons();
       
-      setSermons(data || []);
-      setCount(rowCount || 0);
+      setSermons(data);
+      setCount(rowCount);
         
       // Cache sermons in localStorage for fallback
-      localStorage.setItem("pfcu_sermons", JSON.stringify(data || []));
+      localStorage.setItem("pfcu_sermons", JSON.stringify(data));
     } catch (error: any) {
       console.error("Error in fetchSermons:", error);
       
@@ -70,13 +51,7 @@ export const useSermons = () => {
    */
   const addSermon = async (sermon: Omit<Sermon, 'id' | 'created_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('sermons')
-        .insert(sermon)
-        .select('*')
-        .single();
-      
-      if (error) throw error;
+      await sermonService.addSermon(sermon);
       
       toast({
         title: "Sermon added successfully",
@@ -102,13 +77,7 @@ export const useSermons = () => {
    */
   const updateSermon = async (id: string, sermon: Partial<Sermon>) => {
     try {
-      // Use direct update
-      const { error } = await supabase
-        .from('sermons')
-        .update(sermon)
-        .eq('id', id);
-      
-      if (error) throw error;
+      await sermonService.updateSermon(id, sermon);
       
       toast({
         title: "Sermon updated successfully",
@@ -134,16 +103,7 @@ export const useSermons = () => {
    */
   const deleteSermon = async (id: string) => {
     try {
-      // Get the sermon to find associated files
-      const { data: sermon, error: fetchError } = await supabase
-        .from('sermons')
-        .select('audio_url, cover_image')
-        .eq('id', id)
-        .single();
-      
-      if (fetchError) {
-        console.warn("Could not fetch sermon before deletion:", fetchError);
-      }
+      const { sermon } = await sermonService.deleteSermon(id);
       
       // Delete associated files from storage if they exist
       if (sermon) {
@@ -155,14 +115,6 @@ export const useSermons = () => {
           await deleteFile(sermon.cover_image);
         }
       }
-      
-      // Delete the sermon record
-      const { error } = await supabase
-        .from('sermons')
-        .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
       
       toast({
         title: "Sermon deleted successfully",
@@ -183,7 +135,7 @@ export const useSermons = () => {
     }
   };
 
-  // Remove the bucket creation code and just fetch sermons on component mount
+  // Fetch sermons on component mount
   useEffect(() => {
     fetchSermons();
   }, []);

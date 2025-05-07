@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 
 // Import components
@@ -24,6 +23,7 @@ const AdminUserManagement = () => {
     adminUsers,
     isLoading,
     currentUserIsSuperAdmin,
+    currentUserId,
     fetchAdminUsers,
     handleToggleSuperAdmin,
     handleDeleteAdmin
@@ -37,6 +37,10 @@ const AdminUserManagement = () => {
     setIsSubmitting(true);
     
     try {
+      if (!data.email || !data.password) {
+        throw new Error("Email and password are required");
+      }
+      
       const success = await registerAdmin(data.email, data.password);
       
       if (success) {
@@ -48,12 +52,22 @@ const AdminUserManagement = () => {
         
         // Refresh the admin users list
         fetchAdminUsers();
+      } else {
+        throw new Error("Failed to create admin user");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating admin:", error);
+      
+      let errorMessage = "Failed to create admin user.";
+      if (error.message?.includes("already exists")) {
+        errorMessage = "User already exists. Try a different email address.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to create admin user. User might already exist.",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -88,6 +102,7 @@ const AdminUserManagement = () => {
           isLoading={isLoading}
           adminUsers={adminUsers}
           currentUserIsSuperAdmin={currentUserIsSuperAdmin}
+          currentUserId={currentUserId}
           onToggleSuperAdmin={handleToggleSuperAdmin}
           onDeleteAdmin={handleDeleteAdmin}
         />

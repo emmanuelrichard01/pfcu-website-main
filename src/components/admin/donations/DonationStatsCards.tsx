@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Donation } from "@/types/donations";
@@ -111,7 +112,7 @@ const DonationStatsCards = ({ donations, filteredDonations, totalAmount }: Donat
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            ₦{(donations.reduce((sum, d) => sum + d.amount, 0) / donations.length).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+            ₦{(donations.length ? donations.reduce((sum, d) => sum + d.amount, 0) / donations.length : 0).toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
           </div>
           <p className="text-xs text-gray-500 mt-1">
             Per donation amount

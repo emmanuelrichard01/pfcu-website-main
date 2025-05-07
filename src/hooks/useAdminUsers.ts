@@ -8,23 +8,34 @@ export function useAdminUsers() {
   const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserIsSuperAdmin, setCurrentUserIsSuperAdmin] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchAdminUsers = async () => {
     setIsLoading(true);
     try {
-      // Check super admin status first
+      // Check if user is authenticated
       const { data: session } = await supabase.auth.getSession();
         
-      if (session.session) {
-        const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc(
-          'is_super_admin',
-          { user_uid: session.session.user.id }
-        );
+      if (!session?.session) {
+        console.log("No active session found");
+        setIsLoading(false);
+        return;
+      }
+
+      const userId = session.session.user.id;
+      setCurrentUserId(userId);
         
-        if (!superAdminError && isSuperAdmin === true) {
-          setCurrentUserIsSuperAdmin(true);
-        }
+      // Check super admin status
+      const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc(
+        'is_super_admin',
+        { user_uid: userId }
+      );
+        
+      if (superAdminError) {
+        console.error("Error checking super admin status:", superAdminError);
+      } else {
+        setCurrentUserIsSuperAdmin(!!isSuperAdmin);
       }
 
       // Get all admin users with their super admin status
@@ -104,7 +115,6 @@ export function useAdminUsers() {
     try {
       console.log(`Updating super admin status for admin ID: ${adminId}`);
       
-      // We only need to update the database record since the service_role call is failing
       // Update the database record with new super admin status
       const { error: updateError } = await supabase
         .from('admin_users')
@@ -148,6 +158,16 @@ export function useAdminUsers() {
       });
       return;
     }
+
+    // Prevent super admin from deleting themselves
+    if (userId === currentUserId) {
+      toast({
+        title: "Operation not allowed",
+        description: "You cannot delete your own admin account",
+        variant: "destructive"
+      });
+      return;
+    }
     
     if (confirm(`Are you sure you want to delete admin ${adminEmail}?`)) {
       try {
@@ -186,6 +206,7 @@ export function useAdminUsers() {
     adminUsers,
     isLoading,
     currentUserIsSuperAdmin,
+    currentUserId,
     fetchAdminUsers,
     handleToggleSuperAdmin,
     handleDeleteAdmin
