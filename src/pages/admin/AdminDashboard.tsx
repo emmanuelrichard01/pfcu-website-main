@@ -1,13 +1,9 @@
 
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, Users, DollarSign, ArrowRight, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
 import { useSermons } from "@/hooks/useSermons";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import { Donation } from "@/types/donations";
 import { useLeadership } from "@/hooks/useLeadership";
 import { motion } from "framer-motion";
 import { calculateTotalCompletedDonations } from "@/services/donationService";
@@ -44,7 +40,7 @@ const AdminDashboard = () => {
     fetchEventCount();
   }, []);
 
-  // Fetch donation info - now directly from database
+  // Fetch donation info directly from database
   useEffect(() => {
     const fetchDonationInfo = async () => {
       try {
@@ -52,15 +48,6 @@ const AdminDashboard = () => {
         setTotalDonations(total);
       } catch (error) {
         console.error("Error fetching donation totals:", error);
-        // Fallback to localstorage if database query fails
-        const storedDonations = localStorage.getItem("pfcu_donations");
-        if (storedDonations) {
-          const donations = JSON.parse(storedDonations) as Donation[];
-          const total = donations
-            .filter(d => d.status === "completed")
-            .reduce((sum, d) => sum + d.amount, 0);
-          setTotalDonations(total);
-        }
       }
     };
     
@@ -191,26 +178,14 @@ const AdminDashboard = () => {
       >
         {stats.map((stat) => (
           <motion.div key={stat.title} variants={item}>
-            <Link to={stat.link} className="block h-full">
-              <Card className="overflow-hidden h-full hover:shadow-lg transition-shadow duration-300 border-none">
-                <CardHeader className={`flex flex-row items-center justify-between pb-2 bg-gradient-to-r ${stat.color} text-white p-4`}>
-                  <CardTitle className="text-sm font-medium">
-                    {stat.title}
-                  </CardTitle>
-                  <div className="bg-white/20 p-2 rounded-full backdrop-blur-sm">
-                    {stat.icon}
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6">
-                  <div className="text-3xl font-bold mb-2">{stat.value}</div>
-                  <p className="text-sm text-gray-500 mb-4">{stat.description}</p>
-                  <Button variant="ghost" className="group p-0 h-auto text-pfcu-purple hover:text-pfcu-dark hover:bg-transparent">
-                    <span>Manage {stat.title}</span>
-                    <ArrowRight className="ml-1 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </CardContent>
-              </Card>
-            </Link>
+            <StatsCard
+              title={stat.title}
+              value={stat.value}
+              icon={stat.icon}
+              description={stat.description}
+              link={stat.link}
+              color={stat.color}
+            />
           </motion.div>
         ))}
       </motion.div>
@@ -221,21 +196,22 @@ const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
       >
-        {/* Recent Sermons Card */}
-        <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b">
-            <CardTitle className="flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-blue-500" />
-              Recent Sermons
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            {loading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-6 h-6 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : recentSermons.length > 0 ? (
-              recentSermons.map((sermon) => (
+        <RecentItemsCard
+          title="Recent Sermons"
+          titleIcon={<FileText className="mr-2 h-5 w-5 text-blue-500" />}
+          headerColor="from-indigo-50 to-blue-50"
+          linkUrl="/admin/sermons"
+          linkText="View All Sermons"
+          isLoading={loading}
+          emptyState={{
+            icon: <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />,
+            message: "No sermons available",
+            linkUrl: "/admin/sermons",
+            linkText: "Add your first sermon"
+          }}
+          renderItems={() => recentSermons.length > 0 ? (
+            <>
+              {recentSermons.map((sermon) => (
                 <div key={sermon.title + sermon.created_at} className="flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-gray-800">{sermon.title}</p>
@@ -250,40 +226,27 @@ const AdminDashboard = () => {
                     {formatDate(sermon.created_at)}
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                <p className="text-gray-500">No sermons available</p>
-                <Link to="/admin/sermons">
-                  <Button variant="link" className="mt-2">Add your first sermon</Button>
-                </Link>
-              </div>
-            )}
-            <Link to="/admin/sermons" className="block">
-              <Button variant="outline" className="w-full mt-2 group">
-                <span>View All Sermons</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+              ))}
+            </>
+          ) : null}
+        />
 
-        {/* Upcoming Events Card */}
-        <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
-            <CardTitle className="flex items-center">
-              <Calendar className="mr-2 h-5 w-5 text-green-500" />
-              Upcoming Events
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4 pt-6">
-            {loading ? (
-              <div className="flex justify-center py-4">
-                <div className="w-6 h-6 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : recentEvents.length > 0 ? (
-              recentEvents.map((event) => (
+        <RecentItemsCard
+          title="Upcoming Events"
+          titleIcon={<Calendar className="mr-2 h-5 w-5 text-green-500" />}
+          headerColor="from-green-50 to-emerald-50"
+          linkUrl="/admin/events"
+          linkText="View All Events"
+          isLoading={loading}
+          emptyState={{
+            icon: <Calendar className="mx-auto h-10 w-10 text-gray-300 mb-2" />,
+            message: "No upcoming events",
+            linkUrl: "/admin/events",
+            linkText: "Schedule your first event"
+          }}
+          renderItems={() => recentEvents.length > 0 ? (
+            <>
+              {recentEvents.map((event) => (
                 <div key={event.title + event.date} className="flex items-center justify-between border-b pb-3">
                   <div>
                     <p className="font-medium text-gray-800">{event.title}</p>
@@ -295,24 +258,10 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 bg-gray-50 rounded-lg">
-                <Calendar className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-                <p className="text-gray-500">No upcoming events</p>
-                <Link to="/admin/events">
-                  <Button variant="link" className="mt-2">Schedule your first event</Button>
-                </Link>
-              </div>
-            )}
-            <Link to="/admin/events" className="block">
-              <Button variant="outline" className="w-full mt-2 group">
-                <span>View All Events</span>
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
+              ))}
+            </>
+          ) : null}
+        />
       </motion.div>
     </div>
   );

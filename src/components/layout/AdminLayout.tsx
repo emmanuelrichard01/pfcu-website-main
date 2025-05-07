@@ -98,12 +98,12 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen flex bg-gray-50">
-      {/* Mobile sidebar toggle */}
-      <div className={`lg:hidden fixed ${isSidebarOpen ? 'left-64' : 'left-4'} top-4 z-50 transition-all duration-300`}>
+      {/* Mobile sidebar toggle - moved to top right */}
+      <div className={`lg:hidden fixed ${isSidebarOpen ? 'right-4' : 'right-4'} top-4 z-50 transition-all duration-300`}>
         <Button
           variant="outline"
           size="icon"
-          className="bg-white shadow-md hover:bg-gray-100"
+          className={`bg-white/70 backdrop-blur-sm shadow-md hover:bg-gray-100 ${!isSidebarOpen ? 'bg-opacity-70' : ''}`}
           onClick={toggleSidebar}
         >
           {isSidebarOpen ? <ChevronLeft size={20} /> : <Menu size={20} />}

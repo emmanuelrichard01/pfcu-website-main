@@ -81,24 +81,6 @@ export const useDonations = (): DonationsHookReturn => {
     } catch (error: any) {
       console.error("Error adding donation:", error);
       
-      // Fall back to localStorage if there's any error
-      try {
-        // Generate a fallback ID
-        const id = `local-${Date.now()}`;
-        const newDonationWithId = { ...newDonation, id };
-        
-        // Update local state and localStorage
-        const updatedDonations = [newDonationWithId, ...donations];
-        setDonations(updatedDonations);
-        try {
-          localStorage.setItem("pfcu_donations", JSON.stringify(updatedDonations));
-        } catch (storageError) {
-          console.error("Error saving to localStorage:", storageError);
-        }
-      } catch (fallbackError) {
-        console.error("Even fallback storage failed:", fallbackError);
-      }
-      
       toast({
         title: "Error adding donation",
         description: error.message || "Failed to add donation to database",
