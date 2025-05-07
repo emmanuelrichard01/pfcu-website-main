@@ -37,7 +37,7 @@ const Units = () => {
       {/* Hero section with dynamic background */}
       <section className="relative overflow-hidden">
         {/* Background with darker gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-pfcu-dark via-[#221F26] to-[#1A1F2C] z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-pfcu-dark via-[#7d1935] to-[#4a0d1f] z-0">
           <div className="absolute inset-0 opacity-10">
             <svg className="h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
               {[...Array(10)].map((_, i) => (
