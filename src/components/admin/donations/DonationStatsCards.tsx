@@ -1,6 +1,7 @@
-
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Donation } from "@/types/donations";
+import { supabase } from "@/integrations/supabase/client";
 
 interface DonationStatsCardsProps {
   donations: Donation[];
@@ -9,6 +10,36 @@ interface DonationStatsCardsProps {
 }
 
 const DonationStatsCards = ({ donations, filteredDonations, totalAmount }: DonationStatsCardsProps) => {
+  const [dynamicTotal, setDynamicTotal] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchTotalDonations = async () => {
+      setIsLoading(true);
+      try {
+        // Get sum of amounts from completed donations
+        const { data, error } = await supabase
+          .from('donations')
+          .select('amount')
+          .eq('status', 'completed');
+          
+        if (error) {
+          console.error("Error fetching donation totals:", error);
+          return;
+        }
+        
+        const sum = data.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        setDynamicTotal(sum);
+      } catch (error) {
+        console.error("Error calculating donation totals:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchTotalDonations();
+  }, []);
+  
   // Calculate payment method stats
   const bankTransfers = donations.filter(d => d.paymentMethod === "Bank Transfer").length;
   const onlinePayments = donations.filter(d => d.paymentMethod === "Online Payment").length;
@@ -23,10 +54,20 @@ const DonationStatsCards = ({ donations, filteredDonations, totalAmount }: Donat
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">₦{totalAmount.toLocaleString()}</div>
-          <p className="text-xs text-gray-500 mt-1">
-            {filteredDonations.length} donations
-          </p>
+          {isLoading ? (
+            <div className="flex items-center h-14">
+              <div className="w-5 h-5 border-2 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : (
+            <>
+              <div className="text-2xl font-bold">
+                ₦{dynamicTotal !== null ? dynamicTotal.toLocaleString() : totalAmount.toLocaleString()}
+              </div>
+              <p className="text-xs text-gray-500 mt-1">
+                {filteredDonations.length} donations
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
       

@@ -29,7 +29,7 @@ export const Timeline = ({ events }: TimelineProps) => {
             <div className="absolute left-0 md:left-1/2 transform -translate-x-1/2 w-4 h-4 rounded-full bg-pfcu-purple z-10"></div>
             
             {/* Content */}
-            <div className="pl-8 md:pl-0 md:w-1/2 md:px-8">
+            <div className="pl-8 md:pl-0 md:w-1/2 md:px-12">
               <Badge className="mb-2 bg-pfcu-purple">{event.year}</Badge>
               <h3 className="text-xl font-bold mb-2">{event.title}</h3>
               <p className="text-gray-600">{event.description}</p>

@@ -1,7 +1,8 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, User } from "lucide-react";
+import { Calendar, Clock, User, Download } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 
 interface Sermon {
   id: string;
@@ -27,6 +28,21 @@ const SermonList = ({
   onSelectSermon,
   formatSermonDate
 }: SermonListProps) => {
+  
+  const handleDownload = (e: React.MouseEvent<HTMLButtonElement>, sermon: Sermon) => {
+    e.stopPropagation(); // Prevent triggering the card click event
+    
+    if (sermon.audio_url) {
+      // Create a temporary link to trigger download
+      const link = document.createElement('a');
+      link.href = sermon.audio_url;
+      link.download = `${sermon.title} by ${sermon.preacher}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+  
   return (
     <div className="space-y-6">
       {sermons.map((sermon) => (
@@ -40,6 +56,17 @@ const SermonList = ({
           <CardHeader className="pb-2">
             <CardTitle className="flex justify-between items-start">
               <div className="truncate text-lg">{sermon.title}</div>
+              {sermon.audio_url && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-pfcu-purple hover:text-pfcu-dark hover:bg-purple-50"
+                  onClick={(e) => handleDownload(e, sermon)}
+                  title="Download sermon"
+                >
+                  <Download className="h-4 w-4" />
+                </Button>
+              )}
             </CardTitle>
             
             <CardDescription className="flex items-center gap-1 text-sm">

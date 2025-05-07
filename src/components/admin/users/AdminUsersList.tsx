@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Award, Trash2 } from "lucide-react";
+import { Award, Trash2, Shield, ShieldCheck, Mail, Calendar } from "lucide-react";
 import { AdminUser } from "@/types/admin";
 
 interface AdminUsersListProps {
@@ -29,14 +29,14 @@ const AdminUsersList = ({
   onDeleteAdmin
 }: AdminUsersListProps) => {
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-lg overflow-hidden bg-white shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Created At</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="bg-gray-50">
+            <TableHead className="font-medium">Email</TableHead>
+            <TableHead className="font-medium">Role</TableHead>
+            <TableHead className="font-medium">Created At</TableHead>
+            <TableHead className="text-right font-medium">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -56,16 +56,28 @@ const AdminUsersList = ({
             </TableRow>
           ) : (
             adminUsers.map((admin) => (
-              <TableRow key={admin.id}>
-                <TableCell className="font-medium">{admin.email}</TableCell>
+              <TableRow key={admin.id} className="hover:bg-gray-50/50">
+                <TableCell className="font-medium flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-gray-400" />
+                  {admin.email}
+                </TableCell>
                 <TableCell>
                   {admin.is_super_admin ? (
-                    <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">Super Admin</Badge>
+                    <Badge variant="default" className="bg-amber-500 hover:bg-amber-600 flex items-center gap-1">
+                      <ShieldCheck className="h-3 w-3" />
+                      <span>Super Admin</span>
+                    </Badge>
                   ) : (
-                    <Badge variant="outline">Admin</Badge>
+                    <Badge variant="outline" className="flex items-center gap-1 text-gray-600">
+                      <Shield className="h-3 w-3" />
+                      <span>Admin</span>
+                    </Badge>
                   )}
                 </TableCell>
-                <TableCell>{new Date(admin.created_at).toLocaleDateString()}</TableCell>
+                <TableCell className="flex items-center gap-1.5">
+                  <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                  {new Date(admin.created_at).toLocaleDateString()}
+                </TableCell>
                 <TableCell className="text-right space-x-2">
                   {currentUserIsSuperAdmin && (
                     <>
@@ -73,7 +85,7 @@ const AdminUsersList = ({
                         variant="outline" 
                         size="sm"
                         onClick={() => onToggleSuperAdmin(admin.id, admin.user_id, admin.is_super_admin)}
-                        className={admin.is_super_admin ? "text-amber-500" : "text-gray-500"}
+                        className={admin.is_super_admin ? "text-amber-500 hover:text-amber-600" : "text-gray-500"}
                         title={admin.is_super_admin ? "Demote to Admin" : "Promote to Super Admin"}
                       >
                         <Award className="h-4 w-4" />
@@ -81,7 +93,7 @@ const AdminUsersList = ({
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="text-red-500 hover:text-red-600"
+                        className="text-red-500 hover:text-red-600 hover:bg-red-50"
                         onClick={() => onDeleteAdmin(admin.id, admin.user_id, admin.email)}
                       >
                         <Trash2 className="h-4 w-4" />
