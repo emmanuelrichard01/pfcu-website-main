@@ -1,14 +1,18 @@
+
+import React, { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, Calendar, Users, DollarSign, ArrowRight, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { useSermons } from "@/hooks/useSermons";
-import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Donation } from "@/types/donations";
 import { useLeadership } from "@/hooks/useLeadership";
 import { motion } from "framer-motion";
+import { calculateTotalCompletedDonations } from "@/services/donationService";
+import StatsCard from "@/components/admin/dashboard/StatsCard";
+import RecentItemsCard from "@/components/admin/dashboard/RecentItemsCard";
 
 const AdminDashboard = () => {
   const { sermons, count: sermonCount } = useSermons();
@@ -40,16 +44,23 @@ const AdminDashboard = () => {
     fetchEventCount();
   }, []);
 
-  // Fetch donation info
+  // Fetch donation info - now directly from database
   useEffect(() => {
-    const fetchDonationInfo = () => {
-      const storedDonations = localStorage.getItem("pfcu_donations");
-      if (storedDonations) {
-        const donations = JSON.parse(storedDonations) as Donation[];
-        const total = donations
-          .filter(d => d.status === "completed")
-          .reduce((sum, d) => sum + d.amount, 0);
+    const fetchDonationInfo = async () => {
+      try {
+        const total = await calculateTotalCompletedDonations();
         setTotalDonations(total);
+      } catch (error) {
+        console.error("Error fetching donation totals:", error);
+        // Fallback to localstorage if database query fails
+        const storedDonations = localStorage.getItem("pfcu_donations");
+        if (storedDonations) {
+          const donations = JSON.parse(storedDonations) as Donation[];
+          const total = donations
+            .filter(d => d.status === "completed")
+            .reduce((sum, d) => sum + d.amount, 0);
+          setTotalDonations(total);
+        }
       }
     };
     
@@ -210,6 +221,7 @@ const AdminDashboard = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
       >
+        {/* Recent Sermons Card */}
         <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
           <CardHeader className="bg-gradient-to-r from-indigo-50 to-blue-50 border-b">
             <CardTitle className="flex items-center">
@@ -257,6 +269,7 @@ const AdminDashboard = () => {
           </CardContent>
         </Card>
 
+        {/* Upcoming Events Card */}
         <Card className="border-none shadow-md hover:shadow-lg transition-all duration-300">
           <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
             <CardTitle className="flex items-center">

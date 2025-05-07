@@ -1,8 +1,7 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Donation } from "@/types/donations";
-import { supabase } from "@/integrations/supabase/client";
+import { calculateTotalCompletedDonations } from "@/services/donationService";
 
 interface DonationStatsCardsProps {
   donations: Donation[];
@@ -18,18 +17,7 @@ const DonationStatsCards = ({ donations, filteredDonations, totalAmount }: Donat
     const fetchTotalDonations = async () => {
       setIsLoading(true);
       try {
-        // Get sum of amounts from completed donations
-        const { data, error } = await supabase
-          .from('donations')
-          .select('amount')
-          .eq('status', 'completed');
-          
-        if (error) {
-          console.error("Error fetching donation totals:", error);
-          return;
-        }
-        
-        const sum = data.reduce((acc, curr) => acc + Number(curr.amount), 0);
+        const sum = await calculateTotalCompletedDonations();
         setDynamicTotal(sum);
       } catch (error) {
         console.error("Error calculating donation totals:", error);

@@ -2,9 +2,17 @@
 import { useState, useEffect } from "react";
 import { Donation } from "@/types/donations";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { DonationsHookReturn } from "@/types/donations/donationTypes";
+import { 
+  fetchDonationsFromDatabase, 
+  insertDonation, 
+  updateDonationInDatabase, 
+  deleteDonationFromDatabase,
+  formatDonationFromDatabase,
+  formatDonationForDatabase
+} from "@/services/donationService";
 
-export const useDonations = () => {
+export const useDonations = (): DonationsHookReturn => {
   const [donations, setDonations] = useState<Donation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -15,31 +23,11 @@ export const useDonations = () => {
     setError(null);
     try {
       // Fetch donations from Supabase
-      const { data, error } = await supabase
-        .from('donations')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        throw error;
-      }
+      const data = await fetchDonationsFromDatabase();
       
       if (data) {
         // Map Supabase data to our Donation type
-        const formattedDonations: Donation[] = data.map(item => ({
-          id: item.id,
-          donorName: item.donor_name,
-          amount: Number(item.amount),
-          date: item.date,
-          purpose: item.purpose,
-          status: item.status as "completed" | "pending" | "failed",
-          paymentMethod: item.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
-          email: item.email || undefined,
-          phone: item.phone || undefined,
-          paymentReference: item.payment_reference || undefined,
-          paymentGateway: item.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
-        }));
-        
+        const formattedDonations: Donation[] = data.map(formatDonationFromDatabase);
         setDonations(formattedDonations);
       } else {
         // No donations found
@@ -71,43 +59,14 @@ export const useDonations = () => {
   const addDonation = async (newDonation: Omit<Donation, "id">) => {
     try {
       // Map our Donation type to Supabase schema
-      const donationData = {
-        donor_name: newDonation.donorName,
-        email: newDonation.email || null,
-        phone: newDonation.phone || null,
-        amount: newDonation.amount,
-        purpose: newDonation.purpose,
-        payment_method: newDonation.paymentMethod,
-        payment_reference: newDonation.paymentReference || null,
-        payment_gateway: newDonation.paymentGateway || null,
-        status: newDonation.status,
-        date: newDonation.date
-      };
+      const donationData = formatDonationForDatabase(newDonation);
       
       // Use direct insertion rather than RPC
-      const { data, error } = await supabase
-        .from('donations')
-        .insert([donationData])
-        .select('*')
-        .single();
+      const data = await insertDonation(donationData);
           
-      if (error) throw error;
-      
       // Convert inserted data to our format
       if (data) {
-        const newDonationWithId: Donation = {
-          id: data.id,
-          donorName: data.donor_name,
-          amount: Number(data.amount),
-          date: data.date,
-          purpose: data.purpose,
-          status: data.status as "completed" | "pending" | "failed",
-          paymentMethod: data.payment_method as "Bank Transfer" | "Cash" | "Online Payment",
-          email: data.email || undefined,
-          phone: data.phone || undefined,
-          paymentReference: data.payment_reference || undefined,
-          paymentGateway: data.payment_gateway as "Paystack" | "Flutterwave" | "Direct Deposit" | undefined,
-        };
+        const newDonationWithId: Donation = formatDonationFromDatabase(data);
         
         // Update local state
         setDonations(prev => [newDonationWithId, ...prev]);
@@ -165,13 +124,7 @@ export const useDonations = () => {
       if (updatedData.status !== undefined) donationData.status = updatedData.status;
       if (updatedData.date !== undefined) donationData.date = updatedData.date;
       
-      // Use direct update rather than RPC
-      const { error } = await supabase
-        .from('donations')
-        .update(donationData)
-        .eq('id', id);
-          
-      if (error) throw error;
+      await updateDonationInDatabase(id, donationData);
       
       // Update local state
       const updatedDonations = donations.map(donation => 
@@ -198,13 +151,7 @@ export const useDonations = () => {
 
   const deleteDonation = async (id: string) => {
     try {
-      // Use direct deletion rather than RPC
-      const { error } = await supabase
-        .from('donations')
-        .delete()
-        .eq('id', id);
-          
-      if (error) throw error;
+      await deleteDonationFromDatabase(id);
       
       // Update local state
       setDonations(donations.filter(d => d.id !== id));
