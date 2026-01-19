@@ -9,17 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import SermonPlayer from "@/components/sermons/SermonPlayer";
 import SermonSearch from "@/components/sermons/SermonSearch";
 import SermonList from "@/components/sermons/SermonList";
-
-interface Sermon {
-  id: string;
-  title: string;
-  preacher: string;
-  sermon_date: string;
-  description: string | null;
-  duration: string | null;
-  audio_url: string | null;
-  cover_image: string | null;
-}
+import { Sermon } from "@/types/sermons";
+import { Mic2, Sparkles } from "lucide-react";
 
 const Sermons = () => {
   const [sermons, setSermons] = useState<Sermon[]>([]);
@@ -38,14 +29,14 @@ const Sermons = () => {
           .from('sermons')
           .select('*')
           .order('sermon_date', { ascending: false });
-        
+
         if (error) {
           throw error;
         }
-        
+
         setSermons(data || []);
         setFilteredSermons(data || []);
-        
+
         // Select the first sermon by default if available
         if (data && data.length > 0 && !selectedSermon) {
           setSelectedSermon(data[0]);
@@ -94,9 +85,7 @@ const Sermons = () => {
 
   const handleSermonSelect = (sermon: Sermon) => {
     setSelectedSermon(sermon);
-    
-    // Scroll to player on mobile
-    if (window.innerWidth < 768) {
+    if (window.innerWidth < 1024) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -111,48 +100,75 @@ const Sermons = () => {
 
   return (
     <MainLayout>
-      <motion.div
-        className="bg-pfcu-light py-16 md:py-24"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="container mx-auto">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-display font-bold text-center mb-6 animate-fade-in">
-            Sermons
-          </h1>
-          <p className="text-xl text-center max-w-3xl mx-auto text-gray-700 animate-fade-in">
-            Listen to our weekly sermons and be blessed by the Word of God.
-          </p>
+      {/* Modern Compact Hero */}
+      <div className="relative bg-pfcu-dark pt-32 pb-16 md:py-36 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-pfcu-primary/20 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-pfcu-secondary/10 rounded-full blur-[80px] -translate-x-1/4 translate-y-1/4" />
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
         </div>
-      </motion.div>
 
-      <div className="container mx-auto py-12 px-4">
-        <div className="lg:flex gap-8">
-          {/* Sermon Player - Takes up full width on mobile, 1/3 on desktop */}
-          <div className="lg:w-1/3 mb-8 lg:mb-0 lg:sticky lg:top-24 lg:self-start">
-            {selectedSermon && selectedSermon.audio_url ? (
-              <SermonPlayer
-                title={selectedSermon.title}
-                preacher={selectedSermon.preacher}
-                date={selectedSermon.sermon_date ? formatSermonDate(selectedSermon.sermon_date) : undefined}
-                coverImage={selectedSermon.cover_image || undefined}
-                audioUrl={selectedSermon.audio_url}
-              />
-            ) : (
-              <div className="bg-gray-100 p-8 rounded-lg text-center">
-                <h3 className="text-xl font-semibold mb-2">No Sermon Selected</h3>
-                <p className="text-gray-600">
-                  Please select a sermon from the list to listen.
-                </p>
+        <div className="container relative z-10 mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-pfcu-secondary text-sm font-medium mb-6">
+              <Mic2 size={14} />
+              <span>Word of Life</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-6 tracking-tight">
+              Sermon Archive
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Explore our collection of life-changing messages. Be inspired, challenged, and encouraged by the Word of God.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="container mx-auto py-12 px-4 md:px-6">
+        <div className="relative grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+
+          {/* Main Content Area (Player + Recent) */}
+          <div className="lg:col-span-12 xl:col-span-5 order-2 lg:order-1 xl:sticky xl:top-24 xl:self-start space-y-8">
+            {/* Sticky Player Container */}
+            <div className="sticky top-24 z-30">
+              <div className="mb-4 flex items-center gap-2 text-pfcu-primary font-bold tracking-wide text-sm uppercase">
+                <Sparkles size={16} />
+                <span>Now Playing</span>
               </div>
-            )}
+              {selectedSermon && selectedSermon.audio_url ? (
+                <SermonPlayer
+                  title={selectedSermon.title}
+                  preacher={selectedSermon.preacher}
+                  date={selectedSermon.sermon_date ? formatSermonDate(selectedSermon.sermon_date) : undefined}
+                  coverImage={selectedSermon.cover_image || undefined}
+                  audioUrl={selectedSermon.audio_url}
+                />
+              ) : (
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 border-2 border-dashed border-zinc-200 dark:border-zinc-800 p-12 rounded-3xl text-center">
+                  <h3 className="text-xl font-bold mb-2 text-muted-foreground">Select a Sermon</h3>
+                  <p className="text-sm text-muted-foreground/70">
+                    Choose from the list to start listening
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Sermon List - Takes up full width on mobile, 2/3 on desktop */}
-          <div className="lg:w-2/3">
-            {/* Search */}
-            <SermonSearch 
+          {/* List Area */}
+          <div className="lg:col-span-12 xl:col-span-7 order-1 lg:order-2">
+
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+              <div>
+                <h2 className="text-3xl font-heading font-bold text-pfcu-dark dark:text-white">Latest Messages</h2>
+                <p className="text-muted-foreground mt-1">Found {filteredSermons.length} sermons</p>
+              </div>
+            </div>
+
+            <SermonSearch
               searchQuery={searchQuery}
               onChange={handleSearchChange}
               onClear={clearSearch}
@@ -160,19 +176,20 @@ const Sermons = () => {
             />
 
             {loading ? (
-              <div className="flex justify-center py-12">
-                <div className="w-12 h-12 border-4 border-pfcu-purple border-t-transparent rounded-full animate-spin"></div>
+              <div className="flex flex-col items-center justify-center py-24 space-y-4">
+                <div className="w-10 h-10 border-4 border-pfcu-primary border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-muted-foreground animate-pulse">Loading library...</p>
               </div>
             ) : filteredSermons.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-24 border rounded-3xl bg-zinc-50 dark:bg-zinc-900/50">
                 <h3 className="text-xl font-semibold mb-2">No Sermons Found</h3>
-                <p className="text-gray-600 mb-4">
-                  We couldn't find any sermons matching your search.
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  We couldn't find any sermons matching "{searchQuery}". Try adjusting your keywords.
                 </p>
-                <Button onClick={clearSearch}>Clear Search</Button>
+                <Button onClick={clearSearch} variant="outline" className="rounded-full">Clear Search</Button>
               </div>
             ) : (
-              <SermonList 
+              <SermonList
                 sermons={filteredSermons}
                 selectedSermonId={selectedSermon?.id}
                 onSelectSermon={handleSermonSelect}
@@ -180,6 +197,7 @@ const Sermons = () => {
               />
             )}
           </div>
+
         </div>
       </div>
     </MainLayout>

@@ -16,22 +16,22 @@ export function useAdminUsers() {
     try {
       // Check if user is authenticated
       const { data: session } = await supabase.auth.getSession();
-        
+
       if (!session?.session) {
-        console.log("No active session found");
+        // No active session
         setIsLoading(false);
         return;
       }
 
       const userId = session.session.user.id;
       setCurrentUserId(userId);
-        
+
       // Check super admin status
       const { data: isSuperAdmin, error: superAdminError } = await supabase.rpc(
         'is_super_admin',
         { user_uid: userId }
       );
-        
+
       if (superAdminError) {
         console.error("Error checking super admin status:", superAdminError);
       } else {
@@ -59,12 +59,12 @@ export function useAdminUsers() {
             'get_user_email',
             { user_uid: admin.user_id }
           );
-          
+
           if (emailError) {
             console.error("Error fetching email:", emailError);
             throw emailError;
           }
-          
+
           return {
             id: admin.id,
             user_id: admin.user_id,
@@ -111,30 +111,30 @@ export function useAdminUsers() {
       });
       return;
     }
-    
+
     try {
-      console.log(`Updating super admin status for admin ID: ${adminId}`);
-      
+      // Updating super admin status
+
       // Update the database record with new super admin status
       const { error: updateError } = await supabase
         .from('admin_users')
         .update({ is_super_admin: !isSuperAdmin })
         .eq('id', adminId);
-        
+
       if (updateError) {
         console.error("Error updating admin role:", updateError);
         throw updateError;
       }
-      
+
       // Update local state
-      setAdminUsers(prevUsers => 
-        prevUsers.map(admin => 
-          admin.id === adminId 
-            ? { ...admin, is_super_admin: !isSuperAdmin } 
+      setAdminUsers(prevUsers =>
+        prevUsers.map(admin =>
+          admin.id === adminId
+            ? { ...admin, is_super_admin: !isSuperAdmin }
             : admin
         )
       );
-      
+
       toast({
         title: "Admin role updated",
         description: `Admin is now ${!isSuperAdmin ? 'a super admin' : 'a regular admin'}`,
@@ -168,25 +168,25 @@ export function useAdminUsers() {
       });
       return;
     }
-    
+
     if (confirm(`Are you sure you want to delete admin ${adminEmail}?`)) {
       try {
-        console.log(`Deleting admin with ID: ${adminId}, user ID: ${userId}`);
-        
+        // Deleting admin record
+
         // Delete the database record
         const { error: deleteError } = await supabase
           .from('admin_users')
           .delete()
           .eq('id', adminId);
-          
+
         if (deleteError) {
           console.error("Error deleting admin:", deleteError);
           throw deleteError;
         }
-        
+
         // Update local state
         setAdminUsers(prevUsers => prevUsers.filter(admin => admin.id !== adminId));
-        
+
         toast({
           title: "Admin deleted",
           description: `${adminEmail} has been removed from admin users`,

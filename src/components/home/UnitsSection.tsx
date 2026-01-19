@@ -1,6 +1,6 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Church, BookOpen, Users, Music, School, HandHeart, Video, Image } from "lucide-react";
+import { Church, BookOpen, Users, Music, School, HandHeart, Video, Image, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 
@@ -13,19 +13,30 @@ interface UnitCardProps {
 const UnitCard = ({ name, description, icon: Icon }: UnitCardProps) => {
   return (
     <motion.div
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      whileHover={{ y: -8, transition: { duration: 0.3 } }}
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
+      className="h-full"
     >
-      <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 h-full border-t-2 border-t-pfcu-purple/30 hover:border-t-pfcu-purple">
-        <CardContent className="p-6 h-full flex flex-col">
-          <div className="mb-4 text-pfcu-purple group-hover:text-pfcu-gold transition-colors bg-pfcu-light p-3 rounded-full w-16 h-16 flex items-center justify-center">
-            <Icon size={36} />
+      <Card className="glass-card h-full border border-white/20 dark:border-white/10 rounded-3xl overflow-hidden group">
+        <CardContent className="p-8 h-full flex flex-col items-start relative z-10">
+          <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 duration-700">
+            <Icon size={120} />
           </div>
-          <h3 className="font-display text-xl font-bold mb-2">{name}</h3>
-          <p className="text-gray-600 text-sm flex-grow">{description}</p>
+
+          <div className="mb-6 text-white bg-gradient-to-br from-pfcu-primary to-orange-500 p-4 rounded-2xl shadow-lg group-hover:shadow-pfcu-primary/30 transition-all duration-300">
+            <Icon size={32} />
+          </div>
+
+          <h3 className="font-heading text-2xl font-bold mb-3 text-foreground group-hover:text-pfcu-primary transition-colors">{name}</h3>
+          <p className="text-muted-foreground leading-relaxed flex-grow">{description}</p>
+
+          <div className="mt-6 pt-6 w-full border-t border-border/50 flex items-center justify-between text-pfcu-primary font-medium opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300">
+            <span>Learn more</span>
+            <ArrowRight size={18} />
+          </div>
         </CardContent>
       </Card>
     </motion.div>
@@ -77,50 +88,48 @@ const UnitsSection = () => {
   ];
 
   return (
-    <section className="section-padding bg-pfcu-light">
-      <div className="container">
-        <motion.div 
-          className="text-center mb-12"
+    <section className="section-padding bg-muted/30 relative">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-5 pointer-events-none" />
+
+      <div className="container relative z-10">
+        <motion.div
+          className="text-center mb-16 max-w-3xl mx-auto"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-title">Our Ministry Units</h2>
-          <p className="section-subtitle">
-            16 units working together to build the body of Christ
+          <span className="text-pfcu-primary font-semibold tracking-wider uppercase mb-2 block">Ministry Arms</span>
+          <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6">Serving in the Vineyard</h2>
+          <p className="text-xl text-muted-foreground font-light">
+            With 16 vibrant ministry units, there's a perfect place for you to serve, grow, and impact lives in the body of Christ.
           </p>
         </motion.div>
 
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-8">
           {units.map((unit, index) => (
             <motion.div
               key={unit.name}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.3, delay: index * 0.1 }}
+              transition={{ delay: index * 0.05 }}
             >
               <UnitCard {...unit} />
             </motion.div>
           ))}
         </div>
 
-        <motion.div 
-          className="text-center mt-12"
+        <motion.div
+          className="text-center mt-16"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
           viewport={{ once: true }}
         >
-          <Link 
-            to="/units" 
-            className="inline-flex items-center bg-pfcu-purple hover:bg-pfcu-dark text-white px-6 py-3 rounded-md transition-all duration-300 hover:shadow-lg group"
+          <Link
+            to="/units"
+            className="inline-flex items-center justify-center px-8 py-4 text-base font-medium text-white transition-all duration-200 bg-pfcu-primary rounded-full hover:bg-pfcu-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pfcu-primary shadow-lg hover:shadow-xl hover:-translate-y-1"
           >
-            View All 16 Ministry Units
-            <svg className="w-5 h-5 ml-1 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"></path>
-            </svg>
+            Explore All 16 Ministry Units
+            <ArrowRight className="ml-2 -mr-1 w-5 h-5" />
           </Link>
         </motion.div>
       </div>

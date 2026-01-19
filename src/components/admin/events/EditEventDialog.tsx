@@ -28,7 +28,7 @@ export const EditEventDialog = ({
   event
 }: EditEventDialogProps) => {
   if (!event) return null;
-  
+
   const defaultValues: EventFormValues = {
     title: event.title,
     description: event.description,
@@ -40,9 +40,10 @@ export const EditEventDialog = ({
     organizer: event.organizer,
     contact_email: event.contact_email,
     contact_phone: event.contact_phone,
-    is_featured: event.is_featured
+    is_featured: event.is_featured,
+    image_url: event.image_url
   };
-  
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[525px] max-h-[80vh] overflow-y-auto">
@@ -52,28 +53,28 @@ export const EditEventDialog = ({
             Update the details of this event.
           </DialogDescription>
         </DialogHeader>
-        
-        <EventForm 
+
+        <EventForm
           defaultValues={defaultValues}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
           submitButtonLabel="Update Event"
           submitButtonIcon={<Check className="mr-2 h-4 w-4" />}
         />
-        
+
         <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="event-form"
-            className="bg-pfcu-purple hover:bg-pfcu-dark"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

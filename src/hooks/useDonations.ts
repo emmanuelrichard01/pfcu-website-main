@@ -3,14 +3,16 @@ import { useState, useEffect } from "react";
 import { Donation } from "@/types/donations";
 import { useToast } from "@/hooks/use-toast";
 import { DonationsHookReturn } from "@/types/donations/donationTypes";
-import { 
-  fetchDonationsFromDatabase, 
-  insertDonation, 
-  updateDonationInDatabase, 
+import { TablesUpdate } from "@/integrations/supabase/types";
+import {
+  fetchDonationsFromDatabase,
+  insertDonation,
+  updateDonationInDatabase,
   deleteDonationFromDatabase,
   formatDonationFromDatabase,
   formatDonationForDatabase
 } from "@/services/donationService";
+
 
 export const useDonations = (): DonationsHookReturn => {
   const [donations, setDonations] = useState<Donation[]>([]);
@@ -24,7 +26,7 @@ export const useDonations = (): DonationsHookReturn => {
     try {
       // Fetch donations from Supabase
       const data = await fetchDonationsFromDatabase();
-      
+
       if (data) {
         // Map Supabase data to our Donation type
         const formattedDonations: Donation[] = data.map(formatDonationFromDatabase);
@@ -41,7 +43,7 @@ export const useDonations = (): DonationsHookReturn => {
         description: error.message || "Failed to load donations",
         variant: "destructive"
       });
-      
+
       // Fall back to localStorage if there's any error
       try {
         const storedDonations = localStorage.getItem("pfcu_donations");
@@ -60,27 +62,27 @@ export const useDonations = (): DonationsHookReturn => {
     try {
       // Map our Donation type to Supabase schema
       const donationData = formatDonationForDatabase(newDonation);
-      
+
       // Use direct insertion rather than RPC
       const data = await insertDonation(donationData);
-          
+
       // Convert inserted data to our format
       if (data) {
         const newDonationWithId: Donation = formatDonationFromDatabase(data);
-        
+
         // Update local state
         setDonations(prev => [newDonationWithId, ...prev]);
       }
-      
+
       toast({
         title: "Donation added",
         description: "The new donation has been added successfully.",
       });
-      
+
       return true;
     } catch (error: any) {
       console.error("Error adding donation:", error);
-      
+
       toast({
         title: "Error adding donation",
         description: error.message || "Failed to add donation to database",
@@ -92,9 +94,9 @@ export const useDonations = (): DonationsHookReturn => {
 
   const updateDonation = async (id: string, updatedData: Partial<Donation>) => {
     try {
-      // Convert our data model to Supabase schema
-      const donationData: any = {};
-      
+      // Convert our data model to Supabase schema with proper typing
+      const donationData: TablesUpdate<'donations'> = {};
+
       if (updatedData.donorName !== undefined) donationData.donor_name = updatedData.donorName;
       if (updatedData.email !== undefined) donationData.email = updatedData.email || null;
       if (updatedData.phone !== undefined) donationData.phone = updatedData.phone || null;
@@ -105,16 +107,16 @@ export const useDonations = (): DonationsHookReturn => {
       if (updatedData.paymentGateway !== undefined) donationData.payment_gateway = updatedData.paymentGateway || null;
       if (updatedData.status !== undefined) donationData.status = updatedData.status;
       if (updatedData.date !== undefined) donationData.date = updatedData.date;
-      
+
       await updateDonationInDatabase(id, donationData);
-      
+
       // Update local state
-      const updatedDonations = donations.map(donation => 
+      const updatedDonations = donations.map(donation =>
         donation.id === id ? { ...donation, ...updatedData } : donation
       );
-      
+
       setDonations(updatedDonations);
-      
+
       return true;
     } catch (error: any) {
       console.error("Error updating donation:", error);
@@ -134,14 +136,14 @@ export const useDonations = (): DonationsHookReturn => {
   const deleteDonation = async (id: string) => {
     try {
       await deleteDonationFromDatabase(id);
-      
+
       // Update local state
       setDonations(donations.filter(d => d.id !== id));
-      
+
       return true;
     } catch (error: any) {
       console.error("Error deleting donation:", error);
-      
+
       toast({
         title: "Error deleting donation",
         description: error.message || "Failed to delete donation",

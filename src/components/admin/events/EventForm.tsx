@@ -23,6 +23,7 @@ import {
   SelectValue
 } from "@/components/ui/select";
 import { EventFormValues } from "@/types/events";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 const eventFormSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -31,11 +32,12 @@ const eventFormSchema = z.object({
   date: z.string().min(1, "Date is required"),
   time: z.string().min(1, "Time is required"),
   location: z.string().min(1, "Location is required"),
-  category: z.enum(["Service", "Bible Study", "Prayer", "Outreach", "Social", "Conference"]),
+  category: z.string().min(1, "Category is required"),
   organizer: z.string().nullable().optional(),
-  contact_email: z.string().email("Invalid email").nullable().optional(),
+  contact_email: z.string().email("Invalid email").nullable().optional().or(z.literal("")),
   contact_phone: z.string().nullable().optional(),
-  is_featured: z.boolean().default(false)
+  is_featured: z.boolean().default(false),
+  image_url: z.string().nullable().optional()
 });
 
 interface EventFormProps {
@@ -46,9 +48,9 @@ interface EventFormProps {
   submitButtonIcon: React.ReactNode;
 }
 
-export const EventForm = ({ 
-  defaultValues, 
-  onSubmit, 
+export const EventForm = ({
+  defaultValues,
+  onSubmit,
   isSubmitting
 }: EventFormProps) => {
   const form = useForm<EventFormValues>({
@@ -59,20 +61,37 @@ export const EventForm = ({
   return (
     <Form {...form}>
       <form id="event-form" onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="title"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Event Title*</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter event title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
+        {/* Basic Info */}
+        <div className="grid grid-cols-1 gap-4">
+          <FormField
+            control={form.control}
+            name="image_url"
+            render={({ field }) => (
+              <ImageUpload
+                value={field.value}
+                onChange={field.onChange}
+                label="Event Flyer (Optional)"
+                bucketName="event_images"
+                folderPath="flyers"
+              />
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Event Title*</FormLabel>
+                <FormControl>
+                  <Input placeholder="Enter event title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -90,7 +109,7 @@ export const EventForm = ({
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="time"
@@ -108,7 +127,7 @@ export const EventForm = ({
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="location"
@@ -125,7 +144,7 @@ export const EventForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="category"
@@ -151,7 +170,7 @@ export const EventForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -159,18 +178,18 @@ export const EventForm = ({
             <FormItem>
               <FormLabel>Description*</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Brief description of the event" 
-                  className="resize-none" 
+                <Textarea
+                  placeholder="Brief description of the event"
+                  className="resize-none"
                   rows={2}
-                  {...field} 
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="full_description"
@@ -178,9 +197,9 @@ export const EventForm = ({
             <FormItem>
               <FormLabel>Full Description (Optional)</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Detailed information about the event" 
-                  className="resize-none" 
+                <Textarea
+                  placeholder="Detailed information about the event"
+                  className="resize-none"
                   rows={4}
                   value={field.value || ""}
                   onChange={field.onChange}
@@ -190,7 +209,7 @@ export const EventForm = ({
             </FormItem>
           )}
         />
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -199,8 +218,8 @@ export const EventForm = ({
               <FormItem>
                 <FormLabel>Organizer (Optional)</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Organizing team or person" 
+                  <Input
+                    placeholder="Organizing team or person"
                     value={field.value || ""}
                     onChange={field.onChange}
                   />
@@ -209,7 +228,7 @@ export const EventForm = ({
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="contact_email"
@@ -217,8 +236,8 @@ export const EventForm = ({
               <FormItem>
                 <FormLabel>Contact Email (Optional)</FormLabel>
                 <FormControl>
-                  <Input 
-                    placeholder="Contact email address" 
+                  <Input
+                    placeholder="Contact email address"
                     value={field.value || ""}
                     onChange={field.onChange}
                   />
@@ -228,7 +247,7 @@ export const EventForm = ({
             )}
           />
         </div>
-        
+
         <FormField
           control={form.control}
           name="contact_phone"
@@ -236,8 +255,8 @@ export const EventForm = ({
             <FormItem>
               <FormLabel>Contact Phone (Optional)</FormLabel>
               <FormControl>
-                <Input 
-                  placeholder="Contact phone number" 
+                <Input
+                  placeholder="Contact phone number"
                   value={field.value || ""}
                   onChange={field.onChange}
                 />
@@ -246,7 +265,7 @@ export const EventForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="is_featured"

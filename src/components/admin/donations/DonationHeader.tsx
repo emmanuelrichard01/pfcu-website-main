@@ -15,19 +15,19 @@ const DonationHeader = ({ onAddClick, onExportClick, isExporting = false }: Dona
         <h1 className="text-3xl font-bold font-display">Donations Management</h1>
         <p className="text-gray-600">Track and manage all donations to the fellowship.</p>
       </div>
-      
+
       <div className="flex gap-2">
-        <Button 
-          variant="default" 
-          className="bg-pfcu-purple hover:bg-pfcu-dark flex items-center gap-2"
+        <Button
+          variant="default"
+          className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 flex items-center gap-2"
           onClick={onAddClick}
         >
           <Plus size={16} />
           <span>Add Donation</span>
         </Button>
-        
-        <Button 
-          variant="outline" 
+
+        <Button
+          variant="outline"
           className="flex items-center gap-2"
           onClick={onExportClick}
           disabled={isExporting}

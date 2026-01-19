@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,65 +7,60 @@
 
 @layer base {
   :root {
-    --background: 345 33% 98%;
-    --foreground: 345 10% 20%;
+    /* Base */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
+    /* UI Surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 345 10% 20%;
-
+    --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 345 10% 20%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 345 55% 30%; /* Maroon red */
+    /* Brand Colors - Refined for Contrast & Professionalism */
+    --primary: 345 60% 20%; /* Deep Burgundy - High contrast on white */
     --primary-foreground: 0 0% 98%;
 
-    --secondary: 45 60% 52%;
-    --secondary-foreground: 345 10% 20%;
+    --secondary: 42 45% 55%; /* Darker Metallic Gold - Better text contrast */
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 345 10% 95%;
-    --muted-foreground: 345 10% 50%;
+    /* Neutrals */
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 2% 40%; /* Darker gray for better readability */
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    --accent: 345 30% 90%;
-    --accent-foreground: 345 55% 30%;
-
+    /* Functional */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 88%; /* Slightly darker border for definition */
+    --input: 240 5.9% 90%;
+    --ring: 345 60% 20%;
 
-    --border: 345 10% 90%;
-    --input: 345 10% 90%;
-    --ring: 345 55% 30%;
-
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* Standardized to 0.5rem (8px) for clean "Linear" feel */
+    --navbar-height: 4rem;
   }
 
   .dark {
-    --background: 345 20% 10%;
-    --foreground: 345 10% 95%;
-
-    --card: 345 20% 14%;
-    --card-foreground: 345 10% 95%;
-
-    --popover: 345 20% 14%;
-    --popover-foreground: 345 10% 95%;
-
-    --primary: 345 55% 40%;
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 345 50% 50%; /* Lighter burgundy for dark mode visibility */
     --primary-foreground: 0 0% 98%;
-
-    --secondary: 45 60% 52%;
-    --secondary-foreground: 345 10% 20%;
-
-    --muted: 345 20% 20%;
-    --muted-foreground: 345 10% 70%;
-
-    --accent: 345 20% 20%;
-    --accent-foreground: 345 10% 95%;
-
+    --secondary: 42 40% 65%; /* Lighter gold for dark mode */
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 3.7% 12%;
+    --muted-foreground: 240 5% 70%;
+    --accent: 240 3.7% 12%; /* Darker accent for subtle hover */
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 345 10% 95%;
-
-    --border: 345 20% 25%;
-    --input: 345 20% 25%;
-    --ring: 345 55% 40%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 12%;
+    --input: 240 3.7% 15.9%;
+    --ring: 340 50% 50%;
   }
 }
 
@@ -73,213 +68,37 @@
   * {
     @apply border-border;
   }
-
-  html {
-    scroll-behavior: smooth;
-    @apply selection:bg-pfcu-purple/20 selection:text-pfcu-purple;
-  }
-
   body {
-    @apply bg-background text-foreground font-sans;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-pfcu-primary/20 selection:text-pfcu-primary;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-
+  
+  /* Improved typography consistency */
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
-  }
-
-  h1 {
-    @apply text-4xl md:text-5xl lg:text-6xl font-bold;
-  }
-
-  h2 {
-    @apply text-3xl md:text-4xl lg:text-5xl font-bold;
-  }
-
-  h3 {
-    @apply text-2xl md:text-3xl font-bold;
-  }
-
-  p {
-    @apply leading-relaxed;
-  }
-
-  .container {
-    @apply px-4 md:px-6 lg:px-8 mx-auto;
-  }
-
-  .section-padding {
-    @apply py-16 md:py-24;
-  }
-
-  .hero-background {
-    background: linear-gradient(rgba(125, 25, 53, 0.9), rgba(74, 13, 31, 0.9)), url('/hero-bg.jpg');
-    @apply bg-cover bg-center;
+    @apply font-heading tracking-tight text-balance;
   }
 }
 
 @layer components {
-  .section-title {
-    @apply text-3xl md:text-4xl lg:text-5xl font-display font-bold mb-6 text-pfcu-purple;
-  }
-
-  .section-subtitle {
-    @apply text-xl md:text-2xl font-medium text-pfcu-gold mb-10;
-  }
-
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-lg hover:translate-y-[-0.25rem];
-  }
-
-  .btn-hover {
-    @apply transition-all duration-300 hover:translate-y-[-0.125rem] hover:shadow-lg;
-  }
-
-  .link-hover {
-    @apply relative after:absolute after:bottom-0 after:left-0 after:h-[2px] after:w-0 after:bg-current after:transition-all after:duration-300 hover:after:w-full;
-  }
-
-  .gradient-text {
-    @apply bg-gradient-to-r from-pfcu-purple to-pfcu-gold bg-clip-text text-transparent;
-  }
-
-  .input-focus {
-    @apply focus:outline-none focus:ring-2 focus:ring-pfcu-purple/50 focus:border-pfcu-purple/50;
-  }
-
-  .glass-effect {
-    @apply bg-white/20 backdrop-blur-sm border border-white/10;
+  /* Professional Glassmorphism - Subtle & Premium */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 dark:bg-zinc-900/80 dark:border-white/10 shadow-sm;
   }
   
-  /* Animation classes */
-  .animate-slide-up {
-    animation: slideUp 0.6s ease forwards;
+  .glass-card {
+    @apply bg-white/50 backdrop-blur-md border border-white/40 dark:bg-zinc-900/40 dark:border-white/5 transition-all duration-300;
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-br from-pfcu-primary to-pfcu-secondary;
   }
   
-  .animate-slide-down {
-    animation: slideDown 0.6s ease forwards;
+  .container-wide {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
   
-  .animate-slide-left {
-    animation: slideLeft 0.6s ease forwards;
+  .section-padding {
+    @apply py-16 md:py-24;
   }
-  
-  .animate-slide-right {
-    animation: slideRight 0.6s ease forwards;
-  }
-  
-  .animate-fade {
-    animation: fade 0.6s ease forwards;
-  }
-  
-  .animate-scale {
-    animation: scale 0.6s ease forwards;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideLeft {
-  from {
-    opacity: 0;
-    transform: translateX(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes slideRight {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fade {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes scale {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-/* Custom scrollbar for webkit-based browsers */
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #7D1935;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #4A0D1F;
-}
-
-/* Page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(10px);
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 400ms, transform 400ms;
-}
-
-.page-transition-exit {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.page-transition-exit-active {
-  opacity: 0;
-  transform: translateY(-10px);
-  transition: opacity 300ms, transform 300ms;
 }

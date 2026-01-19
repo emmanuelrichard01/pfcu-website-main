@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Edit, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -33,18 +33,18 @@ interface EditSermonDialogProps {
   onSermonUpdated: () => void;
 }
 
-const EditSermonDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  sermon, 
-  onSermonUpdated 
+const EditSermonDialog = ({
+  isOpen,
+  onOpenChange,
+  sermon,
+  onSermonUpdated
 }: EditSermonDialogProps) => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
   const { uploadFile, updateSermon } = useSermons();
-  
+
   // Default form values
   const [defaultValues, setDefaultValues] = useState<SermonFormValues>({
     title: "",
@@ -73,7 +73,7 @@ const EditSermonDialog = ({
   const handleSubmit = async (data: SermonFormValues) => {
     if (!sermon) return;
     setIsUploading(true);
-    
+
     try {
       const updateData: Partial<Sermon> = {
         title: data.title,
@@ -83,34 +83,34 @@ const EditSermonDialog = ({
         duration: data.duration
         // Remove the updated_at property as it's not in the Sermon type
       };
-      
+
       // Only update files if new ones are provided
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
         setUploadingFile(file.name);
         setUploadProgress(0);
-        
+
         const audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
           setUploadProgress(progress);
         });
-        
+
         updateData.audio_url = audioUrl;
       }
-      
+
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
         setUploadingFile(file.name);
         setUploadProgress(0);
-        
+
         const coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
           setUploadProgress(progress);
         });
-        
+
         updateData.cover_image = coverImageUrl;
       }
-      
+
       const success = await updateSermon(sermon.id, updateData);
-      
+
       if (success) {
         onOpenChange(false);
         onSermonUpdated();
@@ -141,15 +141,15 @@ const EditSermonDialog = ({
             Update the sermon details.
           </DialogDescription>
         </DialogHeader>
-        
-        <SermonForm 
+
+        <SermonForm
           key={sermon?.id || 'new'} // Force re-render when sermon changes
-          defaultValues={defaultValues} 
+          defaultValues={defaultValues}
           onSubmit={handleSubmit}
           formId="edit-sermon-form"
           sermon={sermon}
         />
-        
+
         {isUploading && (
           <div className="space-y-2">
             <div className="flex justify-between text-sm">
@@ -157,27 +157,27 @@ const EditSermonDialog = ({
               <span>{uploadProgress}%</span>
             </div>
             <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-pfcu-purple" 
+              <div
+                className="h-full bg-pfcu-primary"
                 style={{ width: `${uploadProgress}%` }}
               ></div>
             </div>
           </div>
         )}
-        
+
         <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isUploading}
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             type="submit"
             form="edit-sermon-form"
-            className="bg-pfcu-purple hover:bg-pfcu-dark"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
             disabled={isUploading}
           >
             {isUploading ? (

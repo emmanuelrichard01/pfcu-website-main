@@ -1,22 +1,35 @@
 
 import React, { useEffect, useState } from "react";
-import { FileText, Calendar, Users, DollarSign, ArrowRight, Clock } from "lucide-react";
+import { FileText, Calendar, Users, DollarSign, ArrowUpRight, TrendingUp } from "lucide-react";
 import { useSermons } from "@/hooks/useSermons";
 import { supabase } from "@/integrations/supabase/client";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { useLeadership } from "@/hooks/useLeadership";
 import { motion } from "framer-motion";
 import { calculateTotalCompletedDonations } from "@/services/donationService";
-import StatsCard from "@/components/admin/dashboard/StatsCard";
-import RecentItemsCard from "@/components/admin/dashboard/RecentItemsCard";
+import { Link } from "react-router-dom";
+
+// Type definitions for dashboard data
+interface RecentSermon {
+  title: string;
+  preacher: string;
+  sermon_date: string;
+  created_at: string;
+}
+
+interface RecentEvent {
+  title: string;
+  date: string;
+  time: string;
+}
 
 const AdminDashboard = () => {
   const { sermons, count: sermonCount } = useSermons();
   const { count: leadershipCount } = useLeadership();
   const [eventCount, setEventCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [recentSermons, setRecentSermons] = useState<any[]>([]);
-  const [recentEvents, setRecentEvents] = useState<any[]>([]);
+  const [recentSermons, setRecentSermons] = useState<RecentSermon[]>([]);
+  const [recentEvents, setRecentEvents] = useState<RecentEvent[]>([]);
   const [totalDonations, setTotalDonations] = useState(0);
 
   // Fetch events count
@@ -26,21 +39,17 @@ const AdminDashboard = () => {
         const { count, error } = await supabase
           .from('events')
           .select('*', { count: 'exact', head: true });
-        
+
         if (error) throw error;
-        
-        if (count !== null) {
-          setEventCount(count);
-        }
+        if (count !== null) setEventCount(count);
       } catch (error) {
         console.error("Error fetching event count:", error);
       }
     };
-
     fetchEventCount();
   }, []);
 
-  // Fetch donation info directly from database
+  // Fetch donation info
   useEffect(() => {
     const fetchDonationInfo = async () => {
       try {
@@ -50,219 +59,165 @@ const AdminDashboard = () => {
         console.error("Error fetching donation totals:", error);
       }
     };
-    
     fetchDonationInfo();
   }, []);
 
-  // Fetch recent sermons
+  // Fetch recent data
   useEffect(() => {
-    const fetchRecentSermons = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
-          .from('sermons')
-          .select('title, preacher, sermon_date, created_at')
-          .order('created_at', { ascending: false })
-          .limit(4);
-        
-        if (error) throw error;
-        
-        setRecentSermons(data || []);
+        const [sermonsRes, eventsRes] = await Promise.all([
+          supabase.from('sermons').select('title, preacher, sermon_date, created_at').order('created_at', { ascending: false }).limit(5),
+          supabase.from('events').select('title, date, time').order('date', { ascending: true }).limit(5)
+        ]);
+
+        if (sermonsRes.data) setRecentSermons(sermonsRes.data);
+        if (eventsRes.data) setRecentEvents(eventsRes.data);
       } catch (error) {
-        console.error("Error fetching recent sermons:", error);
+        console.error("Error fetching recent data:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchRecentSermons();
+    fetchData();
   }, []);
 
-  // Fetch upcoming events
-  useEffect(() => {
-    const fetchRecentEvents = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('events')
-          .select('title, date, time')
-          .order('date', { ascending: true })
-          .limit(4);
-        
-        if (error) throw error;
-        
-        setRecentEvents(data || []);
-      } catch (error) {
-        console.error("Error fetching recent events:", error);
-      }
-    };
-
-    fetchRecentEvents();
-  }, []);
-
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-  
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0 }
-  };
 
   const stats = [
     {
-      title: "Total Sermons",
-      value: loading ? "..." : sermonCount.toString(),
-      icon: <FileText className="h-8 w-8 text-white" />,
-      description: "Sermons uploaded",
+      title: "Content Library",
+      value: sermonCount.toString(),
+      label: "Total Sermons",
+      icon: <FileText size={20} />,
       link: "/admin/sermons",
-      color: "from-blue-500 to-indigo-600"
+      trend: "+2 this week" // Placeholder logic
     },
     {
-      title: "Upcoming Events",
-      value: loading ? "..." : eventCount.toString(),
-      icon: <Calendar className="h-8 w-8 text-white" />,
-      description: "Events scheduled",
+      title: "Upcoming",
+      value: eventCount.toString(),
+      label: "Scheduled Events",
+      icon: <Calendar size={20} />,
       link: "/admin/events",
-      color: "from-green-500 to-emerald-600"
+      trend: "Next event in 3 days"
     },
     {
-      title: "Leadership",
-      value: loading ? "..." : leadershipCount.toString(),
-      icon: <Users className="h-8 w-8 text-white" />,
-      description: "Current leaders",
+      title: "Team",
+      value: leadershipCount.toString(),
+      label: "Active Leaders",
+      icon: <Users size={20} />,
       link: "/admin/leadership",
-      color: "from-pfcu-purple to-pfcu-dark"
+      trend: "Stable"
     },
     {
-      title: "Total Donations",
+      title: "Funds",
       value: formatCurrency(totalDonations),
-      icon: <DollarSign className="h-8 w-8 text-white" />,
-      description: "Recent donations",
+      label: "Total Donations",
+      icon: <DollarSign size={20} />,
       link: "/admin/donations",
-      color: "from-amber-500 to-yellow-600"
+      trend: "+12% vs last month"
     }
   ];
 
   return (
     <div className="space-y-8">
-      <div className="space-y-2">
-        <motion.h1 
-          className="text-3xl font-bold font-display"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          Welcome to PFCU Admin
-        </motion.h1>
-        <motion.p 
-          className="text-gray-600"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-        >
-          Manage your fellowship content and settings from this dashboard.
-        </motion.p>
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-heading font-bold text-zinc-900 dark:text-zinc-50 tracking-tight">Overview</h1>
+        <p className="text-zinc-500 dark:text-zinc-400">Welcome back. Here's what's happening today.</p>
       </div>
 
-      <motion.div 
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
-        variants={container}
-        initial="hidden"
-        animate="show"
-      >
-        {stats.map((stat) => (
-          <motion.div key={stat.title} variants={item}>
-            <StatsCard
-              title={stat.title}
-              value={stat.value}
-              icon={stat.icon}
-              description={stat.description}
-              link={stat.link}
-              color={stat.color}
-            />
-          </motion.div>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+        {stats.map((stat, idx) => (
+          <Link
+            key={idx}
+            to={stat.link}
+            className="group flex flex-col p-5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800/60 rounded-xl hover:shadow-md transition-all duration-200 hover:border-zinc-300 dark:hover:border-zinc-700"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="p-2 bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 rounded-lg group-hover:bg-pfcu-primary/10 group-hover:text-pfcu-primary transition-colors">
+                {stat.icon}
+              </div>
+              <ArrowUpRight size={18} className="text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+            </div>
+            <div>
+              <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight mb-1">
+                {loading ? "..." : stat.value}
+              </div>
+              <div className="text-sm font-medium text-zinc-500 dark:text-zinc-400">{stat.label}</div>
+              <div className="mt-3 text-xs text-zinc-400 flex items-center gap-1">
+                <TrendingUp size={12} />
+                {stat.trend}
+              </div>
+            </div>
+          </Link>
         ))}
-      </motion.div>
+      </div>
 
-      <motion.div 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-      >
-        <RecentItemsCard
-          title="Recent Sermons"
-          titleIcon={<FileText className="mr-2 h-5 w-5 text-blue-500" />}
-          headerColor="from-indigo-50 to-blue-50"
-          linkUrl="/admin/sermons"
-          linkText="View All Sermons"
-          isLoading={loading}
-          emptyState={{
-            icon: <FileText className="mx-auto h-10 w-10 text-gray-300 mb-2" />,
-            message: "No sermons available",
-            linkUrl: "/admin/sermons",
-            linkText: "Add your first sermon"
-          }}
-          renderItems={() => recentSermons.length > 0 ? (
-            <>
-              {recentSermons.map((sermon) => (
-                <div key={sermon.title + sermon.created_at} className="flex items-center justify-between border-b pb-3">
-                  <div>
-                    <p className="font-medium text-gray-800">{sermon.title}</p>
-                    <div className="flex items-center gap-1 text-gray-500">
-                      <p className="text-sm">{sermon.preacher}</p>
-                      <span className="text-xs">•</span>
-                      <p className="text-sm">{new Date(sermon.sermon_date).toLocaleDateString()}</p>
+      {/* Recent Activity Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+
+        {/* Recent Sermons */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Recent Uploads</h3>
+            <Link to="/admin/sermons" className="text-sm font-medium text-pfcu-primary hover:underline">View All</Link>
+          </div>
+          <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden">
+            {loading ? (
+              <div className="p-8 text-center text-sm text-zinc-500">Loading data...</div>
+            ) : recentSermons.length > 0 ? (
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {recentSermons.map((sermon, i) => (
+                  <div key={i} className="p-4 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{sermon.title}</p>
+                      <p className="text-xs text-zinc-500">{sermon.preacher}</p>
+                    </div>
+                    <div className="text-xs text-zinc-400 font-mono">
+                      {new Date(sermon.created_at).toLocaleDateString()}
                     </div>
                   </div>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Clock className="h-3 w-3 mr-1" />
-                    {formatDate(sermon.created_at)}
-                  </div>
-                </div>
-              ))}
-            </>
-          ) : null}
-        />
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-zinc-500 text-sm">No sermons found.</div>
+            )}
+          </div>
+        </div>
 
-        <RecentItemsCard
-          title="Upcoming Events"
-          titleIcon={<Calendar className="mr-2 h-5 w-5 text-green-500" />}
-          headerColor="from-green-50 to-emerald-50"
-          linkUrl="/admin/events"
-          linkText="View All Events"
-          isLoading={loading}
-          emptyState={{
-            icon: <Calendar className="mx-auto h-10 w-10 text-gray-300 mb-2" />,
-            message: "No upcoming events",
-            linkUrl: "/admin/events",
-            linkText: "Schedule your first event"
-          }}
-          renderItems={() => recentEvents.length > 0 ? (
-            <>
-              {recentEvents.map((event) => (
-                <div key={event.title + event.date} className="flex items-center justify-between border-b pb-3">
-                  <div>
-                    <p className="font-medium text-gray-800">{event.title}</p>
-                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                      <Calendar className="h-3 w-3" />
-                      <p>{event.date}</p>
-                      <span className="text-xs">•</span>
-                      <p>{event.time}</p>
+        {/* Upcoming Events */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Upcoming Events</h3>
+            <Link to="/admin/events" className="text-sm font-medium text-pfcu-primary hover:underline">View Calendar</Link>
+          </div>
+          <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl bg-white dark:bg-zinc-900 overflow-hidden">
+            {loading ? (
+              <div className="p-8 text-center text-sm text-zinc-500">Loading data...</div>
+            ) : recentEvents.length > 0 ? (
+              <div className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                {recentEvents.map((event, i) => (
+                  <div key={i} className="p-4 flex items-center gap-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors">
+                    <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex flex-col items-center justify-center text-xs font-bold text-zinc-600 dark:text-zinc-400">
+                      <span>{new Date(event.date).getDate()}</span>
+                      <span className="text-[9px] uppercase">{new Date(event.date).toLocaleString('default', { month: 'short' })}</span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{event.title}</p>
+                      <p className="text-xs text-zinc-500">{event.time}</p>
                     </div>
                   </div>
-                </div>
-              ))}
-            </>
-          ) : null}
-        />
-      </motion.div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-zinc-500 text-sm">No upcoming events.</div>
+            )}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 };

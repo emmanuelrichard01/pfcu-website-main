@@ -35,51 +35,47 @@ const DonationFilters = ({
   uniquePurposes
 }: DonationFiltersProps) => {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Filters</CardTitle>
-        <CardDescription>Filter the donations based on different criteria.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-            <Input
-              placeholder="Search donor, purpose, etc."
-              className="pl-9"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
-              <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="failed">Failed</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={purposeFilter} onValueChange={setPurposeFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter by purpose" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Purposes</SelectItem>
-              {uniquePurposes.map(purpose => (
-                <SelectItem key={purpose} value={purpose}>{purpose}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <DatePicker date={date} setDate={setDate} placeholder="Filter by date" />
+    <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-zinc-50/50 dark:bg-zinc-900/50 p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
+      <div className="relative w-full md:w-auto md:min-w-[300px] flex-1">
+        <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-zinc-500" />
+        <Input
+          placeholder="Search donor, purpose, ref..."
+          className="pl-9 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 focus:ring-zinc-200 dark:focus:ring-zinc-700"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-full sm:w-[150px] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Statuses</SelectItem>
+            <SelectItem value="completed">Completed</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+            <SelectItem value="failed">Failed</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={purposeFilter} onValueChange={setPurposeFilter}>
+          <SelectTrigger className="w-full sm:w-[160px] bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+            <SelectValue placeholder="Purpose" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Purposes</SelectItem>
+            {uniquePurposes.map(purpose => (
+              <SelectItem key={purpose} value={purpose}>{purpose}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <div className="w-full sm:w-auto">
+          <DatePicker date={date} setDate={setDate} placeholder="Pick a date" />
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

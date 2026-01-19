@@ -1,140 +1,144 @@
 
 import { Link } from "react-router-dom";
-import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, Heart } from "lucide-react";
-import { motion } from "framer-motion";
+import { Facebook, Instagram, Twitter, Youtube, Mail, Phone, MapPin, Heart, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Footer = () => {
-  const fadeInUp = {
-    hidden: { y: 60, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.6,
+  const [contactInfo, setContactInfo] = useState({
+    address: "Caritas University, Enugu",
+    phone: "+234 123 456 7890",
+    email: "fellowship@pfcu.org"
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings' as any)
+        .select('*')
+        .in('key', ['contact_address', 'contact_phone', 'contact_email']);
+
+      if (data) {
+        const settingsData = data as any[];
+        const newInfo = { ...contactInfo };
+        settingsData.forEach(setting => {
+          if (setting.key === 'contact_address') newInfo.address = setting.value;
+          if (setting.key === 'contact_phone') newInfo.phone = setting.value;
+          if (setting.key === 'contact_email') newInfo.email = setting.value;
+        });
+        setContactInfo(newInfo);
       }
-    }
-  };
+    };
+    fetchSettings();
+  }, []);
 
   return (
-    <footer className="bg-gradient-to-b from-pfcu-dark to-black text-white relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-pfcu-gold via-pfcu-purple to-pfcu-gold"></div>
-      <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-pfcu-purple/10 to-transparent opacity-20 pointer-events-none"></div>
-      
-      {/* Wave pattern at top */}
-      <div className="absolute top-0 left-0 w-full">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 100" className="w-full text-white/5 fill-current">
-          <path d="M0,64L48,64C96,64,192,64,288,53.3C384,43,480,21,576,21.3C672,21,768,43,864,48C960,53,1056,43,1152,42.7C1248,43,1344,53,1392,58.7L1440,64L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"></path>
-        </svg>
+    <footer className="bg-zinc-950 text-white relative overflow-hidden pt-24 pb-12 border-t border-white/5">
+      {/* Background Gradients */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-pfcu-primary/10 rounded-full blur-[120px] mix-blend-screen opacity-50" />
+        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-indigo-500/10 rounded-full blur-[120px] mix-blend-screen opacity-50" />
       </div>
 
-      <div className="container pt-16 pb-8 relative z-10">
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.3 }}
-          variants={{
-            hidden: {},
-            visible: {
-              transition: {
-                staggerChildren: 0.1
-              }
-            }
-          }}
-        >
-          <motion.div variants={fadeInUp}>
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-white rounded-full p-2 shadow-glow">
-                <img 
-                  src="/lovable-uploads/542ae7a7-6ae0-4459-954e-0edf20905847.png" 
-                  alt="PFCU Logo" 
-                  className="h-12 w-12"
-                />
+      <div className="container relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-16 mb-20">
+
+          {/* Brand Column */}
+          <div className="md:col-span-5 lg:col-span-4 space-y-8">
+            <Link to="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center border border-white/10 group-hover:bg-white/10 transition-colors overflow-hidden p-1">
+                <img src="/pfcu-logo.png" alt="PFCU Logo" className="w-full h-full object-contain" />
               </div>
-              <h3 className="text-3xl font-display font-bold text-pfcu-gold">PFCU</h3>
-            </div>
-            <p className="text-gray-300 mb-6 leading-relaxed">
-              The Pentecostal Fellowship of Caritas University, fostering spiritual growth and
-              community since 2005.
+              <span className="text-2xl font-heading font-bold tracking-tight text-white/90 group-hover:text-white transition-colors">PFCU</span>
+            </Link>
+
+            <p className="text-zinc-400 text-base leading-relaxed max-w-sm">
+              Empowering the next generation through christ-centered community, spiritual growth, and academic excellence.
             </p>
-            <div className="flex space-x-4">
-              <SocialLink href="#" icon={<Facebook size={20} />} />
-              <SocialLink href="https://www.instagram.com/pfcu_/" icon={<Instagram size={20} />} />
-              <SocialLink href="#" icon={<Twitter size={20} />} />
-              <SocialLink href="#" icon={<Youtube size={20} />} />
-            </div>
-          </motion.div>
-          
-          <motion.div variants={fadeInUp}>
-            <h4 className="text-lg font-bold mb-6 text-pfcu-gold">Quick Links</h4>
-            <ul className="space-y-3">
-              <FooterLink to="/" label="Home" />
-              <FooterLink to="/about" label="About Us" />
-              <FooterLink to="/units" label="Ministry Units" />
-              <FooterLink to="/events" label="Events" />
-              <FooterLink to="/sermons" label="Sermons" />
-              <FooterLink to="/contact" label="Contact Us" />
-            </ul>
-          </motion.div>
-          
-          <motion.div variants={fadeInUp}>
-            <h4 className="text-lg font-bold mb-6 text-pfcu-gold">Service Times</h4>
-            <ul className="space-y-4">
-              <ServiceTime title="Sunday Service" time="9:00 AM - 12:00 PM" />
-              <ServiceTime title="Bible Study" time="Wednesday, 6:00 PM - 8:00 PM" />
-              <ServiceTime title="Prayer Meeting" time="Friday, 7:00 PM - 9:00 PM" />
-            </ul>
-          </motion.div>
-          
-          <motion.div variants={fadeInUp}>
-            <h4 className="text-lg font-bold mb-6 text-pfcu-gold">Contact Information</h4>
-            <ul className="space-y-4">
-              <ContactInfo icon={<MapPin size={20} />} text="Caritas University Campus, Enugu, Nigeria" />
-              <ContactInfo icon={<Phone size={20} />} text="+234 123 456 7890" />
-              <ContactInfo icon={<Mail size={20} />} text="info@pfcu.org" />
-            </ul>
-          </motion.div>
-        </motion.div>
-        
-        {/* Newsletter Signup */}
-        <motion.div 
-          className="mt-16 p-8 bg-gradient-to-r from-pfcu-purple/20 to-pfcu-purple/10 rounded-xl border border-pfcu-purple/20"
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div>
-              <h4 className="text-xl font-bold text-pfcu-gold mb-2">Stay Updated</h4>
-              <p className="text-gray-300">Subscribe to our newsletter for weekly updates and announcements</p>
-            </div>
-            <div className="w-full md:w-auto flex flex-col sm:flex-row gap-3">
-              <input 
-                type="email" 
-                placeholder="Your email address" 
-                className="px-4 py-2 rounded-md bg-white/10 border border-white/20 text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-pfcu-gold"
-              />
-              <button className="px-6 py-2 bg-pfcu-gold text-pfcu-dark font-medium rounded-md hover:bg-yellow-400 transition-colors">
-                Subscribe
-              </button>
+
+            <div className="flex gap-3">
+              <SocialLink href="#" icon={<Facebook size={18} />} />
+              <SocialLink href="https://www.instagram.com/pfcu_/" icon={<Instagram size={18} />} />
+              <SocialLink href="#" icon={<Twitter size={18} />} />
+              <SocialLink href="#" icon={<Youtube size={18} />} />
             </div>
           </div>
-        </motion.div>
-        
-        <motion.div 
-          className="border-t border-gray-800 mt-12 pt-8 text-center text-gray-400 flex flex-col md:flex-row justify-between items-center"
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <p>&copy; {new Date().getFullYear()} Pentecostal Fellowship of Caritas University. All rights reserved.</p>
-          <p className="flex items-center mt-4 md:mt-0">
-            Made with <Heart className="mx-1 text-red-500" size={14} /> in Christ Jesus
-          </p>
-        </motion.div>
+
+          {/* Navigation Columns */}
+          <div className="md:col-span-7 lg:col-span-8 grid grid-cols-1 sm:grid-cols-3 gap-10">
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6 opacity-90">Explore</h4>
+              <ul className="space-y-3">
+                <FooterLink to="/" label="Home" />
+                <FooterLink to="/about" label="About Us" />
+                <FooterLink to="/departments" label="Departments" />
+                <FooterLink to="/events" label="Events" />
+                <FooterLink to="/sermons" label="Sermons" />
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6 opacity-90">Service Times</h4>
+              <ul className="space-y-4">
+                <ServiceTime day="Sunday" time="9:00 AM" label="Main Service" />
+                <ServiceTime day="Wednesday" time="6:00 PM" label="Bible Study" />
+                <ServiceTime day="Friday" time="7:00 PM" label="Prayer & Worship" />
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="text-sm font-semibold text-white uppercase tracking-wider mb-6 opacity-90">Contact</h4>
+              <ul className="space-y-4">
+                <ContactInfo icon={<MapPin size={16} />} text={contactInfo.address} />
+                <ContactInfo icon={<Phone size={16} />} text={contactInfo.phone} />
+                <ContactInfo icon={<Mail size={16} />} text={contactInfo.email} />
+
+                <li className="pt-4">
+                  <Link to="/contact">
+                    <Button variant="outline" className="h-10 px-4 rounded-full border-zinc-700 bg-transparent text-zinc-300 hover:text-white hover:bg-white/5 hover:border-zinc-500 transition-all w-full justify-between group">
+                      <span className="text-sm">Get Directions</span>
+                      <ArrowRight size={14} className="transition-transform group-hover:translate-x-1" />
+                    </Button>
+                  </Link>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Newsletter Section - Linear Style */}
+        <div className="border-y border-white/5 py-12 mb-12">
+          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+            <div className="text-center lg:text-left">
+              <h3 className="text-xl font-heading font-bold text-white mb-2">Join our Weekly Newsletter</h3>
+              <p className="text-zinc-500 text-sm">Updates on events, sermons, and community stories.</p>
+            </div>
+
+            <div className="w-full lg:w-auto max-w-md flex relative">
+              <input
+                type="email"
+                placeholder="Enter your email address"
+                className="w-full lg:w-80 h-10 bg-zinc-900/50 border border-zinc-800 rounded-lg px-4 text-sm text-zinc-300 placeholder:text-zinc-600 focus:outline-none focus:border-pfcu-primary/50 focus:ring-1 focus:ring-pfcu-primary/20 transition-all pr-24"
+              />
+              <Button className="absolute right-1 top-1 bottom-1 h-8 px-4 bg-white text-zinc-950 hover:bg-zinc-200 rounded-md text-xs font-semibold shadow-sm">
+                Subscribe
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Copyright */}
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-zinc-600 font-medium">
+          <p>&copy; {new Date().getFullYear()} PFCU. All rights reserved.</p>
+          <div className="flex items-center gap-6">
+            <Link to="#" className="hover:text-zinc-400 transition-colors">Privacy</Link>
+            <Link to="#" className="hover:text-zinc-400 transition-colors">Terms</Link>
+            <span className="flex items-center gap-1.5">
+              Made with <Heart size={10} className="text-rose-500 fill-rose-500" /> in Christ
+            </span>
+          </div>
+        </div>
       </div>
     </footer>
   );
@@ -142,11 +146,11 @@ const Footer = () => {
 
 // Helper components
 const SocialLink = ({ href, icon }: { href: string, icon: React.ReactNode }) => (
-  <a 
-    href={href} 
-    target="_blank" 
-    rel="noopener noreferrer" 
-    className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-pfcu-gold hover:text-pfcu-dark transition-colors"
+  <a
+    href={href}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="w-8 h-8 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:bg-pfcu-primary hover:text-white hover:border-pfcu-primary transition-all duration-300"
   >
     {icon}
   </a>
@@ -154,28 +158,30 @@ const SocialLink = ({ href, icon }: { href: string, icon: React.ReactNode }) => 
 
 const FooterLink = ({ to, label }: { to: string, label: string }) => (
   <li>
-    <Link 
-      to={to} 
-      className="text-gray-300 hover:text-pfcu-gold transition-colors hover:translate-x-1 inline-block transform"
+    <Link
+      to={to}
+      className="text-zinc-400 text-sm hover:text-white hover:translate-x-0.5 inline-block transition-all duration-200"
     >
       {label}
     </Link>
   </li>
 );
 
-const ServiceTime = ({ title, time }: { title: string, time: string }) => (
-  <li className="bg-white/5 p-3 rounded-lg hover:bg-white/10 transition-colors">
-    <p className="font-medium text-pfcu-gold">{title}</p>
-    <p className="text-sm text-gray-300">{time}</p>
+const ServiceTime = ({ day, time, label }: { day: string, time: string, label: string }) => (
+  <li className="flex flex-col gap-0.5">
+    <span className="text-white text-sm font-medium">{label}</span>
+    <div className="flex items-baseline justify-between gap-4 text-xs">
+      <span className="text-zinc-500">{day}</span>
+      <span className="flex-1 h-px bg-zinc-800/50 border-t border-dashed border-zinc-800"></span>
+      <span className="text-zinc-400 font-mono">{time}</span>
+    </div>
   </li>
 );
 
 const ContactInfo = ({ icon, text }: { icon: React.ReactNode, text: string }) => (
-  <li className="flex items-start space-x-3 group">
-    <span className="text-pfcu-gold mt-1 flex-shrink-0 p-2 bg-white/5 rounded-full group-hover:bg-white/10 transition-colors">
-      {icon}
-    </span>
-    <span className="text-gray-300">{text}</span>
+  <li className="flex items-center gap-3 text-zinc-400 text-sm">
+    <span className="text-zinc-600">{icon}</span>
+    <span>{text}</span>
   </li>
 );
 

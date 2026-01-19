@@ -1,6 +1,6 @@
 
 import { useForm } from "react-hook-form";
-import { 
+import {
   Form,
   FormControl,
   FormField,
@@ -41,7 +41,7 @@ interface LeaderFormProps {
 
 const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFormProps) => {
   const [activeTab, setActiveTab] = useState("basic");
-  
+
   const leaderForm = useForm<LeaderData>({
     defaultValues: initialData
   });
@@ -55,7 +55,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
     console.log("Form submitted with data:", data);
     await onSubmit(data);
   };
-  
+
   // Define position options with the correct hierarchy
   const positionOptions = [
     { value: "Pastor/President", label: "Pastor/President", order: 1 },
@@ -87,7 +87,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
             <TabsTrigger value="profile">Profile Picture</TabsTrigger>
             <TabsTrigger value="social">Social Media</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="basic" className="mt-0">
             <FormField
               control={leaderForm.control}
@@ -102,7 +102,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="position"
@@ -110,8 +110,8 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 <FormItem>
                   <FormLabel>Position</FormLabel>
                   <FormControl>
-                    <select 
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-purple"
+                    <select
+                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-primary"
                       onChange={(e) => handlePositionChange(e.target.value)}
                       value={field.value}
                     >
@@ -126,7 +126,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="initial"
@@ -140,7 +140,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="bio"
@@ -155,7 +155,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
               )}
             />
           </TabsContent>
-          
+
           <TabsContent value="profile" className="mt-0">
             <FormField
               control={leaderForm.control}
@@ -171,7 +171,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
               )}
             />
           </TabsContent>
-          
+
           <TabsContent value="social" className="mt-0">
             <FormField
               control={leaderForm.control}
@@ -188,7 +188,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="socialMedia.twitter"
@@ -204,7 +204,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="socialMedia.instagram"
@@ -220,7 +220,7 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={leaderForm.control}
               name="socialMedia.linkedin"
@@ -238,19 +238,19 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
             />
           </TabsContent>
         </Tabs>
-        
+
         <DialogFooter>
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={onCancel}
             className="mr-2"
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
-            className="bg-pfcu-purple hover:bg-pfcu-dark transition-colors duration-300"
+          <Button
+            type="submit"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

@@ -1,17 +1,19 @@
 
+
 import { useState } from "react";
 import { format } from "date-fns";
-import { 
-  MoreHorizontal, 
-  Check, 
-  Clock, 
+import {
+  MoreHorizontal,
+  Check,
+  Clock,
   X,
   Trash2,
   CreditCard,
   Wallet,
   Building,
   Eye,
-  Edit
+  Edit,
+  FileText
 } from "lucide-react";
 import {
   Table,
@@ -60,11 +62,11 @@ interface DonationTableProps {
   onUpdateStatus: (id: string, status: "completed" | "pending" | "failed") => Promise<boolean>;
 }
 
-const DonationTable = ({ 
-  filteredDonations, 
-  donations, 
+const DonationTable = ({
+  filteredDonations,
+  donations,
   onDeleteDonation,
-  onUpdateStatus 
+  onUpdateStatus
 }: DonationTableProps) => {
   const { toast } = useToast();
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -77,7 +79,7 @@ const DonationTable = ({
     setIsChangingStatus(true);
     try {
       const success = await onUpdateStatus(id, newStatus);
-      
+
       if (success) {
         toast({
           title: "Status updated",
@@ -97,14 +99,14 @@ const DonationTable = ({
       setIsChangingStatus(false);
     }
   };
-  
+
   const handleDelete = async (id: string) => {
     setIsDeleting(true);
     setDeletingId(id);
-    
+
     try {
       const success = await onDeleteDonation(id);
-      
+
       if (success) {
         toast({
           title: "Donation deleted",
@@ -125,7 +127,7 @@ const DonationTable = ({
       setDeletingId(null);
     }
   };
-  
+
   const viewDonationDetails = (donation: Donation) => {
     setSelectedDonation(donation);
     setIsViewingDetails(true);
@@ -134,122 +136,150 @@ const DonationTable = ({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "completed":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200 hover:text-green-800"><Check size={14} className="mr-1" /> Completed</Badge>;
+        return (
+          <Badge className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100 shadow-none">
+            <Check size={12} className="mr-1" /> Completed
+          </Badge>
+        );
       case "pending":
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-200 hover:text-amber-800"><Clock size={14} className="mr-1" /> Pending</Badge>;
+        return (
+          <Badge className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-100 shadow-none">
+            <Clock size={12} className="mr-1" /> Pending
+          </Badge>
+        );
       case "failed":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200 hover:text-red-800"><X size={14} className="mr-1" /> Failed</Badge>;
+        return (
+          <Badge className="bg-red-50 text-red-700 hover:bg-red-100 border-red-100 shadow-none">
+            <X size={12} className="mr-1" /> Failed
+          </Badge>
+        );
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return <Badge variant="outline" className="text-zinc-500">{status}</Badge>;
     }
   };
-  
+
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case "Bank Transfer":
-        return <Building size={16} className="mr-1" />;
+        return <Building size={14} className="text-zinc-400" />;
       case "Online Payment":
-        return <CreditCard size={16} className="mr-1" />;
+        return <CreditCard size={14} className="text-zinc-400" />;
       case "Cash":
-        return <Wallet size={16} className="mr-1" />;
+        return <Wallet size={14} className="text-zinc-400" />;
       default:
-        return null;
+        return <CreditCard size={14} className="text-zinc-400" />;
     }
   };
 
   return (
-    <div className="border rounded-md">
+    <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Donor Name</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Date</TableHead>
-            <TableHead>Purpose</TableHead>
-            <TableHead>Payment</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+          <TableRow className="bg-zinc-50/50 dark:bg-zinc-900/50 hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Donor</TableHead>
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Amount</TableHead>
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Date</TableHead>
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Purpose</TableHead>
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Method</TableHead>
+            <TableHead className="font-semibold uppercase text-xs text-zinc-500 tracking-wider">Status</TableHead>
+            <TableHead className="text-right font-semibold uppercase text-xs text-zinc-500 tracking-wider">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredDonations.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
-                No donations found
+              <TableCell colSpan={7} className="text-center py-16">
+                <div className="flex flex-col items-center justify-center text-zinc-500">
+                  <div className="h-12 w-12 bg-zinc-100 rounded-full flex items-center justify-center mb-3">
+                    <FileText className="h-6 w-6 opacity-40" />
+                  </div>
+                  <p className="text-sm font-medium text-zinc-900">No donations found</p>
+                  <p className="text-xs text-zinc-500 mt-1">Try adjusting your filters or search query.</p>
+                </div>
               </TableCell>
             </TableRow>
           ) : (
             filteredDonations.map((donation) => (
-              <TableRow key={donation.id} className="group hover:bg-muted/50">
-                <TableCell className="font-medium">
+              <TableRow key={donation.id} className="group hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 transition-colors">
+                <TableCell className="font-medium text-zinc-900 dark:text-zinc-100">
                   {donation.donorName}
                   {donation.email && (
-                    <div className="text-xs text-muted-foreground mt-1">{donation.email}</div>
-                  )}
-                  {donation.phone && (
-                    <div className="text-xs text-muted-foreground">{donation.phone}</div>
+                    <div className="text-xs text-zinc-500 font-normal mt-0.5">{donation.email}</div>
                   )}
                 </TableCell>
-                <TableCell className="font-medium">₦{donation.amount.toLocaleString()}</TableCell>
-                <TableCell>{format(new Date(donation.date), "MMM dd, yyyy")}</TableCell>
-                <TableCell>{donation.purpose}</TableCell>
+                <TableCell className="font-semibold text-zinc-700 dark:text-zinc-300">
+                  ₦{donation.amount.toLocaleString()}
+                </TableCell>
+                <TableCell className="text-zinc-500 text-sm">
+                  {format(new Date(donation.date), "MMM dd, yyyy")}
+                </TableCell>
                 <TableCell>
-                  <div className="flex items-center">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md bg-zinc-100 dark:bg-zinc-800 text-xs font-medium text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+                    {donation.purpose}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2 text-sm text-zinc-600">
                     {getPaymentMethodIcon(donation.paymentMethod)}
                     <span>{donation.paymentMethod}</span>
                   </div>
                 </TableCell>
                 <TableCell>{getStatusBadge(donation.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2 opacity-100 group-hover:opacity-100 transition-opacity">
-                    <Button variant="ghost" size="icon" onClick={() => viewDonationDetails(donation)}>
+                  <div className="flex justify-end gap-1 opacity-100">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => viewDonationDetails(donation)}
+                      className="h-8 w-8 text-zinc-400 hover:text-zinc-900"
+                    >
                       <Eye className="h-4 w-4" />
                       <span className="sr-only">View details</span>
                     </Button>
-                    
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-zinc-400 hover:text-zinc-900">
                           <span className="sr-only">Open menu</span>
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuContent align="end" className="w-[160px]">
+                        <DropdownMenuLabel className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Status</DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleStatusChange(donation.id, "completed")}
                           disabled={donation.status === "completed" || isChangingStatus}
-                          className="text-green-600 focus:text-green-600"
+                          className="text-emerald-600 focus:text-emerald-700 focus:bg-emerald-50"
                         >
-                          <Check className="mr-2 h-4 w-4" />
-                          Mark as Completed
+                          <Check className="mr-2 h-3.5 w-3.5" />
+                          <span>Completed</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleStatusChange(donation.id, "pending")}
                           disabled={donation.status === "pending" || isChangingStatus}
-                          className="text-amber-600 focus:text-amber-600"
+                          className="text-amber-600 focus:text-amber-700 focus:bg-amber-50"
                         >
-                          <Clock className="mr-2 h-4 w-4" />
-                          Mark as Pending
+                          <Clock className="mr-2 h-3.5 w-3.5" />
+                          <span>Pending</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleStatusChange(donation.id, "failed")}
                           disabled={donation.status === "failed" || isChangingStatus}
-                          className="text-red-600 focus:text-red-600"
+                          className="text-red-600 focus:text-red-700 focus:bg-red-50"
                         >
-                          <X className="mr-2 h-4 w-4" />
-                          Mark as Failed
+                          <X className="mr-2 h-3.5 w-3.5" />
+                          <span>Failed</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <DropdownMenuItem 
+                            <DropdownMenuItem
                               onSelect={(e) => e.preventDefault()}
-                              className="text-red-600 focus:text-red-600"
+                              className="text-red-600 focus:text-red-700 focus:bg-red-50"
                             >
-                              <Trash2 className="mr-2 h-4 w-4" />
-                              Delete Donation
+                              <Trash2 className="mr-2 h-3.5 w-3.5" />
+                              <span>Delete</span>
                             </DropdownMenuItem>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
@@ -262,22 +292,12 @@ const DonationTable = ({
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
+                              <AlertDialogAction
                                 className="bg-red-600 hover:bg-red-700"
                                 onClick={() => handleDelete(donation.id)}
                                 disabled={isDeleting && deletingId === donation.id}
                               >
-                                {isDeleting && deletingId === donation.id ? (
-                                  <>
-                                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    Deleting...
-                                  </>
-                                ) : (
-                                  "Delete"
-                                )}
+                                {isDeleting && deletingId === donation.id ? "Deleting..." : "Delete"}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
@@ -296,88 +316,88 @@ const DonationTable = ({
       <Dialog open={isViewingDetails} onOpenChange={setIsViewingDetails}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Donation Details</DialogTitle>
+            <DialogTitle className="font-heading text-xl">Donation Details</DialogTitle>
             <DialogDescription>
               Complete information about the selected donation.
             </DialogDescription>
           </DialogHeader>
-          
+
           {selectedDonation && (
-            <div className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Donor</h4>
-                  <p className="text-base font-semibold">{selectedDonation.donorName}</p>
+            <div className="space-y-6 py-4">
+              <div className="grid grid-cols-2 gap-y-6 gap-x-4">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Donor</h4>
+                  <p className="text-base font-medium text-zinc-900">{selectedDonation.donorName}</p>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Amount</h4>
-                  <p className="text-base font-semibold">₦{selectedDonation.amount.toLocaleString()}</p>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Amount</h4>
+                  <p className="text-base font-medium text-zinc-900">₦{selectedDonation.amount.toLocaleString()}</p>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Purpose</h4>
-                  <p className="text-base">{selectedDonation.purpose}</p>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Purpose</h4>
+                  <p className="text-sm text-zinc-700 bg-zinc-100 inline-block px-2 py-1 rounded">{selectedDonation.purpose}</p>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Date</h4>
-                  <p className="text-base">{format(new Date(selectedDonation.date), "MMMM d, yyyy")}</p>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Date</h4>
+                  <p className="text-sm text-zinc-700">{format(new Date(selectedDonation.date), "MMMM d, yyyy")}</p>
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Payment Method</h4>
-                  <div className="flex items-center mt-1">
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Payment Method</h4>
+                  <div className="flex items-center gap-1.5 text-sm">
                     {getPaymentMethodIcon(selectedDonation.paymentMethod)}
                     <span>{selectedDonation.paymentMethod}</span>
                   </div>
                   {selectedDonation.paymentGateway && (
-                    <p className="text-xs text-muted-foreground mt-1">{selectedDonation.paymentGateway}</p>
+                    <p className="text-xs text-zinc-500 mt-0.5">{selectedDonation.paymentGateway}</p>
                   )}
                 </div>
-                <div>
-                  <h4 className="text-sm font-medium text-muted-foreground">Status</h4>
-                  <div className="mt-1">{getStatusBadge(selectedDonation.status)}</div>
+                <div className="space-y-1">
+                  <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Status</h4>
+                  <div>{getStatusBadge(selectedDonation.status)}</div>
                 </div>
               </div>
-              
+
               {(selectedDonation.email || selectedDonation.phone) && (
                 <>
-                  <div className="h-px bg-border my-4" />
+                  <div className="h-px bg-zinc-100" />
                   <div className="grid grid-cols-2 gap-4">
                     {selectedDonation.email && (
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground">Email</h4>
-                        <p className="text-base">{selectedDonation.email}</p>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Email</h4>
+                        <p className="text-sm text-zinc-700">{selectedDonation.email}</p>
                       </div>
                     )}
                     {selectedDonation.phone && (
-                      <div>
-                        <h4 className="text-sm font-medium text-muted-foreground">Phone</h4>
-                        <p className="text-base">{selectedDonation.phone}</p>
+                      <div className="space-y-1">
+                        <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Phone</h4>
+                        <p className="text-sm text-zinc-700">{selectedDonation.phone}</p>
                       </div>
                     )}
                   </div>
                 </>
               )}
-              
+
               {selectedDonation.paymentReference && (
                 <>
-                  <div className="h-px bg-border my-4" />
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground">Payment Reference</h4>
-                    <p className="text-sm font-mono bg-muted p-2 rounded mt-1">{selectedDonation.paymentReference}</p>
+                  <div className="h-px bg-zinc-100" />
+                  <div className="space-y-1">
+                    <h4 className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Payment Reference</h4>
+                    <p className="text-xs font-mono bg-zinc-100 p-2 rounded text-zinc-600 block break-all">{selectedDonation.paymentReference}</p>
                   </div>
                 </>
               )}
             </div>
           )}
-          
-          <DialogFooter className="flex space-x-2 sm:justify-between">
-            <div className="flex items-center text-sm">
-              <span className="text-muted-foreground">ID: </span>
-              <code className="ml-1 text-xs font-mono bg-muted px-1 py-0.5 rounded">
+
+          <DialogFooter className="flex sm:justify-between items-center bg-zinc-50 -mx-6 -mb-6 p-4 mt-2">
+            <div className="flex items-center text-xs text-zinc-400">
+              <span className="mr-2">ID:</span>
+              <code className="font-mono">
                 {selectedDonation?.id.substring(0, 8)}...
               </code>
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={() => setIsViewingDetails(false)}
             >
               Close
@@ -390,3 +410,4 @@ const DonationTable = ({
 };
 
 export default DonationTable;
+

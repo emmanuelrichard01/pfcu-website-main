@@ -25,17 +25,17 @@ const AdminEvents = () => {
   // Fetch events from Supabase
   const fetchEvents = async () => {
     setLoading(true);
-    
+
     try {
       const { data, error } = await supabase
         .from('events')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) {
         throw error;
       }
-      
+
       // Cast the data to ensure it matches the Event type
       const typedData = data as Event[];
       setEvents(typedData);
@@ -56,21 +56,21 @@ const AdminEvents = () => {
 
   const onSubmit = async (data: EventFormValues) => {
     setIsSubmitting(true);
-    
+
     try {
       const { error } = await supabase
         .from('events')
         .insert([data]);
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast({
         title: "Event created successfully",
         description: "The new event has been added to the calendar.",
       });
-      
+
       setIsAddDialogOpen(false);
       fetchEvents();
     } catch (error: any) {
@@ -93,16 +93,16 @@ const AdminEvents = () => {
         .from('events')
         .update(data)
         .eq('id', currentEvent.id);
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast({
         title: "Event updated successfully",
         description: "The event has been updated.",
       });
-      
+
       setIsEditDialogOpen(false);
       fetchEvents();
     } catch (error: any) {
@@ -124,16 +124,16 @@ const AdminEvents = () => {
         .from('events')
         .delete()
         .eq('id', currentEvent.id);
-      
+
       if (error) {
         throw error;
       }
-      
+
       toast({
         title: "Event deleted successfully",
         description: "The event has been removed from the calendar.",
       });
-      
+
       setIsDeleteDialogOpen(false);
       fetchEvents();
     } catch (error: any) {
@@ -155,7 +155,7 @@ const AdminEvents = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const filteredEvents = events.filter(event => 
+  const filteredEvents = events.filter(event =>
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
     event.location.toLowerCase().includes(searchQuery.toLowerCase())
@@ -172,15 +172,15 @@ const AdminEvents = () => {
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input 
+            <Input
               className="pl-9 w-full sm:w-64"
-              placeholder="Search events..." 
+              placeholder="Search events..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button 
-            className="bg-pfcu-purple hover:bg-pfcu-dark"
+          <Button
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
             onClick={() => setIsAddDialogOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
@@ -189,20 +189,20 @@ const AdminEvents = () => {
         </div>
       </div>
 
-      <EventsTable 
+      <EventsTable
         events={filteredEvents}
         loading={loading}
         onEditEvent={handleEdit}
         onDeleteEvent={handleDelete}
       />
-      
+
       <AddEventDialog
         isOpen={isAddDialogOpen}
         onOpenChange={setIsAddDialogOpen}
         onSubmit={onSubmit}
         isSubmitting={isSubmitting}
       />
-      
+
       <EditEventDialog
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
@@ -210,7 +210,7 @@ const AdminEvents = () => {
         isSubmitting={isSubmitting}
         event={currentEvent}
       />
-      
+
       <DeleteEventDialog
         isOpen={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}

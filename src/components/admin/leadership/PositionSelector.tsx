@@ -14,9 +14,9 @@ export const LEADERSHIP_POSITIONS = [
   { value: "Pastor/President", label: "Pastor/President" },
   { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP" },
   { value: "General Secretary", label: "General Secretary" },
-  { value: "Assistant Secretary & Treasurer", label: "Assistant Secretary & Treasurer" },
-  { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary" },
-  { value: "Provost", label: "Provost" }
+  { value: "Assistant General Secretary", label: "Assistant General Secretary" },
+  { value: "P.R.O & Provost", label: "P.R.O & Provost" },
+  { value: "Financial Secretary", label: "Financial Secretary" }
 ];
 
 const PositionSelector = <
@@ -27,8 +27,8 @@ const PositionSelector = <
     <FormItem>
       <FormLabel>Position</FormLabel>
       <FormControl>
-        <select 
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-purple"
+        <select
+          className="w-full p-2 border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 rounded-md focus:outline-none focus:ring-2 focus:ring-pfcu-primary focus:border-transparent text-sm"
           {...control.register(name)}
         >
           {LEADERSHIP_POSITIONS.map((option) => (

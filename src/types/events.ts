@@ -12,6 +12,7 @@ export interface Event {
   contact_email?: string | null;
   contact_phone?: string | null;
   is_featured: boolean;
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -30,4 +31,5 @@ export interface EventFormValues {
   contact_email?: string | null;
   contact_phone?: string | null;
   is_featured: boolean;
+  image_url?: string | null;
 }

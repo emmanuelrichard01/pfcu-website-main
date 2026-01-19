@@ -44,7 +44,7 @@ const AdminLeadership = () => {
     year: "2024/2025",
     declaration: "Many but one in Christ"
   });
-  
+
   const { toast } = useToast();
 
   const emptyLeader: LeaderData = {
@@ -87,16 +87,16 @@ const AdminLeadership = () => {
     } else {
       setEditingLeader(null);
     }
-    
+
     setIsDialogOpen(true);
   };
 
   const handleLeaderSubmit = async (data: LeaderData) => {
     setIsSubmitting(true);
-    
+
     try {
       let success = false;
-      
+
       if (editingLeader?.id) {
         // Update existing leader
         success = await updateLeader(editingLeader.id, data);
@@ -104,7 +104,7 @@ const AdminLeadership = () => {
         // Add new leader
         success = await addLeader(data);
       }
-      
+
       if (success) {
         setIsDialogOpen(false);
         setEditingLeader(null);
@@ -129,13 +129,13 @@ const AdminLeadership = () => {
 
   const handleTenureSubmit = (data: TenureData) => {
     setTenureData(data);
-    
+
     // Store using the old "slogan" field for backward compatibility
     localStorage.setItem("pfcu_tenure", JSON.stringify({
       year: data.year,
       slogan: data.declaration
     }));
-    
+
     toast({
       title: "Tenure information updated",
       description: "The tenure year and declaration have been updated."
@@ -149,9 +149,9 @@ const AdminLeadership = () => {
           <h1 className="text-3xl font-bold font-display">Leadership Management</h1>
           <p className="text-gray-600">Manage fellowship leadership information</p>
         </div>
-        
-        <Button 
-          className="bg-pfcu-purple hover:bg-pfcu-dark transition-colors duration-300"
+
+        <Button
+          className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300"
           onClick={() => handleOpenDialog()}
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -160,17 +160,25 @@ const AdminLeadership = () => {
       </div>
 
       {/* Tenure Information Section */}
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-4">Tenure Information</h2>
-        <TenureForm 
-          initialData={tenureData} 
-          onSubmit={handleTenureSubmit}
-        />
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm mb-6">
+        <div className="bg-zinc-50/50 dark:bg-zinc-900/50 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+          <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Tenure Information</h2>
+          <p className="text-sm text-zinc-500 mt-1">Update the current leadership year and declaration.</p>
+        </div>
+        <div className="p-6">
+          <TenureForm
+            initialData={tenureData}
+            onSubmit={handleTenureSubmit}
+          />
+        </div>
       </div>
 
       {/* Leaders Table */}
-      <div className="border rounded-lg overflow-hidden">
-        <LeadersList 
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-bold font-display text-zinc-900 dark:text-zinc-100">Fellowship Leaders</h2>
+        </div>
+        <LeadersList
           leaders={leaders}
           loading={loading}
           onEdit={handleOpenDialog}
@@ -187,13 +195,13 @@ const AdminLeadership = () => {
               {editingLeader?.id ? "Edit Leader Information" : "Add New Leader"}
             </DialogTitle>
             <DialogDescription>
-              {editingLeader?.id 
+              {editingLeader?.id
                 ? "Update the information for this leadership position"
                 : "Add a new leader to the current tenure leadership"
               }
             </DialogDescription>
           </DialogHeader>
-          
+
           <LeaderForm
             initialData={editingLeader || emptyLeader}
             isSubmitting={isSubmitting}

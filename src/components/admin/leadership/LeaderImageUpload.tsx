@@ -18,11 +18,11 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
-  
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    
+
     // Check file type
     if (!file.type.startsWith('image/')) {
       toast({
@@ -32,7 +32,7 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
       });
       return;
     }
-    
+
     // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
@@ -45,7 +45,7 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
 
     try {
       setIsUploading(true);
-      
+
       // Create a preview URL for immediate feedback
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -53,26 +53,26 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
         setTempImageUrl(dataUrl);
       };
       reader.readAsDataURL(file);
-      
+
       // Generate a unique file name to prevent overwriting
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
       const filePath = `${fileName}`;
-      
+
       // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('profile_images')
         .upload(filePath, file);
-        
+
       if (error) {
         throw error;
       }
-      
+
       // Get the public URL for the uploaded file
       const { data: { publicUrl } } = supabase.storage
         .from('profile_images')
         .getPublicUrl(filePath);
-        
+
       // Pass the URL back to the parent component
       onImageChange(publicUrl);
 
@@ -91,11 +91,11 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
       setIsUploading(false);
     }
   };
-  
+
   const handleRemoveImage = () => {
     setTempImageUrl(null);
     onImageChange(null);
-    
+
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -107,17 +107,17 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
         {tempImageUrl ? (
           <AvatarImage src={tempImageUrl} alt="Profile preview" />
         ) : (
-          <AvatarFallback className="bg-pfcu-purple text-white text-2xl">
+          <AvatarFallback className="bg-pfcu-primary text-white text-2xl">
             {initial || "?"}
           </AvatarFallback>
         )}
       </Avatar>
-      
+
       <FormItem className="w-full">
         <FormLabel className="flex justify-center">
-          <Button 
-            type="button" 
-            variant="secondary" 
+          <Button
+            type="button"
+            variant="secondary"
             className="flex items-center gap-2"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
@@ -127,7 +127,7 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
           </Button>
         </FormLabel>
         <FormControl>
-          <input 
+          <input
             type="file"
             ref={fileInputRef}
             className="hidden"
@@ -140,11 +140,11 @@ const LeaderImageUpload = ({ initial, profileImage, onImageChange }: LeaderImage
         </p>
         <FormMessage />
       </FormItem>
-      
+
       {tempImageUrl && (
-        <Button 
-          type="button" 
-          variant="outline" 
+        <Button
+          type="button"
+          variant="outline"
           className="mt-2 text-xs h-8"
           onClick={handleRemoveImage}
           disabled={isUploading}

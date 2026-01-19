@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Upload, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -27,7 +27,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   const [uploadingFile, setUploadingFile] = useState("");
   const { toast } = useToast();
   const { uploadFile, addSermon } = useSermons();
-  
+
   const defaultValues: SermonFormValues = {
     title: "",
     preacher: "",
@@ -41,16 +41,16 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
   const handleSubmit = async (data: SermonFormValues) => {
     setIsUploading(true);
     setUploadProgress(0);
-    
+
     try {
       // Handle file uploads if files are selected
       let audioUrl = null;
       let coverImageUrl = null;
-      
+
       if (data.sermonFile && data.sermonFile.length > 0) {
         const file = data.sermonFile[0];
         setUploadingFile(file.name);
-        
+
         try {
           audioUrl = await uploadFile(file, 'sermons', 'audio', (progress) => {
             setUploadProgress(progress);
@@ -66,14 +66,14 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
           throw new Error("Failed to upload audio file. Check storage permissions.");
         }
       }
-      
+
       // Reset progress before uploading cover image
       setUploadProgress(0);
-      
+
       if (data.coverImage && data.coverImage.length > 0) {
         const file = data.coverImage[0];
         setUploadingFile(file.name);
-        
+
         try {
           coverImageUrl = await uploadFile(file, 'sermons', 'covers', (progress) => {
             setUploadProgress(progress);
@@ -89,7 +89,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
           throw new Error("Failed to upload cover image. Check storage permissions.");
         }
       }
-      
+
       // Add sermon using the hook's method
       const success = await addSermon({
         title: data.title,
@@ -100,7 +100,7 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
         audio_url: audioUrl,
         cover_image: coverImageUrl
       });
-      
+
       if (success) {
         toast({
           title: "Sermon added successfully",
@@ -135,32 +135,32 @@ const AddSermonDialog = ({ isOpen, onOpenChange, onSermonAdded }: AddSermonDialo
             Fill in the sermon details and upload audio or document files.
           </DialogDescription>
         </DialogHeader>
-        
-        <SermonForm 
-          defaultValues={defaultValues} 
-          onSubmit={handleSubmit} 
+
+        <SermonForm
+          defaultValues={defaultValues}
+          onSubmit={handleSubmit}
           formId="add-sermon-form"
         />
-        
-        <UploadProgress 
+
+        <UploadProgress
           isUploading={isUploading}
           uploadProgress={uploadProgress}
           uploadingFile={uploadingFile}
         />
-        
+
         <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isUploading}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="add-sermon-form"
-            className="bg-pfcu-purple hover:bg-pfcu-dark"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
             disabled={isUploading}
           >
             {isUploading ? (

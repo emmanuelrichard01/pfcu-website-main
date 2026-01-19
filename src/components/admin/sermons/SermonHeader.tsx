@@ -20,15 +20,15 @@ const SermonHeader = ({ onAddClick, searchQuery, onSearchChange }: SermonHeaderP
       <div className="flex flex-col sm:flex-row gap-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input 
+          <Input
             className="pl-9 w-full sm:w-64"
-            placeholder="Search sermons..." 
+            placeholder="Search sermons..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        <Button 
-          className="bg-pfcu-purple hover:bg-pfcu-dark"
+        <Button
+          className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
           onClick={onAddClick}
         >
           <Upload className="mr-2 h-4 w-4" />

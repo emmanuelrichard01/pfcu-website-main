@@ -1,6 +1,6 @@
 
 import { useForm } from "react-hook-form";
-import { 
+import {
   Form,
   FormControl,
   FormField,
@@ -50,7 +50,7 @@ const TenureForm = ({ initialData, onSubmit }: TenureFormProps) => {
               </FormItem>
             )}
           />
-          
+
           <FormField
             control={form.control}
             name="declaration"
@@ -65,10 +65,10 @@ const TenureForm = ({ initialData, onSubmit }: TenureFormProps) => {
             )}
           />
         </div>
-        
-        <Button 
+
+        <Button
           type="submit"
-          className="bg-pfcu-purple hover:bg-pfcu-dark transition-colors duration-300"
+          className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300 shadow-sm"
         >
           <Save className="mr-2 h-4 w-4" />
           Save Tenure Information

@@ -1,18 +1,22 @@
 import { supabase } from "@/integrations/supabase/client";
 import { Leader } from "@/types/leadership";
+import { Tables } from "@/integrations/supabase/types";
+
+// Database leader row type from Supabase
+type DbLeader = Tables<'leaders'>;
 
 // Map database position names to order numbers
 export const positionOrder: Record<string, number> = {
   "Pastor/President": 1,
   "Assistant Pastor/VP": 2,
   "General Secretary": 3,
-  "Assistant Secretary & Treasurer": 4,
-  "P.R.O & Financial Secretary": 5,
-  "Provost": 6
+  "Assistant General Secretary": 4,
+  "P.R.O & Provost": 5,
+  "Financial Secretary": 6
 };
 
 // Map database schema to our interface
-export const mapDbLeaderToLeader = (dbLeader: any): Leader => ({
+export const mapDbLeaderToLeader = (dbLeader: DbLeader): Leader => ({
   id: dbLeader.id,
   name: dbLeader.name,
   position: dbLeader.position,
@@ -33,13 +37,13 @@ export const fetchLeadersFromDb = async (): Promise<Leader[]> => {
     .from('leaders')
     .select('*')
     .order('position_order', { ascending: true });
-  
+
   if (error) throw error;
-  
+
   if (data && data.length > 0) {
     return data.map(mapDbLeaderToLeader);
   }
-  
+
   return [];
 };
 
@@ -89,7 +93,7 @@ export const getDefaultLeaders = (): Leader[] => {
 export const addLeaderToDatabase = async (leader: Leader): Promise<{ data: any; error: any }> => {
   // Get position order from the positionOrder object
   const position_order = positionOrder[leader.position] || 99;
-  
+
   return await supabase.from('leaders').insert({
     name: leader.name,
     position: leader.position,
@@ -108,7 +112,7 @@ export const addLeaderToDatabase = async (leader: Leader): Promise<{ data: any; 
 export const updateLeaderInDatabase = async (id: string, updatedData: Partial<Leader>): Promise<{ error: any }> => {
   // Calculate position_order if position is being updated
   const position_order = updatedData.position ? (positionOrder[updatedData.position] || 99) : undefined;
-  
+
   // Update database
   const dbUpdateData = {
     name: updatedData.name,
@@ -122,14 +126,14 @@ export const updateLeaderInDatabase = async (id: string, updatedData: Partial<Le
     linkedin_url: updatedData.socialMedia?.linkedin,
     position_order: position_order
   };
-  
+
   // Remove undefined values (keep nulls)
   Object.keys(dbUpdateData).forEach(key => {
     if (dbUpdateData[key as keyof typeof dbUpdateData] === undefined) {
       delete dbUpdateData[key as keyof typeof dbUpdateData];
     }
   });
-  
+
   return await supabase
     .from('leaders')
     .update(dbUpdateData)

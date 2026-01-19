@@ -32,9 +32,9 @@ interface SermonFormProps {
   } | null;
 }
 
-const SermonForm = ({ 
-  defaultValues, 
-  onSubmit, 
+const SermonForm = ({
+  defaultValues,
+  onSubmit,
   formId = "sermon-form",
   sermon
 }: SermonFormProps) => {
@@ -58,7 +58,7 @@ const SermonForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="preacher"
@@ -72,7 +72,7 @@ const SermonForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="sermon_date"
@@ -86,7 +86,7 @@ const SermonForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="description"
@@ -94,17 +94,17 @@ const SermonForm = ({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Brief description of the sermon" 
-                  className="resize-none" 
-                  {...field} 
+                <Textarea
+                  placeholder="Brief description of the sermon"
+                  className="resize-none"
+                  {...field}
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="duration"
@@ -118,7 +118,7 @@ const SermonForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="sermonFile"
@@ -133,17 +133,17 @@ const SermonForm = ({
                     type="file"
                     accept=".mp3,.wav,.pdf,.doc,.docx"
                     onChange={(e) => onChange(e.target.files)}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-primary file:text-white hover:file:bg-pfcu-primary/90"
                     {...fieldProps}
                   />
                   {sermon?.audio_url ? (
                     <div className="text-xs text-gray-600 flex items-center">
                       <span className="mr-2">Current file:</span>
-                      <a 
-                        href={sermon.audio_url} 
-                        target="_blank" 
+                      <a
+                        href={sermon.audio_url}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="text-pfcu-purple hover:underline"
+                        className="text-pfcu-primary hover:underline hover:text-pfcu-primary/80"
                       >
                         View current file
                       </a>
@@ -157,7 +157,7 @@ const SermonForm = ({
             </FormItem>
           )}
         />
-        
+
         <FormField
           control={form.control}
           name="coverImage"
@@ -172,14 +172,14 @@ const SermonForm = ({
                     type="file"
                     accept="image/*"
                     onChange={(e) => onChange(e.target.files)}
-                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-purple file:text-white hover:file:bg-pfcu-dark"
+                    className="file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-pfcu-primary file:text-white hover:file:bg-pfcu-primary/90"
                     {...fieldProps}
                   />
                   {sermon?.cover_image ? (
                     <div className="flex items-start gap-2">
-                      <img 
-                        src={sermon.cover_image} 
-                        alt="Current cover" 
+                      <img
+                        src={sermon.cover_image}
+                        alt="Current cover"
                         className="w-16 h-16 object-cover rounded border"
                       />
                       <span className="text-xs text-gray-600">Current cover image</span>

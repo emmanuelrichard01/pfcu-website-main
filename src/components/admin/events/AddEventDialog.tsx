@@ -33,11 +33,11 @@ const defaultValues: EventFormValues = {
   is_featured: false
 };
 
-export const AddEventDialog = ({ 
-  isOpen, 
-  onOpenChange, 
-  onSubmit, 
-  isSubmitting 
+export const AddEventDialog = ({
+  isOpen,
+  onOpenChange,
+  onSubmit,
+  isSubmitting
 }: AddEventDialogProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -48,28 +48,28 @@ export const AddEventDialog = ({
             Add a new event to the fellowship calendar.
           </DialogDescription>
         </DialogHeader>
-        
-        <EventForm 
+
+        <EventForm
           defaultValues={defaultValues}
           onSubmit={onSubmit}
           isSubmitting={isSubmitting}
           submitButtonLabel="Create Event"
           submitButtonIcon={<Plus className="mr-2 h-4 w-4" />}
         />
-        
+
         <DialogFooter className="sticky bottom-0 bg-white pt-4 pb-2">
-          <Button 
-            type="button" 
-            variant="outline" 
+          <Button
+            type="button"
+            variant="outline"
             onClick={() => onOpenChange(false)}
             disabled={isSubmitting}
           >
             Cancel
           </Button>
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             form="event-form"
-            className="bg-pfcu-purple hover:bg-pfcu-dark"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

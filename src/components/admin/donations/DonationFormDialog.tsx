@@ -50,11 +50,11 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
       });
       return;
     }
-    
+
     setIsSubmitting(true);
     try {
       const result = await onAddDonation(newDonation);
-      
+
       if (result) {
         // Reset form
         setNewDonation({
@@ -65,9 +65,9 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
           status: "completed",
           paymentMethod: "Cash"
         });
-        
+
         setDialogOpen(false);
-        
+
         toast({
           title: "Donation added successfully",
           description: `${newDonation.donorName}'s donation has been recorded.`
@@ -88,7 +88,7 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
   return (
     <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild id="add-donation-trigger">
-        <Button className="bg-pfcu-purple hover:bg-pfcu-dark text-white transition-all duration-300 transform hover:scale-105">
+        <Button className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-all duration-300 transform hover:scale-105">
           <Plus className="mr-2 h-4 w-4" />
           Add Donation
         </Button>
@@ -100,7 +100,7 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
             Enter the details of the donation here. Required fields are marked with an asterisk (*).
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="donorName" className="text-right">
@@ -109,12 +109,12 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
             <Input
               id="donorName"
               value={newDonation.donorName}
-              onChange={(e) => setNewDonation({...newDonation, donorName: e.target.value})}
+              onChange={(e) => setNewDonation({ ...newDonation, donorName: e.target.value })}
               className="col-span-3"
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="amount" className="text-right">
               Amount (₦) *
@@ -123,14 +123,14 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               id="amount"
               type="number"
               value={newDonation.amount || ''}
-              onChange={(e) => setNewDonation({...newDonation, amount: Number(e.target.value)})}
+              onChange={(e) => setNewDonation({ ...newDonation, amount: Number(e.target.value) })}
               className="col-span-3"
               min="1"
               step="0.01"
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="date" className="text-right">
               Date *
@@ -139,19 +139,19 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               id="date"
               type="date"
               value={newDonation.date}
-              onChange={(e) => setNewDonation({...newDonation, date: e.target.value})}
+              onChange={(e) => setNewDonation({ ...newDonation, date: e.target.value })}
               className="col-span-3"
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="purpose" className="text-right">
               Purpose *
             </Label>
-            <Select 
+            <Select
               value={newDonation.purpose}
-              onValueChange={(value) => setNewDonation({...newDonation, purpose: value})}
+              onValueChange={(value) => setNewDonation({ ...newDonation, purpose: value })}
             >
               <SelectTrigger className="col-span-3" id="purpose">
                 <SelectValue placeholder="Select purpose" />
@@ -165,15 +165,15 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="paymentMethod" className="text-right">
               Payment Method *
             </Label>
-            <Select 
+            <Select
               value={newDonation.paymentMethod}
-              onValueChange={(value: "Bank Transfer" | "Cash" | "Online Payment") => 
-                setNewDonation({...newDonation, paymentMethod: value})
+              onValueChange={(value: "Bank Transfer" | "Cash" | "Online Payment") =>
+                setNewDonation({ ...newDonation, paymentMethod: value })
               }
             >
               <SelectTrigger className="col-span-3" id="paymentMethod">
@@ -186,15 +186,15 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="status" className="text-right">
               Status *
             </Label>
-            <Select 
+            <Select
               value={newDonation.status}
-              onValueChange={(value: "completed" | "pending" | "failed") => 
-                setNewDonation({...newDonation, status: value})
+              onValueChange={(value: "completed" | "pending" | "failed") =>
+                setNewDonation({ ...newDonation, status: value })
               }
             >
               <SelectTrigger className="col-span-3" id="status">
@@ -207,7 +207,7 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="email" className="text-right">
               Email (Optional)
@@ -216,11 +216,11 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
               id="email"
               type="email"
               value={newDonation.email || ""}
-              onChange={(e) => setNewDonation({...newDonation, email: e.target.value})}
+              onChange={(e) => setNewDonation({ ...newDonation, email: e.target.value })}
               className="col-span-3"
             />
           </div>
-          
+
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="phone" className="text-right">
               Phone (Optional)
@@ -228,25 +228,25 @@ const DonationFormDialog = ({ onAddDonation }: DonationFormDialogProps) => {
             <Input
               id="phone"
               value={newDonation.phone || ""}
-              onChange={(e) => setNewDonation({...newDonation, phone: e.target.value})}
+              onChange={(e) => setNewDonation({ ...newDonation, phone: e.target.value })}
               className="col-span-3"
             />
           </div>
         </div>
-        
+
         <DialogFooter>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => setDialogOpen(false)}
             disabled={isSubmitting}
             className="mr-2"
           >
             Cancel
           </Button>
-          <Button 
+          <Button
             onClick={handleAddDonation}
             disabled={isSubmitting || !newDonation.donorName || newDonation.amount <= 0}
-            className="bg-pfcu-purple hover:bg-pfcu-dark transition-colors duration-300"
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300"
           >
             {isSubmitting ? (
               <>

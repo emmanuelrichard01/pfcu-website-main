@@ -1,15 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -23,27 +22,19 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import {
   DollarSign,
-  CreditCard,
   Landmark,
   Clock,
   Heart,
-  Building,
   Copy,
   CheckCircle,
   Wallet,
+  HandHeart,
+  Banknote,
+  Info
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { Separator } from "@/components/ui/separator";
 import { NewDonation, PaymentOption } from "@/types/donations";
-import BankTransferForm from "@/components/giving/BankTransferForm";
-import OnlinePaymentForm from "@/components/giving/OnlinePaymentForm";
 import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
@@ -58,10 +49,39 @@ type GivingFormValues = z.infer<typeof formSchema>;
 
 const Giving = () => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [activePaymentMethod, setActivePaymentMethod] = useState<string>("bank");
   const [copySuccess, setCopySuccess] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
+
+  // State for dynamic settings
+  const [siteSettings, setSiteSettings] = useState({
+    bankName: "Opay",
+    accountNumber: "8155037840",
+    accountName: "Pentecostal Fellowship of Caritas University",
+    cashInstructions: "You can give offering in cash during our weekly services or drop it in the offering box located at the entrance."
+  });
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data } = await supabase
+        .from('site_settings' as any)
+        .select('*')
+        .in('key', ['bank_name', 'account_number', 'account_name', 'cash_instructions']);
+
+      if (data) {
+        const details: any = {};
+        data.forEach((item: any) => {
+          if (item.key === 'bank_name') details.bankName = item.value;
+          if (item.key === 'account_number') details.accountNumber = item.value;
+          if (item.key === 'account_name') details.accountName = item.value;
+          if (item.key === 'cash_instructions') details.cashInstructions = item.value;
+        });
+        if (Object.keys(details).length > 0) {
+          setSiteSettings(prev => ({ ...prev, ...details }));
+        }
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const form = useForm<GivingFormValues>({
     resolver: zodResolver(formSchema),
@@ -76,26 +96,23 @@ const Giving = () => {
 
   const onSubmit = async (data: GivingFormValues) => {
     setIsProcessing(true);
-    
-    // Generate a reference number
+
     const paymentReference = `PFCU-${Date.now().toString().substring(6)}`;
-    
-    // Create donation object
+
     const newDonation: NewDonation = {
       donorName: data.name,
       amount: parseFloat(data.amount),
       date: new Date().toISOString().split('T')[0],
       purpose: data.purpose,
-      status: activePaymentMethod === "online" ? "completed" : "pending",
-      paymentMethod: activePaymentMethod === "online" ? "Online Payment" : "Bank Transfer",
+      status: "pending",
+      paymentMethod: "Bank Transfer",
       email: data.email,
       phone: data.phoneNumber,
       paymentReference: paymentReference,
-      paymentGateway: activePaymentMethod === "online" ? "Paystack" : "Direct Deposit",
+      paymentGateway: "Direct Deposit",
     };
-    
+
     try {
-      // Insert into Supabase
       const { error } = await supabase
         .from('donations')
         .insert([{
@@ -110,54 +127,30 @@ const Giving = () => {
           status: newDonation.status,
           date: newDonation.date
         }]);
-      
-      if (error) {
-        throw error;
-      }
-      
-      // Simulate payment processing for UI feedback
+
+      if (error) throw error;
+
       setTimeout(() => {
         setIsProcessing(false);
         form.reset();
-        
         toast({
           title: "Donation details submitted!",
-          description: activePaymentMethod === "bank" ? 
-            "Please complete your transfer using the account details provided." : 
-            "Your donation has been processed. Thank you for your support!",
+          description: "Please complete your transfer using the account details provided.",
         });
-
-        // If it was an online payment, we've already set the status to completed
-        // in the database insert above
       }, 1500);
     } catch (error: any) {
       console.error("Error submitting donation:", error);
-      
-      // Fall back to localStorage if Supabase fails
-      try {
-        const storedDonations = localStorage.getItem("pfcu_donations");
-        const donations = storedDonations ? JSON.parse(storedDonations) : [];
-        const donationWithId = { 
-          ...newDonation, 
-          id: (donations.length + 1).toString() 
-        };
-        donations.push(donationWithId);
-        localStorage.setItem("pfcu_donations", JSON.stringify(donations));
-      } catch (fallbackError) {
-        console.error("Even fallback storage failed:", fallbackError);
-      }
-      
       setIsProcessing(false);
       toast({
         title: "Error",
-        description: "There was a problem submitting your donation, but we've saved it locally.",
+        description: "There was a problem submitting your donation.",
         variant: "destructive",
       });
     }
   };
 
   const copyAccountDetails = () => {
-    navigator.clipboard.writeText("Account Number: 8155037840 Bank Name: Opay").then(() => {
+    navigator.clipboard.writeText(`Account Number: ${siteSettings.accountNumber} Bank Name: ${siteSettings.bankName}`).then(() => {
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 3000);
       toast({
@@ -190,244 +183,141 @@ const Giving = () => {
 
   return (
     <MainLayout>
-      <div className="bg-pfcu-light py-16 md:py-24">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold font-display text-pfcu-purple mb-4">
-              Support Our Fellowship
-            </h1>
-            <p className="text-lg text-gray-700">
-              Your generous giving helps us advance the gospel on campus and beyond. 
-              Every contribution supports our ministry activities and outreach programs.
-            </p>
-          </div>
+      {/* Modern Compact Hero */}
+      <div className="relative bg-pfcu-dark pt-32 pb-16 md:py-36 overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-pfcu-primary/20 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-pfcu-secondary/10 rounded-full blur-[80px] -translate-x-1/4 translate-y-1/4" />
+          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
+        </div>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            {givingOptions.map((option) => (
-              <Card key={option.id} className="text-center hover:shadow-lg transition-shadow">
+        <div className="container relative z-10 mx-auto px-4 text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-pfcu-secondary text-sm font-medium mb-6">
+              <HandHeart size={14} />
+              <span>Giving</span>
+            </div>
+            <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-6 tracking-tight">
+              Support Our <span className="text-pfcu-primary">Fellowship</span>
+            </h1>
+            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+              Your generous giving helps us advance the gospel on campus and beyond.
+            </p>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="container mx-auto py-16 px-4">
+        {/* Giving Options Grid */}
+        <div className="grid md:grid-cols-3 gap-8 mb-16">
+          {givingOptions.map((option, idx) => (
+            <motion.div
+              key={option.id}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.1 }}
+              viewport={{ once: true }}
+            >
+              <Card className="text-center hover:shadow-xl transition-all hover:-translate-y-1 h-full border-zinc-200 dark:border-zinc-800">
                 <CardHeader>
-                  <div className="mx-auto bg-pfcu-purple/10 p-3 rounded-full w-16 h-16 flex items-center justify-center mb-4">
-                    <div className="text-pfcu-purple">{option.icon}</div>
+                  <div className="mx-auto bg-pfcu-primary/10 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-4 text-pfcu-primary">
+                    {option.icon}
                   </div>
-                  <CardTitle className="text-xl">{option.title}</CardTitle>
+                  <CardTitle className="text-xl font-heading">{option.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <CardDescription className="text-gray-600">
+                  <CardDescription className="text-gray-500 text-base">
                     {option.description}
                   </CardDescription>
                 </CardContent>
               </Card>
-            ))}
-          </div>
+            </motion.div>
+          ))}
+        </div>
 
-          <div className="max-w-3xl mx-auto">
-            <Card className="shadow-lg border-t-4 border-t-pfcu-gold">
-              <CardHeader>
-                <CardTitle className="text-2xl text-center">Make a Donation</CardTitle>
-                <CardDescription className="text-center">
-                  Choose your preferred payment method below
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Tabs defaultValue="bank" className="w-full" onValueChange={setActivePaymentMethod}>
-                  <TabsList className="grid w-full grid-cols-2 mb-6">
-                    <TabsTrigger value="bank" className="gap-2">
-                      <Building size={16} />
-                      <span>Bank Transfer</span>
-                    </TabsTrigger>
-                    <TabsTrigger value="online" className="gap-2">
-                      <CreditCard size={16} />
-                      <span>Online Payment</span>
-                    </TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="bank">
-                    <div className="mb-6">
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium text-gray-900 mb-1">Bank Account Details</h3>
-                            <p className="text-gray-600 text-sm mb-1">Account Number: <span className="font-medium">8155037840</span></p>
-                            <p className="text-gray-600 text-sm">Bank Name: <span className="font-medium">Opay</span></p>
-                            <p className="text-gray-600 text-sm mt-2">Account Name: <span className="font-medium">Pentecostal Fellowship of Caritas University</span></p>
-                          </div>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className="flex items-center gap-2"
+        <div className="max-w-6xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-8 items-start">
+            {/* Left Column: Bank Transfer Details Form */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <Card className="shadow-2xl border-0 overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-800 h-full">
+                <div className="h-2 bg-gradient-to-r from-pfcu-primary to-pfcu-secondary" />
+                <CardHeader className="pb-6">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                      <Landmark size={24} />
+                    </div>
+                    <CardTitle className="text-2xl font-heading font-bold">Bank Transfer</CardTitle>
+                  </div>
+                  <CardDescription className="text-base">
+                    Direct transfer to our official account.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-8">
+                  {/* Premium Bank Card Display */}
+                  <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                    <div className="relative z-10">
+                      <div className="flex justify-between items-start mb-6">
+                        <div>
+                          <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Bank Name</p>
+                          <h3 className="text-xl font-bold">{siteSettings.bankName}</h3>
+                        </div>
+                        <Landmark className="text-white/20 h-10 w-10" />
+                      </div>
+
+                      <div className="mb-6">
+                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-2">Account Number</p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-3xl font-mono font-bold tracking-wider">{siteSettings.accountNumber}</span>
+                          <Button
+                            size="icon"
+                            variant="secondary"
+                            className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 border-0 text-white"
                             onClick={copyAccountDetails}
                           >
-                            {copySuccess ? <CheckCircle size={14} className="text-green-600" /> : <Copy size={14} />}
-                            <span>{copySuccess ? "Copied" : "Copy"}</span>
+                            {copySuccess ? <CheckCircle size={14} /> : <Copy size={14} />}
                           </Button>
                         </div>
                       </div>
 
-                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Full Name</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="John Doe" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Email Address</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="your@email.com" type="email" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="amount"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Amount (₦)</FormLabel>
-                                  <FormControl>
-                                    <div className="relative">
-                                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                      <Input placeholder="1000" type="number" className="pl-10" {...field} />
-                                    </div>
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="phoneNumber"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Phone Number</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="+234..." type="tel" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
-
-                          <FormField
-                            control={form.control}
-                            name="purpose"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Donation Purpose</FormLabel>
-                                <FormControl>
-                                  <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                                    {...field}
-                                  >
-                                    {givingOptions.map((option) => (
-                                      <option key={option.id} value={option.title}>
-                                        {option.title}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-
-                          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 mt-4">
-                            <h4 className="text-amber-800 font-medium text-sm flex items-center gap-2">
-                              <Clock size={16} />
-                              Important
-                            </h4>
-                            <p className="text-amber-700 text-sm mt-1">
-                              After making your transfer, click the button below to notify us about your donation. This helps us track and confirm your contribution.
-                            </p>
-                          </div>
-
-                          <div className="mt-6">
-                            <Button 
-                              type="submit"
-                              className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-lg py-6"
-                              disabled={isProcessing}
-                            >
-                              {isProcessing ? (
-                                <>
-                                  <Clock className="mr-2 h-5 w-5 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <Wallet className="mr-2 h-5 w-5" />
-                                  I've Made My Transfer
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="online">
-                    <div className="mb-6">
-                      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
-                        <h3 className="font-medium text-gray-900 mb-1">Online Payment</h3>
-                        <p className="text-gray-600 text-sm">
-                          Make a secure online payment using any of our supported payment methods.
-                          You'll receive an email confirmation once your payment is processed.
-                        </p>
+                      <div>
+                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Account Name</p>
+                        <p className="text-base font-medium opacity-90">{siteSettings.accountName}</p>
                       </div>
-                      
-                      <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <FormField
-                              control={form.control}
-                              name="name"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Full Name</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="John Doe" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                            
-                            <FormField
-                              control={form.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Email Address</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="your@email.com" type="email" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
-                          </div>
+                    </div>
+                  </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Notification Form */}
+                  <div>
+                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
+                      <Info size={18} className="text-pfcu-primary" />
+                      Notify Us of Your Transfer
+                    </h3>
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <div className="grid grid-cols-1 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="name"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Full Name</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="John Doe" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <div className="grid grid-cols-2 gap-4">
                             <FormField
                               control={form.control}
                               name="amount"
@@ -435,46 +325,39 @@ const Giving = () => {
                                 <FormItem>
                                   <FormLabel>Amount (₦)</FormLabel>
                                   <FormControl>
-                                    <div className="relative">
-                                      <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                      <Input placeholder="1000" type="number" className="pl-10" {...field} />
-                                    </div>
+                                    <Input placeholder="1000" type="number" {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
-                            
                             <FormField
                               control={form.control}
                               name="phoneNumber"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Phone Number</FormLabel>
+                                  <FormLabel>Phone</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="+234..." type="tel" {...field} />
+                                    <Input placeholder="+234..." {...field} />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </div>
-
                           <FormField
                             control={form.control}
                             name="purpose"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Donation Purpose</FormLabel>
+                                <FormLabel>Purpose</FormLabel>
                                 <FormControl>
                                   <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
                                     {...field}
                                   >
                                     {givingOptions.map((option) => (
-                                      <option key={option.id} value={option.title}>
-                                        {option.title}
-                                      </option>
+                                      <option key={option.id} value={option.title}>{option.title}</option>
                                     ))}
                                   </select>
                                 </FormControl>
@@ -482,37 +365,63 @@ const Giving = () => {
                               </FormItem>
                             )}
                           />
+                        </div>
 
-                          <div className="mt-6">
-                            <Button 
-                              type="submit"
-                              className="w-full bg-pfcu-purple hover:bg-pfcu-dark text-lg py-6"
-                              disabled={isProcessing}
-                            >
-                              {isProcessing ? (
-                                <>
-                                  <Clock className="mr-2 h-5 w-5 animate-spin" />
-                                  Processing...
-                                </>
-                              ) : (
-                                <>
-                                  <CreditCard className="mr-2 h-5 w-5" />
-                                  Proceed to Payment
-                                </>
-                              )}
-                            </Button>
-                          </div>
-                        </form>
-                      </Form>
+                        <Button
+                          type="submit"
+                          className="w-full bg-pfcu-primary hover:bg-pfcu-primary/90 mt-2"
+                          disabled={isProcessing}
+                        >
+                          {isProcessing ? "Processing..." : "I've Made My Transfer"}
+                        </Button>
+                      </form>
+                    </Form>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Right Column: Cash Giving (Sticky if needed) */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              className="space-y-6"
+            >
+              {/* Cash / Check Card */}
+              <Card className="shadow-lg border-zinc-200 dark:border-zinc-800 bg-amber-50/50 dark:bg-amber-950/10">
+                <CardHeader>
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
+                      <Banknote size={24} />
                     </div>
-                  </TabsContent>
-                </Tabs>
-              </CardContent>
-              <CardFooter className="flex-col space-y-2 text-center text-sm text-gray-500">
-                <p>All donations are secure and encrypted</p>
-                <p>PFCU is a registered campus fellowship at Caritas University</p>
-              </CardFooter>
-            </Card>
+                    <CardTitle className="text-2xl font-heading font-bold text-amber-900 dark:text-amber-100">Cash & Offering Box</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="prose dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-300 leading-relaxed">
+                    <p className="whitespace-pre-wrap text-lg">{siteSettings.cashInstructions}</p>
+                  </div>
+                  <div className="mt-6 flex items-center gap-3 text-sm text-amber-800 dark:text-amber-200 bg-amber-100/50 dark:bg-amber-900/30 p-4 rounded-xl">
+                    <Clock size={18} className="shrink-0" />
+                    <span>Available during all weekly services and fellowship gatherings.</span>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Security / Trust Badge */}
+              <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800">
+                <CardContent className="p-6 text-center">
+                  <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
+                    <CheckCircle size={24} />
+                  </div>
+                  <h3 className="font-bold text-lg mb-2">Secure & Transparent</h3>
+                  <p className="text-sm text-zinc-500">
+                    All financial contributions are handled with integrity and used strictly for fellowship purposes and outreach.
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </div>

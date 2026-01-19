@@ -35,49 +35,49 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const hasAdminUsers = async (): Promise<boolean> => {
     try {
       const { data, error } = await supabase.rpc('has_admin_users');
-  
+
       if (error) {
         console.error("Error checking admin user count:", error);
         return false;
       }
-  
+
       return data === true;
     } catch (err) {
       console.error("Unexpected error checking admin count:", err);
       return false;
     }
   };
-  
+
   // Check for existing session on mount
   useEffect(() => {
     const checkSession = async () => {
       try {
         const { data } = await supabase.auth.getSession();
-        
+
         if (data.session) {
           // Verify if the user is an admin
           const { data: isAdminData, error: isAdminError } = await supabase.rpc(
             'is_admin',
             { user_uid: data.session.user.id }
           );
-          
+
           if (isAdminData === true && !isAdminError) {
             setIsAuthenticated(true);
             localStorage.setItem("pfcu_admin_auth", "true");
-            
+
             // Check if user is super admin
             const { data: isSuperAdminData, error: isSuperAdminError } = await supabase.rpc(
               'is_super_admin',
               { user_uid: data.session.user.id }
             );
-            
+
             if (isSuperAdminData === true && !isSuperAdminError) {
               setIsSuperAdmin(true);
             }
-            
-            console.log("Admin authentication confirmed");
+
+            // Admin authentication confirmed
           } else {
-            console.log("User is not an admin:", isAdminError?.message);
+            // User is not an admin - signing out
             // If user is authenticated but not an admin, sign them out
             await supabase.auth.signOut();
             localStorage.removeItem("pfcu_admin_auth");
@@ -85,7 +85,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             setIsSuperAdmin(false);
           }
         } else {
-          console.log("No active session found");
+          // No active session found
           localStorage.removeItem("pfcu_admin_auth");
           setIsAuthenticated(false);
           setIsSuperAdmin(false);
@@ -97,28 +97,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.removeItem("pfcu_admin_auth");
       }
     };
-    
+
     checkSession();
-    
+
   }, []);
 
   const checkSuperAdminStatus = async (): Promise<boolean> => {
     try {
       const { data: session } = await supabase.auth.getSession();
-      
+
       if (!session.session) {
         return false;
       }
-      
+
       const { data, error } = await supabase.rpc(
         'is_super_admin',
         { user_uid: session.session.user.id }
       );
-      
+
       if (error || data !== true) {
         return false;
       }
-      
+
       setIsSuperAdmin(true);
       return true;
     } catch (error) {
@@ -129,26 +129,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     try {
-      console.log("Attempting login with:", email);
+      // Attempting login
       // Sign in with Supabase Auth
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       });
-      
+
       if (error) {
         console.error("Authentication error:", error);
         throw error;
       }
-      
-      console.log("User authenticated successfully:", data.user?.id);
-      
+
+      // User authenticated successfully
+
       // Check if the authenticated user is in admin_users table
       const { data: isAdminData, error: isAdminError } = await supabase.rpc(
         'is_admin',
         { user_uid: data.user.id }
       );
-      
+
       if (isAdminError || isAdminData !== true) {
         console.error("Admin verification failed:", isAdminError?.message || "User is not an admin");
         toast({
@@ -156,32 +156,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           description: "You are not authorized to access the admin panel",
           variant: "destructive",
         });
-        
+
         // Sign out if not an admin
         await supabase.auth.signOut();
         return false;
       }
-      
-      console.log("Admin access verified");
+
+      // Admin access verified
       // User is authenticated and is an admin
       setIsAuthenticated(true);
       localStorage.setItem("pfcu_admin_auth", "true");
-      
+
       // Check if the user is a super admin
       const { data: isSuperAdminData, error: isSuperAdminError } = await supabase.rpc(
         'is_super_admin',
         { user_uid: data.user.id }
       );
-      
+
       if (isSuperAdminData === true && !isSuperAdminError) {
         setIsSuperAdmin(true);
       }
-      
+
       toast({
         title: "Login successful",
         description: "Welcome to PFCU Admin Panel",
       });
-      
+
       return true;
     } catch (error: any) {
       console.error("Login process failed:", error);
@@ -199,7 +199,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // If not the first admin, check if the current user is authenticated as admin
       if (!isFirstAdmin) {
         const { data: session } = await supabase.auth.getSession();
-        
+
         if (!session.session) {
           toast({
             title: "Unauthorized",
@@ -208,13 +208,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           });
           return false;
         }
-        
+
         // Verify current user is admin
         const { data: isAdmin, error: isAdminError } = await supabase.rpc(
           'is_admin',
           { user_uid: session.session.user.id }
         );
-        
+
         if (isAdminError || !isAdmin) {
           toast({
             title: "Unauthorized",
@@ -244,8 +244,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (!data.user) {
         throw new Error("User creation failed");
       }
-      
-      console.log("Auth user created:", data.user.id);
+
+      // Auth user created successfully
 
       // Wait a moment for the auth user to be fully created
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -253,9 +253,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Add the user to admin_users table (first admin is super admin)
       const { error: adminError } = await supabase
         .from('admin_users')
-        .insert([{ 
+        .insert([{
           user_id: data.user.id,
-          is_super_admin: isFirstAdmin 
+          is_super_admin: isFirstAdmin
         }]);
 
       if (adminError) {
@@ -265,8 +265,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       toast({
         title: "Admin created successfully",
-        description: isFirstAdmin ? 
-          `${email} has been registered as an admin. Please check your email to confirm your account.` : 
+        description: isFirstAdmin ?
+          `${email} has been registered as an admin. Please check your email to confirm your account.` :
           `${email} has been registered as an admin`,
       });
 
@@ -304,13 +304,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ 
-      isAuthenticated, 
-      login, 
-      logout, 
-      registerAdmin, 
+    <AuthContext.Provider value={{
+      isAuthenticated,
+      login,
+      logout,
+      registerAdmin,
       isSuperAdmin,
-      checkSuperAdminStatus, 
+      checkSuperAdminStatus,
       hasAdminUsers
     }}>
       {children}
