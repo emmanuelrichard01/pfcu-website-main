@@ -1,239 +1,163 @@
-
 # PFCU Website
 
 ## Project Overview
 
-The PFCU (Pentecostal Fellowship of Caritas University) website is a comprehensive platform for the fellowship's online presence, offering various functionalities for both users and administrators. This project uses React with TypeScript for the frontend and integrates with Supabase for database storage, authentication, and file hosting.
+The **Pentecostal Fellowship of Caritas University (PFCU)** website is a modern, comprehensive platform designed to manage the fellowship's online presence. It serves as a hub for students and members to access sermons, events, leadership profiles, and giving channels. The platform also includes a robust Admin Panel for content and settings management.
 
-## Features
+Built with **React (TypeScript)** and **Supabase**, the project emphasizes performance, type safety, and a premium "FAANG-quality" user experience with glassmorphism design elements.
 
-### User-Facing Features
+## ✨ Key Features
 
-1. **Home Page**
-   - Welcoming hero section
-   - About section
-   - Featured events
-   - Leadership profiles
-   - Testimonies
-   - Ministry units showcase
-   - Contact information
+### 🌍 User-Facing Features
 
-2. **Sermons Page**
-   - Audio sermon player
-   - Sermon library with search functionality
-   - Sermon details (preacher, date, duration)
-   - Cover image display
+1.  **Home Page**
+    - Immersive Hero section with animated backgrounds.
+    - "About Us" and "Our Values" bento-grid showcase.
+    - Leadership profiles with role details.
+    - Featured events and testimonies slider.
 
-3. **Events Page**
-   - Upcoming events listing
-   - Event details (date, time, location)
-   - Event filtering and search
-   - Featured events highlight
+2.  **Sermons Library**
+    - Modern audio player with progress tracking.
+    - Search and filter sermons by preacher, series, or date.
+    - Downloadable sermon resources.
 
-4. **Giving/Donations**
-   - Online payment options
-   - Bank transfer information
-   - Donation purpose selection
-   - Confirmation system
+3.  **Events & Departments**
+    - Upcoming events calendar with detailed views.
+    - "Department Focus" cards with hover effects.
+    - Direct "Join Department" integration.
 
-5. **Contact Page**
-   - Contact form
-   - Church location map
-   - Contact information
-   - Social media links
+4.  **Giving & Donations**
+    - **Bank Transfer**: Dynamic display of official account details.
+    - **Cash / Offering Box**: Instructions for in-person giving.
+    - Copy-to-clipboard functionality for account numbers.
+    - *Note: Online Payment (Gateway) integration has been streamlined to focus on direct bank/cash methods.*
 
-### Admin Features
+5.  **Contact & Location**
+    - Interactive Google Maps integration.
+    - Direct contact forms and social media links.
 
-1. **Dashboard**
-   - Overview statistics
-   - Recent activities
+### 🛡️ Admin Features
 
-2. **Admin Users Management**
-   - Create and manage admin accounts
-   - Super admin privileges
-   - Admin role management
+1.  **Dashboard Overview**
+    - Real-time statistics (Donations, Events, Sermons).
+    - Recent activity feed.
 
-3. **Donations Management**
-   - View all donations
-   - Filter and search donations
-   - Export donation data
-   - Update donation status
-   - Donation statistics
+2.  **Content Management**
+    - **Sermons**: Upload audio, cover images, and manage metadata.
+    - **Events**: Create, edit, and feature upcoming events.
+    - **Departments**: Manage unit leaders and descriptions.
 
-4. **Sermons Management**
-   - Upload sermon audio
-   - Add sermon details
-   - Upload sermon cover images
-   - Edit and delete sermons
+3.  **Settings & Configuration**
+    - **Bank Details**: Update official bank name, account number, and name.
+    - **Cash Instructions**: Edit instructions for in-person giving.
+    - **Admin Users**: Manage admin access and roles.
 
-5. **Events Management**
-   - Create events
-   - Set featured events
-   - Edit and delete events
+4.  **Donations Tracking**
+    - View and filter donation records.
+    - Export donation reports.
 
-## Technology Stack
+---
+
+## 🛠️ Technology Stack
 
 ### Frontend
-- React (with TypeScript)
-- React Router for navigation
-- Tailwind CSS for styling
-- shadcn/ui for UI components
-- Framer Motion for animations
-- React Hook Form for form handling
-- Zod for form validation
-- date-fns for date manipulation
+-   **Framework**: React 18 (Vite)
+-   **Language**: TypeScript
+-   **Styling**: Tailwind CSS, Vanilla CSS (Variables)
+-   **UI Library**: shadcn/ui (Radix UI)
+-   **Animations**: Framer Motion
+-   **Routing**: React Router DOM (with code splitting)
+-   **Forms**: React Hook Form + Zod
 
 ### Backend (Supabase)
-- PostgreSQL database
-- Supabase Authentication
-- Supabase Storage for file uploads
-- Row Level Security policies
+-   **Database**: PostgreSQL
+-   **Auth**: Supabase Authentication (RLS protected)
+-   **Storage**: Supabase Storage (Audio/Images)
+-   **Realtime**: Row Level Security (RLS) policies
 
 ### Integrations
-- Google Maps API for location display
-- Payment gateway integration (ready for implementation)
+-   **Google Maps API**: Location services.
 
-## Project Structure
+---
 
-```
+## 📂 Project Structure
+
+```bash
 src/
 ├── components/          # Reusable UI components
-│   ├── admin/           # Admin panel components
-│   ├── home/            # Homepage components
-│   ├── sermons/         # Sermon page components
-│   ├── events/          # Events page components
-│   ├── giving/          # Donation page components
-│   ├── contact/         # Contact page components
-│   ├── map/             # Google Maps components
-│   ├── layout/          # Layout components (header, footer, etc.)
-│   └── ui/              # UI library components (from shadcn/ui)
+│   ├── admin/           # Admin layout & features (Settings, Dashboard)
+│   ├── giving/          # Giving page specific components
+│   ├── layout/          # Navbar, Footer, MainLayout
+│   └── ui/              # shadcn/ui primitives (Button, Card, etc.)
 │
-├── hooks/               # Custom React hooks
-├── integrations/        # Third-party integrations
-│   └── supabase/        # Supabase client and types
-│
-├── pages/               # Main page components
-│   └── admin/           # Admin pages
-│
-├── types/               # TypeScript type definitions
-├── App.tsx              # Main application component
-└── main.tsx             # Application entry point
+├── pages/               # Route endpoints (Home, Giving, Admin, etc.)
+├── hooks/               # Custom hooks (useAuth, useDonations, etc.)
+├── lib/                 # Utilities (supabase client, storage helpers)
+└── types/               # TypeScript interfaces (Database types)
 ```
 
-## Database Tables
+---
 
-1. **admin_users** - Stores admin user information
-2. **donations** - Records all donations
-3. **events** - Stores event details
-4. **leaders** - Leadership team information
-5. **sermons** - Sermon records with audio and image URLs
-
-## Setup Instructions
+## 🚀 Setup Instructions
 
 ### Prerequisites
-- Node.js (v14 or higher)
-- npm or yarn
-- Supabase account
+-   Node.js (v18 or higher)
+-   npm or yarn
+-   Supabase project (for backend)
 
-### Environment Variables
-The following environment variables need to be set:
-- `SUPABASE_URL`: Your Supabase project URL
-- `SUPABASE_ANON_KEY`: Your Supabase anonymous key
-- `GOOGLE_MAPS_API_KEY`: Google Maps API key
-
-### Installation
-
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/pfcu-website.git
-   cd pfcu-website
-   ```
-
-2. Install dependencies:
-   ```
-   npm install
-   ```
-
-3. Create a `.env` file in the root directory and add your environment variables.
-
-4. Start the development server:
-   ```
-   npm run dev
-   ```
-
-## Deployment
-
-This project can be deployed to any static site hosting service like Vercel, Netlify, or GitHub Pages.
-
-### Build for Production
+### 1. Clone the Repository
+```bash
+git clone https://github.com/emmanuelrichard01/pfcu-website-main.git
+cd pfcu-website-main
 ```
+
+### 2. Install Dependencies
+```bash
+npm install
+```
+
+### 3. Environment Variables
+Create a `.env` file in the root directory:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_GOOGLE_MAPS_API_KEY=your_google_maps_key
+```
+
+### 4. Start Development Server
+```bash
+npm run dev
+```
+
+### 5. Build for Production
+```bash
 npm run build
 ```
 
-The build output will be in the `dist` directory.
+---
 
-## Best Practices
+## 🔐 Database Schema (Supabase)
 
-1. **Component Creation**
-   - Create small, focused components
-   - Follow the single responsibility principle
-   - Use TypeScript for type safety
+Key tables used in the application:
+-   `site_settings`: Stores dynamic configuration (Bank details, Cash instructions).
+-   `donations`: Records of reported transfers.
+-   `sermons`: Audio files and metadata.
+-   `events`: Event schedules and details.
+-   `leaders`: Leadership team profiles.
 
-2. **State Management**
-   - Use React hooks for local state
-   - Implement custom hooks for shared logic
-   - Use context API for global state when needed
+---
 
-3. **Error Handling**
-   - Implement error boundaries
-   - Provide user-friendly error messages
-   - Log errors for debugging
+## 🤝 Contributing
 
-4. **Responsive Design**
-   - Use Tailwind CSS responsive classes
-   - Test on various device sizes
-   - Ensure accessibility compliance
+1.  Fork the repository.
+2.  Create a feature branch (`git checkout -b feature/NewFeature`).
+3.  Commit your changes (`git commit -m 'Add NewFeature'`).
+4.  Push to the branch (`git push origin feature/NewFeature`).
+5.  Open a Pull Request.
 
-5. **Security**
-   - Implement proper authentication
-   - Use Row Level Security in Supabase
-   - Sanitize user inputs
+---
 
-## Troubleshooting
+## 📄 License
 
-### Common Issues:
-
-1. **Google Maps API Issues**
-   - Ensure the API key has the correct permissions
-   - Check for browser console errors
-   - Verify the API is enabled in the Google Cloud Console
-
-2. **Supabase Connection Issues**
-   - Confirm environment variables are correct
-   - Check for network connectivity issues
-   - Verify Supabase service status
-
-3. **File Upload Issues**
-   - Check storage bucket permissions
-   - Verify file size limits
-   - Ensure proper error handling
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgements
-
-- [React](https://reactjs.org/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Supabase](https://supabase.io/)
-- [shadcn/ui](https://ui.shadcn.com/)
-- [Google Maps Platform](https://developers.google.com/maps)
+This project is licensed under the MIT License.
