@@ -18,20 +18,18 @@ const AdminSetup = () => {
   const { registerAdmin } = useAuth();
   const navigate = useNavigate();
 
-  // Check if any admin accounts already exist
+  // Check if any admin accounts already exist using secure RPC
   useEffect(() => {
     const checkExistingAdmin = async () => {
       try {
-        const { count, error } = await supabase
-          .from('admin_users')
-          .select('*', { count: 'exact', head: true });
+        const { data, error } = await supabase.rpc('has_admin_users');
         
         if (error) {
           console.error("Error checking admin users:", error);
           return;
         }
         
-        if (count && count > 0) {
+        if (data === true) {
           setAdminExists(true);
           toast.error("Admin setup has already been completed");
           navigate("/admin/login");

@@ -34,16 +34,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const hasAdminUsers = async (): Promise<boolean> => {
     try {
-      const { count, error } = await supabase
-        .from('admin_users')
-        .select('*', { count: 'exact', head: true });
+      const { data, error } = await supabase.rpc('has_admin_users');
   
       if (error) {
         console.error("Error checking admin user count:", error);
         return false;
       }
   
-      return count > 0;
+      return data === true;
     } catch (err) {
       console.error("Unexpected error checking admin count:", err);
       return false;
@@ -252,10 +250,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Wait a moment for the auth user to be fully created
       await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Add the user to admin_users table
+      // Add the user to admin_users table (first admin is super admin)
       const { error: adminError } = await supabase
         .from('admin_users')
-        .insert([{ user_id: data.user.id }]);
+        .insert([{ 
+          user_id: data.user.id,
+          is_super_admin: isFirstAdmin 
+        }]);
 
       if (adminError) {
         console.error("Admin user creation failed:", adminError);
