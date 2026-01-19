@@ -14,13 +14,219 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admin_users: {
+        Row: {
+          created_at: string
+          id: string
+          is_super_admin: boolean | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_super_admin?: boolean | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_super_admin?: boolean | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          donor_name: string
+          email: string | null
+          id: string
+          payment_gateway: string | null
+          payment_method: string
+          payment_reference: string | null
+          phone: string | null
+          purpose: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          donor_name: string
+          email?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_method: string
+          payment_reference?: string | null
+          phone?: string | null
+          purpose: string
+          status: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          donor_name?: string
+          email?: string | null
+          id?: string
+          payment_gateway?: string | null
+          payment_method?: string
+          payment_reference?: string | null
+          phone?: string | null
+          purpose?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      events: {
+        Row: {
+          category: string
+          contact_email: string | null
+          contact_phone: string | null
+          created_at: string
+          date: string
+          description: string
+          full_description: string | null
+          id: string
+          is_featured: boolean | null
+          location: string
+          organizer: string | null
+          time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          date: string
+          description: string
+          full_description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          location: string
+          organizer?: string | null
+          time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          contact_email?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          date?: string
+          description?: string
+          full_description?: string | null
+          id?: string
+          is_featured?: boolean | null
+          location?: string
+          organizer?: string | null
+          time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leaders: {
+        Row: {
+          bio: string | null
+          created_at: string
+          facebook_url: string | null
+          id: string
+          initial: string
+          instagram_url: string | null
+          linkedin_url: string | null
+          name: string
+          position: string
+          position_order: number
+          profile_image: string | null
+          twitter_url: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id?: string
+          initial: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          name: string
+          position: string
+          position_order?: number
+          profile_image?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          facebook_url?: string | null
+          id?: string
+          initial?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
+          name?: string
+          position?: string
+          position_order?: number
+          profile_image?: string | null
+          twitter_url?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sermons: {
+        Row: {
+          audio_url: string | null
+          cover_image: string | null
+          created_at: string
+          description: string | null
+          duration: string | null
+          id: string
+          preacher: string
+          sermon_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          preacher: string
+          sermon_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          cover_image?: string | null
+          created_at?: string
+          description?: string | null
+          duration?: string | null
+          id?: string
+          preacher?: string
+          sermon_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_email: { Args: { user_uid: string }; Returns: string }
+      is_admin: { Args: { user_uid: string }; Returns: boolean }
+      is_super_admin: { Args: { user_uid: string }; Returns: boolean }
+      sum_completed_donations: { Args: never; Returns: number }
     }
     Enums: {
       [_ in never]: never
