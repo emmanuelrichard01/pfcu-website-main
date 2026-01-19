@@ -224,6 +224,7 @@ export type Database = {
     }
     Functions: {
       get_user_email: { Args: { user_uid: string }; Returns: string }
+      has_admin_users: { Args: never; Returns: boolean }
       is_admin: { Args: { user_uid: string }; Returns: boolean }
       is_super_admin: { Args: { user_uid: string }; Returns: boolean }
       sum_completed_donations: { Args: never; Returns: number }
