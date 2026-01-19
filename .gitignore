@@ -22,3 +22,19 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables
+.env
+.env.test
+.env.production
+.env.local
+
+# Supabase
+supabase/functions/import_map.json
+supabase/.temp
+supabase/.branches
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
