@@ -1,14 +1,1 @@
-
-# This file is auto-generated. DO NOT EDIT. This project is managed in the Lovable app.
-
-project_id = "zgbljyrrpvsgdztvaktg"
-
-[api]
-# Port for the API server
-port = 54321
-# Allow service role header
-schemas = ["public", "storage", "auth"]
-
-[[publications]]
-publication = "supabase_realtime"
-tables = ["public.sermons", "public.donations", "public.events", "public.admin_users", "public.leaders"]
+project_id = "xeuxubahcvyeebvgyulz"
