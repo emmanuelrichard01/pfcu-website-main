@@ -1,4 +1,3 @@
-
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "framer-motion";
 import { Facebook, Twitter, Instagram, Linkedin, Mail } from "lucide-react";

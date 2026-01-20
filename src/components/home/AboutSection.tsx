@@ -22,10 +22,10 @@ const AboutSection = () => {
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true, amount: 0.3 }}
-      className="section-padding relative overflow-hidden bg-background"
+      className="section-padding relative overflow-hidden bg-background py-24 md:py-32"
     >
       <div className="container max-w-7xl mx-auto relative z-10">
-        <div className="grid md:grid-cols-2 gap-16 items-center">
+        <div className="grid md:grid-cols-2 gap-16 lg:gap-24 items-center">
           <motion.div
             className="order-2 md:order-1"
             variants={{
@@ -39,11 +39,8 @@ const AboutSection = () => {
             }}
           >
             <motion.div variants={fadeInUp}>
-              <span className="inline-block py-1 px-4 rounded-full bg-pfcu-primary/10 border border-pfcu-primary/20 text-pfcu-primary text-sm font-semibold tracking-wide mb-6">
-                ESTABLISHED 2005
-              </span>
               <h2 className="text-4xl md:text-6xl font-heading font-bold mb-6 text-foreground tracking-tight">
-                About Our <span className="text-gradient">Fellowship</span>
+                About Our <span className="text-pfcu-primary">Fellowship</span>
               </h2>
             </motion.div>
 
@@ -74,6 +71,7 @@ const AboutSection = () => {
             </motion.div>
           </motion.div>
 
+          {/* Hero Image / Bento Grid Element */}
           <motion.div
             className="order-1 md:order-2 relative"
             variants={{
@@ -88,25 +86,36 @@ const AboutSection = () => {
               }
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-tr from-pfcu-primary to-pfcu-secondary rounded-[2rem] transform rotate-3 scale-[1.03] opacity-50 blur-lg -z-10" />
-            <div className="relative h-[500px] w-full overflow-hidden rounded-[2rem] shadow-2xl border border-white/20">
+            <div className="relative h-[550px] w-full overflow-hidden rounded-3xl shadow-2xl border border-white/20 group">
+              <div className="absolute inset-0 bg-gradient-to-tr from-pfcu-primary/20 to-transparent mix-blend-overlay z-10" />
               <img
-                src="/lovable-uploads/33b8fdb0-4798-480e-ab47-40a91d170deb.png"
-                alt="PFCU Fellowship Worship"
-                className="w-full h-full object-cover transition-transform duration-700 hover:scale-110"
+                src="/images/about-community.jpg"
+                alt="PFCU Fellowship Community"
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col items-center justify-end p-8">
-                <div className="text-white text-center mb-4">
-                  <p className="font-heading font-medium text-2xl italic">"Many but one in Christ"</p>
+              <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-transparent to-transparent flex flex-col items-center justify-start p-10 z-20">
+                <p className="font-heading font-medium text-3xl italic text-white drop-shadow-md text-center pt-8">"Many members, one body."</p>
+              </div>
+            </div>
+
+            {/* Floating Badge */}
+            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-2xl shadow-xl border border-gray-100 hidden md:block z-30 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+              <div className="flex items-center gap-4">
+                <div className="bg-pfcu-secondary/20 p-3 rounded-full">
+                  <span className="text-2xl">🔥</span>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">Established</p>
+                  <p className="text-2xl font-bold text-pfcu-dark">2005</p>
                 </div>
               </div>
             </div>
           </motion.div>
         </div>
 
-        {/* Statistics */}
+        {/* Modern Bento Stats */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-24 text-center"
+          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-24"
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
@@ -114,34 +123,35 @@ const AboutSection = () => {
             hidden: {},
             visible: {
               transition: {
-                staggerChildren: 0.2
+                staggerChildren: 0.1
               }
             }
           }}
         >
           {[
-            { value: "2005", label: "Year Founded" },
-            { value: "16+", label: "Ministry Units" },
-            { value: "1000+", label: "Student Members" },
-            { value: "12+", label: "Years of Impact" }
+            { value: "9", label: "Specialized Departments", desc: "Find your place to serve" },
+            { value: "1K+", label: "Student Members", desc: "Growing community" },
+            { value: "50+", label: "Yearly Events", desc: "Worship & connection" },
+            { value: "100%", label: "Jesus Centered", desc: "Our core foundation" }
           ].map((stat, index) => (
             <motion.div
               key={index}
-              className="p-8 rounded-3xl bg-white/5 border border-border backdrop-blur-sm hover:border-pfcu-primary/30 transition-colors"
+              className="p-8 rounded-3xl bg-gray-50 border border-gray-100 hover:border-pfcu-primary/20 hover:bg-white hover:shadow-xl transition-all duration-300 group"
               variants={{
-                hidden: { y: 40, opacity: 0 },
+                hidden: { y: 20, opacity: 0 },
                 visible: {
                   y: 0,
                   opacity: 1,
                   transition: {
-                    duration: 0.6,
+                    duration: 0.5,
                     ease: "easeOut"
                   }
                 }
               }}
             >
-              <p className="text-4xl md:text-5xl font-heading font-bold text-gradient mb-3">{stat.value}</p>
-              <p className="text-muted-foreground font-medium">{stat.label}</p>
+              <p className="text-4xl md:text-5xl font-heading font-bold text-pfcu-primary mb-2 group-hover:scale-110 transition-transform origin-left">{stat.value}</p>
+              <p className="text-lg font-bold text-gray-900">{stat.label}</p>
+              <p className="text-sm text-muted-foreground">{stat.desc}</p>
             </motion.div>
           ))}
         </motion.div>
