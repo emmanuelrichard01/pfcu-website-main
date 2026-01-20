@@ -55,7 +55,7 @@ const AboutSection = () => {
               variants={fadeInUp}
               className="mb-10 text-muted-foreground text-lg leading-relaxed"
             >
-              We are a vibrant community of believers committed to the spiritual development of students through various units and activities. With 16 different ministry units, there's a place for everyone to serve and grow.
+              We are a vibrant community of believers committed to the spiritual development of students through various Departments and activities. With 9 different ministry Departments, there's a place for everyone to serve and grow.
             </motion.p>
 
             <motion.div variants={fadeInUp}>

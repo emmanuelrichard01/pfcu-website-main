@@ -63,9 +63,37 @@ const Settings = () => {
         }
     };
 
+    // Format WhatsApp number: remove +, spaces, leading 0, ensure starts with 234
+    const formatWhatsAppNumber = (value: string): string => {
+        // Remove all non-numeric characters except the leading + for initial parsing
+        let cleaned = value.replace(/[^\d+]/g, '');
+
+        // Remove leading +
+        if (cleaned.startsWith('+')) {
+            cleaned = cleaned.substring(1);
+        }
+
+        // If starts with 0, replace with 234 (assuming Nigerian local format)
+        if (cleaned.startsWith('0')) {
+            cleaned = '234' + cleaned.substring(1);
+        }
+
+        // Ensure only digits remain
+        cleaned = cleaned.replace(/\D/g, '');
+
+        return cleaned;
+    };
+
     const handleChange = (key: string, newValue: string) => {
+        let formattedValue = newValue;
+
+        // Special formatting for WhatsApp number
+        if (key === 'whatsapp_number') {
+            formattedValue = formatWhatsAppNumber(newValue);
+        }
+
         setSettings(prev =>
-            prev.map(item => item.key === key ? { ...item, value: newValue } : item)
+            prev.map(item => item.key === key ? { ...item, value: formattedValue } : item)
         );
     };
 

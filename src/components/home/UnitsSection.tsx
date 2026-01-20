@@ -120,7 +120,7 @@ const UnitsSection = () => {
       <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.02] pointer-events-none" />
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pfcu-primary/5 rounded-full blur-3xl -z-10 translate-x-1/3 -translate-y-1/3" />
 
-      <div className="container relative z-10 max-w-7xl mx-auto">
+      <div className="container mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
           <motion.div
             className="max-w-2xl"
@@ -133,10 +133,10 @@ const UnitsSection = () => {
               Our Ministries
             </span>
             <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 tracking-tight text-zinc-900 dark:text-white">
-              Serving in the <span className="text-transparent bg-clip-text bg-gradient-to-r from-pfcu-primary to-pfcu-secondary">Vineyard</span>
+              Serving in the <span className="text-pfcu-primary">Vineyard</span>
             </h2>
             <p className="text-lg text-zinc-600 dark:text-zinc-400 font-light leading-relaxed max-w-xl">
-              With 9 specialized departments, there's a perfect place for you to utilize your gifts, serve others, and grow in the body of Christ.
+              With 9 specialized departments, there's a place for you to utilize your gifts, serve others, and grow in the body of Christ.
             </p>
           </motion.div>
 

@@ -53,6 +53,13 @@ const Navbar = () => {
     return location.pathname.startsWith(path);
   };
 
+  const isLightPage = ['/about', '/contact', '/admin/login', '/admin/setup', '/departments'].includes(location.pathname);
+  const textColor = scrolled || !isLightPage ? 'text-white' : 'text-zinc-900';
+  const navTextColor = scrolled || !isLightPage ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-pfcu-primary';
+  const activeNavStyle = scrolled || !isLightPage
+    ? 'text-white bg-white/10 shadow-sm border border-white/5'
+    : 'text-pfcu-primary bg-pfcu-primary/10 border border-pfcu-primary/20';
+
   return (
     <>
       <motion.nav
@@ -66,7 +73,9 @@ const Navbar = () => {
           relative rounded-full px-5 py-3 transition-all duration-300 ease-spring border
           ${scrolled
             ? 'w-full max-w-5xl bg-zinc-950/80 backdrop-blur-xl border-zinc-800/50 shadow-2xl shadow-black/20'
-            : 'w-full max-w-7xl bg-white/5 backdrop-blur-md border-white/10 shadow-sm'
+            : isLightPage
+              ? 'w-full max-w-7xl bg-white/80 backdrop-blur-md border-zinc-200/50 shadow-sm'
+              : 'w-full max-w-7xl bg-white/5 backdrop-blur-md border-white/10 shadow-sm'
           }
         `}>
           <div className="flex items-center justify-between">
@@ -75,7 +84,7 @@ const Navbar = () => {
               <div className="relative w-10 h-10 overflow-hidden rounded-full bg-white flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-inner">
                 <img src="/pfcu-logo.png" alt="PFCU Logo" className="w-full h-full object-cover p-0.5" />
               </div>
-              <span className={`font-heading font-bold text-xl tracking-tight transition-colors group-hover:text-pfcu-primary ${scrolled ? 'text-white' : 'text-white'}`}>
+              <span className={`font-heading font-bold text-xl tracking-tight transition-colors group-hover:text-pfcu-primary ${textColor}`}>
                 PFCU
               </span>
             </Link>
@@ -89,8 +98,8 @@ const Navbar = () => {
                   className={`
                     px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 relative
                     ${isActiveLink(link.path)
-                      ? 'text-white bg-white/10 shadow-sm border border-white/5'
-                      : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                      ? activeNavStyle
+                      : `${navTextColor} hover:bg-black/5`
                     }
                   `}
                 >
@@ -113,7 +122,7 @@ const Navbar = () => {
             {/* Mobile Menu Toggle */}
             <button
               onClick={toggleMenu}
-              className="lg:hidden p-2 text-zinc-300 hover:text-white transition-colors relative z-50"
+              className={`lg:hidden p-2 transition-colors relative z-50 ${isOpen ? 'text-zinc-300 hover:text-white' : navTextColor}`}
               aria-label="Toggle menu"
             >
               {isOpen ? <X size={24} /> : <Menu size={24} />}

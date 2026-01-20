@@ -43,7 +43,7 @@ const EventsSection = () => {
 
   return (
     <section className="section-padding bg-gradient-to-b from-gray-50 to-white overflow-hidden py-24 md:py-32" id="events">
-      <div className="container">
+      <div className="container mx-auto max-w-7xl px-4 md:px-6">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -52,7 +52,7 @@ const EventsSection = () => {
             viewport={{ once: true }}
             className="max-w-2xl"
           >
-            <span className="inline-block py-1.5 px-4 rounded-full bg-pfcu-secondary/10 text-pfcu-primary text-sm font-semibold tracking-wide mb-4">
+            <span className="inline-block py-1 px-3 rounded-full bg-pfcu-secondary/10 text-pfcu-secondary text-xs font-bold tracking-widest uppercase mb-4">
               COMMUNITY CALENDAR
             </span>
             <h2 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold mb-4 tracking-tight">Upcoming <span className="text-pfcu-primary">Events</span></h2>

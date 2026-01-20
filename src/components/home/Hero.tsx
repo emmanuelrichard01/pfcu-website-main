@@ -39,7 +39,7 @@ const Hero = () => {
       subtitle: "Growing Together",
       description: "A community defined by faith, purpose, and academic excellence. Growing together in Christ since 2005.",
       cta: "Join Our Fellowship",
-      link: "/about",
+      link: "/departments",
       image: "photo-1523580494863-6f3031224c94"
     },
     {

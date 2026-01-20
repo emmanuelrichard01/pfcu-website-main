@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,11 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/use-toast";
 import { useLeadership } from "@/hooks/useLeadership";
+import { useDepartmentLeaders } from "@/hooks/useDepartmentLeaders";
 import LeaderForm from "@/components/admin/leadership/LeaderForm";
 import LeadersList from "@/components/admin/leadership/LeadersList";
 import TenureForm from "@/components/admin/leadership/TenureForm";
+import DepartmentLeadersList from "@/components/admin/leadership/DepartmentLeadersList";
 
 interface LeaderData {
   id?: string;
@@ -37,9 +40,11 @@ interface TenureData {
 
 const AdminLeadership = () => {
   const { leaders, loading, addLeader, updateLeader, deleteLeader } = useLeadership();
+  const { departmentLeaders, loading: deptLoading, updateDepartmentLeader } = useDepartmentLeaders();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [editingLeader, setEditingLeader] = useState<LeaderData | null>(null);
+  const [activeTab, setActiveTab] = useState("fellowship");
   const [tenureData, setTenureData] = useState<TenureData>({
     year: "2024/2025",
     declaration: "Many but one in Christ"
@@ -68,7 +73,7 @@ const AdminLeadership = () => {
       const parsedTenure = JSON.parse(storedTenure);
       setTenureData({
         year: parsedTenure.year,
-        declaration: parsedTenure.slogan || "Many but one in Christ" // Convert slogan to declaration
+        declaration: parsedTenure.slogan || "Many but one in Christ"
       });
     }
   }, []);
@@ -98,10 +103,8 @@ const AdminLeadership = () => {
       let success = false;
 
       if (editingLeader?.id) {
-        // Update existing leader
         success = await updateLeader(editingLeader.id, data);
       } else {
-        // Add new leader
         success = await addLeader(data);
       }
 
@@ -130,7 +133,6 @@ const AdminLeadership = () => {
   const handleTenureSubmit = (data: TenureData) => {
     setTenureData(data);
 
-    // Store using the old "slogan" field for backward compatibility
     localStorage.setItem("pfcu_tenure", JSON.stringify({
       year: data.year,
       slogan: data.declaration
@@ -147,20 +149,22 @@ const AdminLeadership = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold font-display">Leadership Management</h1>
-          <p className="text-gray-600">Manage fellowship leadership information</p>
+          <p className="text-gray-600">Manage fellowship and department leadership</p>
         </div>
 
-        <Button
-          className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300"
-          onClick={() => handleOpenDialog()}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Leader
-        </Button>
+        {activeTab === "fellowship" && (
+          <Button
+            className="bg-pfcu-primary text-white hover:bg-pfcu-primary/90 transition-colors duration-300"
+            onClick={() => handleOpenDialog()}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Leader
+          </Button>
+        )}
       </div>
 
       {/* Tenure Information Section */}
-      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm mb-6">
+      <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden bg-white dark:bg-zinc-900 shadow-sm">
         <div className="bg-zinc-50/50 dark:bg-zinc-900/50 px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
           <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100">Tenure Information</h2>
           <p className="text-sm text-zinc-500 mt-1">Update the current leadership year and declaration.</p>
@@ -173,18 +177,45 @@ const AdminLeadership = () => {
         </div>
       </div>
 
-      {/* Leaders Table */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-bold font-display text-zinc-900 dark:text-zinc-100">Fellowship Leaders</h2>
-        </div>
-        <LeadersList
-          leaders={leaders}
-          loading={loading}
-          onEdit={handleOpenDialog}
-          onDelete={handleDeleteLeader}
-        />
-      </div>
+      {/* Tabs for Leadership Types */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
+          <TabsTrigger value="fellowship" className="flex items-center gap-2">
+            <Users className="w-4 h-4" />
+            Fellowship Leaders
+          </TabsTrigger>
+          <TabsTrigger value="departments" className="flex items-center gap-2">
+            <GraduationCap className="w-4 h-4" />
+            Department Leaders
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="fellowship" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-bold font-display text-zinc-900 dark:text-zinc-100">Fellowship Leaders</h2>
+          </div>
+          <LeadersList
+            leaders={leaders}
+            loading={loading}
+            onEdit={handleOpenDialog}
+            onDelete={handleDeleteLeader}
+          />
+        </TabsContent>
+
+        <TabsContent value="departments" className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold font-display text-zinc-900 dark:text-zinc-100">Department Leaders</h2>
+              <p className="text-sm text-zinc-500 mt-1">Manage HOD and Assistant HOD for each department.</p>
+            </div>
+          </div>
+          <DepartmentLeadersList
+            leaders={departmentLeaders}
+            loading={deptLoading}
+            onUpdate={updateDepartmentLeader}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Add/Edit Leader Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
