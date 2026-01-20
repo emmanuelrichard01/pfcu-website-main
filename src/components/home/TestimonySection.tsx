@@ -1,45 +1,44 @@
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Quote, ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Quote } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-interface TestimonyCardProps {
+interface TestimonyProps {
   text: string;
   name: string;
   role: string;
-  delay?: number;
 }
 
-const TestimonyCard = ({ text, name, role, delay = 0 }: TestimonyCardProps) => {
+const TestimonyCard = ({ text, name, role }: TestimonyProps) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: delay }}
-      className="h-full"
-    >
-      <Card className="h-full border border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all duration-300 group">
-        <CardContent className="p-8 relative flex flex-col h-full">
-          <Quote className="text-pfcu-primary mb-6 w-10 h-10 opacity-80" />
+    <div className="h-full px-2 py-4">
+      <div className="h-full bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 p-8 rounded-3xl shadow-sm relative flex flex-col justify-between">
+        <Quote className="absolute top-8 right-8 text-pfcu-primary/20 w-12 h-12" />
 
-          <p className="text-gray-300 italic mb-8 relative z-10 text-lg leading-relaxed flex-grow font-light">
-            "{text}"
-          </p>
+        <p className="text-lg md:text-xl text-zinc-700 dark:text-zinc-300 font-light leading-relaxed mb-8 italic relative z-10">
+          "{text}"
+        </p>
 
-          <div className="flex items-center pt-6 border-t border-white/10">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-pfcu-primary to-orange-500 flex items-center justify-center mr-4 text-white font-bold text-lg shadow-lg">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 border-2 border-white dark:border-zinc-800 shadow-sm">
+            <AvatarFallback className="bg-pfcu-primary/10 text-pfcu-primary font-bold">
               {name.charAt(0)}
-            </div>
-            <div>
-              <p className="font-heading font-bold text-white group-hover:text-pfcu-secondary transition-colors">{name}</p>
-              <p className="text-sm text-gray-400">{role}</p>
-            </div>
+            </AvatarFallback>
+          </Avatar>
+          <div>
+            <h4 className="font-heading font-bold text-zinc-900 dark:text-white">{name}</h4>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{role}</p>
           </div>
-        </CardContent>
-      </Card>
-    </motion.div>
+        </div>
+      </div>
+    </div>
   );
 };
 
@@ -60,54 +59,48 @@ const TestimonySection = () => {
       name: "Grace Adebayo",
       role: "PFCU Alumni",
     },
+    {
+      text: "Service in the technical unit taught me discipline and excellence. It's more than just a fellowship; it's a training ground for life and leadership.",
+      name: "David Okon",
+      role: "Media Unit Head"
+    }
   ];
 
   return (
-    <section className="section-padding bg-pfcu-dark relative overflow-hidden">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 bg-[#000000] z-0" />
-      <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-      <div className="absolute bottom-[20%] right-[10%] w-96 h-96 bg-pfcu-primary/10 rounded-full blur-[100px]" />
+    <section className="section-padding bg-zinc-50 dark:bg-zinc-950 py-16 md:py-24 relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
 
-      <div className="container max-w-7xl mx-auto relative z-10">
-        <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <span className="inline-block py-1 px-4 rounded-full bg-white/5 border border-white/10 text-pfcu-secondary text-sm font-medium mb-4 tracking-wide">TESTIMONIALS</span>
-          <h2 className="text-4xl md:text-6xl font-heading font-bold mb-6 text-white">Hear From Our <span className="text-transparent bg-clip-text bg-gradient-to-r from-pfcu-secondary to-yellow-200">Family</span></h2>
-          <p className="text-gray-400 max-w-2xl mx-auto text-lg font-light">Real stories from real people whose lives have been impacted through their time at PFCU.</p>
-        </motion.div>
-
-        <div className="grid md:grid-cols-3 gap-8">
-          {testimonies.map((testimony, index) => (
-            <TestimonyCard
-              key={index}
-              {...testimony}
-              delay={index * 0.2}
-            />
-          ))}
+      <div className="container max-w-7xl mx-auto px-4 md:px-6 relative z-10">
+        <div className="text-center mb-16 max-w-3xl mx-auto">
+          <span className="text-pfcu-primary font-bold tracking-widest uppercase text-xs mb-3 block">
+            Testimonials
+          </span>
+          <h2 className="text-3xl md:text-5xl font-heading font-bold mb-6 text-zinc-900 dark:text-white tracking-tight">
+            Voices of our <span className="text-pfcu-primary">Family</span>
+          </h2>
         </div>
 
-        {/* Call to Action */}
-        <motion.div
-          className="mt-20 text-center"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.4 }}
+        <Carousel
+          opts={{
+            align: "start",
+            loop: true,
+          }}
+          className="w-full max-w-6xl mx-auto"
         >
-          <p className="text-gray-300 text-lg mb-4">Ready to be part of our community?</p>
-          <Link to="/contact" className="inline-flex items-center text-white hover:text-pfcu-secondary font-semibold text-lg transition-colors group">
-            Share Your Own Testimony
-            <ChevronRight className="w-5 h-5 ml-1 transform group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </motion.div>
+          <CarouselContent className="-ml-2 md:-ml-4">
+            {testimonies.map((testimony, index) => (
+              <CarouselItem key={index} className="pl-2 md:pl-4 basis-[90%] md:basis-1/2 lg:basis-1/3">
+                <TestimonyCard {...testimony} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <div className="flex justify-center gap-4 mt-10">
+            <CarouselPrevious className="static transform-none border-zinc-200 hover:bg-white hover:text-pfcu-primary" />
+            <CarouselNext className="static transform-none border-zinc-200 hover:bg-white hover:text-pfcu-primary" />
+          </div>
+        </Carousel>
       </div>
-    </section>
+    </section >
   );
 };
 

@@ -78,7 +78,7 @@ const Footer = () => {
             </div>
 
             <div>
-              <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-6 opacity-90">Service Times</h4>
+              <h4 className="text-xs font-bold text-white uppercase tracking-widest mb-6 opacity-90">Meeting Times</h4>
               <ul className="space-y-4">
                 <ServiceTime day="On Sundays" time="7:00 AM" label="Sunday Service" />
                 <ServiceTime day="On Saturdays" time="8:30 AM" label="Departments Meeting" />

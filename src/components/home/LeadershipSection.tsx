@@ -7,14 +7,14 @@ const LeadershipSection = () => {
   const { leaders, loading, tenureInfo } = useLeadershipData();
 
   return (
-    <section className="section-padding bg-background relative overflow-hidden">
+    <section className="section-padding bg-background relative overflow-hidden py-16 md:py-24">
       {/* Decorative blobs */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-pfcu-primary/5 rounded-full blur-3xl -z-10" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-pfcu-secondary/5 rounded-full blur-3xl -z-10" />
 
       <div className="container mx-auto max-w-7xl px-4 md:px-6">
 
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8 text-left">
+        <div className="flex flex-col md:flex-row justify-between items-end mb-12 md:mb-16 gap-8 text-left">
           <motion.div
             className="max-w-2xl"
             initial={{ opacity: 0, x: -20 }}
@@ -22,7 +22,7 @@ const LeadershipSection = () => {
             transition={{ duration: 0.6 }}
             viewport={{ once: true }}
           >
-            <span className="inline-block py-1 px-3 rounded-full bg-pfcu-secondary/10 text-pfcu-secondary text-xs font-bold tracking-widest uppercase mb-4">
+            <span className="text-pfcu-primary font-bold tracking-widest uppercase text-xs mb-3 block">
               Stewardship
             </span>
             <h2 className="text-4xl md:text-5xl font-heading font-bold mb-6 tracking-tight text-zinc-900 dark:text-white">

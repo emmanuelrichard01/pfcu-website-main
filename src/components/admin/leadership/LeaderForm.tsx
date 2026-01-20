@@ -61,9 +61,9 @@ const LeaderForm = ({ initialData, isSubmitting, onSubmit, onCancel }: LeaderFor
     { value: "Pastor/President", label: "Pastor/President", order: 1 },
     { value: "Assistant Pastor/VP", label: "Assistant Pastor/VP", order: 2 },
     { value: "General Secretary", label: "General Secretary", order: 3 },
-    { value: "Assistant Secretary & Treasurer", label: "Assistant Secretary & Treasurer", order: 4 },
-    { value: "P.R.O & Financial Secretary", label: "P.R.O & Financial Secretary", order: 5 },
-    { value: "Provost", label: "Provost", order: 6 }
+    { value: "Assistant General Secretary", label: "Assistant General Secretary", order: 4 },
+    { value: "P.R.O & Provost", label: "P.R.O & Provost", order: 5 },
+    { value: "Financial Secretary", label: "Financial Secretary", order: 6 }
   ];
 
   const handleImageChange = (imageUrl: string | null) => {

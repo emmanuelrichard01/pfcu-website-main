@@ -1,179 +1,115 @@
 
-import { useRef, useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
-import Autoplay from "embla-carousel-autoplay";
-import { motion, AnimatePresence } from "framer-motion";
+import { ArrowRight, PlayCircle } from "lucide-react";
 
 const Hero = () => {
-  const [api, setApi] = useState<CarouselApi>();
-  const [currentSlide, setCurrentSlide] = useState(0);
-  const plugin = useRef(
-    Autoplay({ delay: 6000, stopOnInteraction: false })
-  );
-
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    setCurrentSlide(api.selectedScrollSnap());
-
-    api.on("select", () => {
-      setCurrentSlide(api.selectedScrollSnap());
-    });
-  }, [api]);
-
-  const slides = [
-    {
-      id: 1,
-      title: "Loving Community",
-      subtitle: "Growing Together",
-      description: "A community defined by faith, purpose, and academic excellence. Growing together in Christ since 2005.",
-      cta: "Join Our Fellowship",
-      link: "/departments",
-      image: "photo-1523580494863-6f3031224c94"
-    },
-    {
-      id: 2,
-      title: "Discover Purpose",
-      subtitle: "Serve with Passion",
-      description: "Uncover your spiritual gifts and find your place in God's kingdom through our 9 specialized departments.",
-      cta: "Find a Department",
-      link: "/departments",
-      image: "photo-1544427920-c49ccfb85579"
-    },
-    {
-      id: 3,
-      title: "Join the Family",
-      subtitle: "Weekly Fellowship",
-      description: "Experience the warmth of true Christian community. We meet every Wednesday and Sunday.",
-      cta: "Plan a Visit",
-      link: "/contact",
-      image: "photo-1511632765486-a01980e01a18"
-    }
-  ];
-
-  const textVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } }
-  };
-
   return (
-    <section className="relative h-screen min-h-[600px] w-full overflow-hidden bg-pfcu-dark">
-      <Carousel
-        plugins={[plugin.current]}
-        className="w-full h-full"
-        onMouseEnter={plugin.current.stop}
-        onMouseLeave={plugin.current.reset}
-        setApi={setApi}
-      >
-        <CarouselContent className="h-full ml-0">
-          {slides.map((slide) => (
-            <CarouselItem key={slide.id} className="h-full pl-0 relative">
-              {/* Background Image */}
-              <div className="absolute inset-0">
-                <div className="absolute inset-0 bg-gradient-to-t from-pfcu-dark via-pfcu-dark/60 to-transparent z-10" />
-                <div className="absolute inset-0 bg-black/30 z-10" />
-                <img
-                  src={`https://images.unsplash.com/${slide.image}?auto=format&fit=crop&q=80&w=2000`}
-                  alt={slide.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
+    <section className="relative min-h-[85vh] md:min-h-screen w-full flex items-center justify-center overflow-hidden bg-zinc-950 pt-16 md:pt-20">
 
-              {/* Content */}
-              <div className="container relative z-20 pt-40 md:pt-50 h-full flex flex-col justify-center">
-                <div className="max-w-4xl mx-auto text-center">
-                  <AnimatePresence mode="wait">
-                    <motion.div
-                      key={currentSlide} // Key change ensures animation re-runs
-                      initial="hidden"
-                      animate="visible"
-                      exit="exit"
-                      variants={{
-                        hidden: { opacity: 0, y: 10 },
-                        visible: {
-                          opacity: 1,
-                          y: 0,
-                          transition: { staggerChildren: 0.15, delayChildren: 0.1 }
-                        },
-                        exit: {
-                          opacity: 0,
-                          y: -10,
-                          transition: { duration: 0.4 }
-                        }
-                      }}
-                    >
-                      {/* Subtitle Badge */}
-                      <motion.div variants={textVariants} className="mb-8 flex justify-center">
-                        <span className="inline-flex items-center px-4 py-1.5 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-xs md:text-sm font-medium text-white tracking-widest uppercase shadow-sm">
-                          {slide.subtitle}
-                        </span>
-                      </motion.div>
+      {/* --- Alive Background --- */}
+      <div className="absolute inset-0 z-0">
+        <motion.div
+          className="absolute inset-0"
+          initial={{ scale: 1 }}
+          animate={{ scale: 1.05 }}
+          transition={{
+            duration: 20,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "easeInOut"
+          }}
+        >
+          <img
+            src="/images/about-community.jpg"
+            alt="PFCU Community"
+            className="w-full h-full object-cover opacity-40 mix-blend-overlay"
+          />
+        </motion.div>
+        <div className="absolute inset-0 bg-gradient-to-b from-zinc-950/80 via-zinc-950/60 to-zinc-950" />
+      </div>
 
-                      {/* Title */}
-                      <motion.h1
-                        variants={textVariants}
-                        className="font-heading font-bold text-5xl md:text-7xl lg:text-8xl tracking-tight leading-[1.1] mb-6 text-white drop-shadow-sm"
-                      >
-                        {slide.title}
-                      </motion.h1>
+      {/* --- Ambient Effects --- */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-1">
+        {/* Main purple/primary glow */}
+        <div className="absolute top-[-20%] left-[-10%] w-[70vw] h-[70vw] bg-pfcu-primary/20 rounded-full blur-[120px] mix-blend-screen opacity-50 animate-pulse-slow" />
 
-                      {/* Description */}
-                      <motion.p
-                        variants={textVariants}
-                        className="text-lg md:text-2xl text-white/90 max-w-2xl mx-auto mb-10 font-light leading-relaxed drop-shadow-sm"
-                      >
-                        {slide.description}
-                      </motion.p>
+        {/* Secondary bluish glow */}
+        <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-blue-600/10 rounded-full blur-[120px] mix-blend-screen opacity-40" />
 
-                      {/* Buttons */}
-                      <motion.div
-                        variants={textVariants}
-                        className="flex flex-col sm:flex-row items-center justify-center gap-4"
-                      >
-                        <Link to={slide.link}>
-                          <Button
-                            size="lg"
-                            className="h-14 px-8 rounded-full bg-pfcu-primary hover:bg-pfcu-primary/90 text-white font-semibold text-lg hover:scale-105 transition-all duration-300 shadow-xl shadow-pfcu-primary/25"
-                          >
-                            {slide.cta}
-                          </Button>
-                        </Link>
+        {/* Grid Pattern Overlay */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.05] bg-center" />
+      </div>
 
-                        <Link to="/sermons">
-                          <Button
-                            variant="outline"
-                            size="lg"
-                            className="h-14 px-8 rounded-full border-white/30 bg-white/5 backdrop-blur-sm text-white hover:bg-white hover:text-pfcu-primary font-semibold text-lg hover:scale-105 transition-all duration-300"
-                          >
-                            Latest Sermon
-                          </Button>
-                        </Link>
-                      </motion.div>
-                    </motion.div>
-                  </AnimatePresence>
-                </div>
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
+      <div className="container relative z-10 px-4 md:px-6 text-center">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 1, ease: "easeOut" }}
+          className="flex flex-col items-center"
+        >
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.8 }}
+            className="mb-8 inline-flex items-center gap-2 px-4 py-1.5 shadow-2xl shadow-pfcu-primary/10"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-pfcu-primary opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-pfcu-primary"></span>
+            </span>
+            <span className="text-xs md:text-sm font-medium text-zinc-300 tracking-widest uppercase">
+              Welcome to PFCU
+            </span>
+          </motion.div>
 
-        {/* Custom Navigation */}
-        <div className="absolute bottom-10 right-10 z-30 flex gap-2 invisible md:visible">
-          <CarouselPrevious className="relative inset-auto bg-black/20 hover:bg-pfcu-primary border-white/10 text-white h-12 w-12" />
-          <CarouselNext className="relative inset-auto bg-black/20 hover:bg-pfcu-primary border-white/10 text-white h-12 w-12" />
-        </div>
-      </Carousel>
+          {/* Main Heading */}
+          <h1 className="max-w-6xl mx-auto font-heading font-bold text-6xl sm:text-6xl md:text-8xl lg:text-9xl tracking-tighter text-white mb-6 md:mb-8 leading-[0.9] drop-shadow-2xl px-2">
+            <span className="block mb-2 bg-clip-text text-transparent bg-gradient-to-b from-white to-white/60">
+              Pentecostal
+            </span>
+            <span className="block text-4xl sm:text-5xl md:text-7xl lg:text-8xl text-white/40 font-serif italic">
+              Fellowship
+            </span>
+          </h1>
+
+          {/* Subtext */}
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5, duration: 1 }}
+            className="max-w-2xl mx-auto text-base md:text-xl text-zinc-300 font-light leading-relaxed mb-8 md:mb-12 drop-shadow-lg px-4"
+          >
+            A community defined by faith, purpose, and academic excellence.
+            <br className="hidden md:block" />
+            Growing together in Christ at Caritas University.
+          </motion.p>
+
+          {/* CTA Group */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 w-full sm:w-auto"
+          >
+            <Link to="/departments" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full h-12 sm:h-14 px-6 sm:px-10 rounded-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold text-base sm:text-lg hover:scale-105 transition-transform duration-300 shadow-xl shadow-white/10">
+                Join a Unit
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+
+            <Link to="/sermons" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full h-12 sm:h-14 px-6 sm:px-10 rounded-full border-white/30 bg-black/40 text-white hover:bg-white hover:text-pfcu-primary hover:border-white font-medium text-base sm:text-lg backdrop-blur-sm transition-all duration-300 group">
+                <PlayCircle className="mr-2 w-5 h-5 text-white/80 group-hover:text-pfcu-primary transition-colors" />
+                Latest Message
+              </Button>
+            </Link>
+          </motion.div>
+        </motion.div>
+      </div>
     </section>
   );
 };

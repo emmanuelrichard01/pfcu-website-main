@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import MainLayout from "@/components/layout/MainLayout";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -22,16 +23,23 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
-  DollarSign,
-  Landmark,
-  Clock,
-  Heart,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Copy,
   CheckCircle,
-  Wallet,
-  HandHeart,
+  Landmark,
+  ArrowRight,
+  Heart,
+  ShieldCheck,
+  CreditCard,
   Banknote,
-  Info
+  ChevronDown,
+  Sparkles
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { NewDonation, PaymentOption } from "@/types/donations";
@@ -50,6 +58,7 @@ type GivingFormValues = z.infer<typeof formSchema>;
 const Giving = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showForm, setShowForm] = useState(false);
   const { toast } = useToast();
 
   // State for dynamic settings
@@ -133,9 +142,10 @@ const Giving = () => {
       setTimeout(() => {
         setIsProcessing(false);
         form.reset();
+        setShowForm(false);
         toast({
-          title: "Donation details submitted!",
-          description: "Please complete your transfer using the account details provided.",
+          title: "Transfer Notification Sent!",
+          description: "We'll confirm your donation shortly. Thank you for your generosity.",
         });
       }, 1500);
     } catch (error: any) {
@@ -143,189 +153,229 @@ const Giving = () => {
       setIsProcessing(false);
       toast({
         title: "Error",
-        description: "There was a problem submitting your donation.",
+        description: error.message || "There was a problem submitting your donation.",
         variant: "destructive",
       });
     }
   };
 
   const copyAccountDetails = () => {
-    navigator.clipboard.writeText(`Account Number: ${siteSettings.accountNumber} Bank Name: ${siteSettings.bankName}`).then(() => {
+    navigator.clipboard.writeText(siteSettings.accountNumber).then(() => {
       setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 3000);
+      setTimeout(() => setCopySuccess(false), 2000);
       toast({
         title: "Copied!",
-        description: "Account details copied to clipboard",
+        description: "Account number copied to clipboard",
       });
     });
   };
 
-  const givingOptions: PaymentOption[] = [
-    {
-      id: "general",
-      title: "General Offering",
-      description: "General support for fellowship activities",
-      icon: <Heart className="h-6 w-6" />,
-    },
-    {
-      id: "outreach",
-      title: "Campus Outreach",
-      description: "Evangelism and campus ministry",
-      icon: <Landmark className="h-6 w-6" />,
-    },
-    {
-      id: "community",
-      title: "Community Service",
-      description: "Supporting welfare programs",
-      icon: <DollarSign className="h-6 w-6" />,
-    },
-  ];
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  };
 
   return (
     <MainLayout>
-      {/* Modern Compact Hero */}
-      <div className="relative bg-pfcu-dark pt-32 pb-16 md:py-36 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-pfcu-primary/20 rounded-full blur-[100px] translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 left-0 w-[40vw] h-[40vw] bg-pfcu-secondary/10 rounded-full blur-[80px] -translate-x-1/4 translate-y-1/4" />
-          <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03]" />
-        </div>
+      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+        {/* Cinematic Hero */}
+        <section className="relative pt-32 pb-20 md:pt-48 md:pb-32 px-4 overflow-hidden">
+          <div className="absolute inset-0 z-0">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-pfcu-primary/5 via-zinc-50/0 to-zinc-50/0 dark:from-pfcu-primary/10 dark:via-zinc-950/0 dark:to-zinc-950/0" />
+            <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.03]" />
+          </div>
 
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-pfcu-secondary text-sm font-medium mb-6">
-              <HandHeart size={14} />
-              <span>Giving</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-heading font-bold text-white mb-6 tracking-tight">
-              Support Our <span className="text-pfcu-primary">Fellowship</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-              Your generous giving helps us advance the gospel on campus and beyond.
-            </p>
-          </motion.div>
-        </div>
-      </div>
-
-      <div className="container mx-auto py-16 px-4">
-        {/* Giving Options Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          {givingOptions.map((option, idx) => (
+          <div className="container mx-auto max-w-5xl relative z-10 text-center">
             <motion.div
-              key={option.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: idx * 0.1 }}
-              viewport={{ once: true }}
+              initial="hidden"
+              animate="visible"
+              variants={fadeInUp}
             >
-              <Card className="text-center hover:shadow-xl transition-all hover:-translate-y-1 h-full border-zinc-200 dark:border-zinc-800">
-                <CardHeader>
-                  <div className="mx-auto bg-pfcu-primary/10 p-4 rounded-2xl w-16 h-16 flex items-center justify-center mb-4 text-pfcu-primary">
-                    {option.icon}
-                  </div>
-                  <CardTitle className="text-xl font-heading">{option.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-gray-500 text-base">
-                    {option.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm mb-8">
+                <Heart size={14} className="text-pfcu-primary fill-pfcu-primary" />
+                <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-300">Giving Back</span>
+              </div>
 
-        <div className="max-w-6xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-8 items-start">
-            {/* Left Column: Bank Transfer Details Form */}
+              <h1 className="text-5xl md:text-7xl font-heading font-bold text-zinc-900 dark:text-white tracking-tight mb-8">
+                Your Generosity <br />
+                <span className="text-pfcu-primary relative">
+                  Seeds the Future
+                  <svg className="absolute w-full h-3 -bottom-1 left-0 text-pfcu-primary/20 -z-10" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    <path d="M0 5 Q 50 10 100 5 L 100 10 L 0 10 Z" fill="currentColor" />
+                  </svg>
+                </span>
+              </h1>
+
+              <p className="text-xl text-zinc-600 dark:text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                Join us in advancing the Kingdom. Every seed sown goes directly into supporting our ministry, outreach, and community impactful projects.
+              </p>
+            </motion.div>
+          </div>
+        </section>
+
+        {/* Payment Section */}
+        <section className="container mx-auto max-w-6xl px-4 pb-32">
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-24 items-start">
+
+            {/* Left Column: Bank Card & Cash */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="space-y-8"
             >
-              <Card className="shadow-2xl border-0 overflow-hidden ring-1 ring-zinc-200 dark:ring-zinc-800 h-full">
-                <div className="h-2 bg-gradient-to-r from-pfcu-primary to-pfcu-secondary" />
-                <CardHeader className="pb-6">
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                      <Landmark size={24} />
-                    </div>
-                    <CardTitle className="text-2xl font-heading font-bold">Bank Transfer</CardTitle>
-                  </div>
-                  <CardDescription className="text-base">
-                    Direct transfer to our official account.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-8">
-                  {/* Premium Bank Card Display */}
-                  <div className="bg-gradient-to-br from-zinc-900 to-zinc-800 text-white p-6 md:p-8 rounded-2xl shadow-xl relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
-                    <div className="relative z-10">
-                      <div className="flex justify-between items-start mb-6">
-                        <div>
-                          <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Bank Name</p>
-                          <h3 className="text-xl font-bold">{siteSettings.bankName}</h3>
-                        </div>
-                        <Landmark className="text-white/20 h-10 w-10" />
-                      </div>
+              <div className="relative group perspective-1000">
+                <div className="absolute -inset-1 bg-gradient-to-r from-pfcu-primary to-purple-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-1000 group-hover:duration-200"></div>
 
-                      <div className="mb-6">
-                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-2">Account Number</p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-3xl font-mono font-bold tracking-wider">{siteSettings.accountNumber}</span>
-                          <Button
-                            size="icon"
-                            variant="secondary"
-                            className="h-8 w-8 rounded-full bg-white/10 hover:bg-white/20 border-0 text-white"
-                            onClick={copyAccountDetails}
-                          >
-                            {copySuccess ? <CheckCircle size={14} /> : <Copy size={14} />}
-                          </Button>
-                        </div>
-                      </div>
+                {/* Premium Bank Card */}
+                <div className="relative h-[280px] w-full rounded-2xl bg-[#1a1a1a] shadow-2xl overflow-hidden p-8 flex flex-col justify-between border border-white/10 group-hover:transform group-hover:scale-[1.02] transition-all duration-500">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-pfcu-primary/20 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -ml-16 -mb-16 pointer-events-none" />
 
-                      <div>
-                        <p className="text-zinc-400 text-xs font-medium uppercase tracking-wider mb-1">Account Name</p>
-                        <p className="text-base font-medium opacity-90">{siteSettings.accountName}</p>
-                      </div>
+                  <div className="relative z-10 flex justify-between items-start">
+                    <div>
+                      <h3 className="text-zinc-400 font-medium tracking-widest text-sm uppercase mb-1">Bank Name</h3>
+                      <p className="text-2xl font-bold text-white">{siteSettings.bankName}</p>
                     </div>
+                    <Landmark className="text-white/20" size={32} />
                   </div>
 
-                  {/* Notification Form */}
+                  <div className="relative z-10">
+                    <div className="flex items-end gap-4 mb-2">
+                      <h2 className="text-4xl md:text-5xl font-mono text-white font-bold tracking-wider">{siteSettings.accountNumber}</h2>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={copyAccountDetails}
+                        className="text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+                      >
+                        {copySuccess ? <CheckCircle size={20} className="text-green-400" /> : <Copy size={20} />}
+                      </Button>
+                    </div>
+                    <p className="text-zinc-400 text-sm">Tap copy icon to copy number</p>
+                  </div>
+
+                  <div className="relative z-10">
+                    <p className="text-zinc-400 text-xs font-medium uppercase tracking-widest mb-1">Account Name</p>
+                    <p className="text-white/90 font-medium truncate">{siteSettings.accountName}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="flex gap-6 py-6 border-y border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center gap-3">
+                  <ShieldCheck className="text-green-600 shrink-0" />
                   <div>
-                    <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-                      <Info size={18} className="text-pfcu-primary" />
-                      Notify Us of Your Transfer
-                    </h3>
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-1 gap-4">
+                    <p className="font-bold text-sm text-zinc-900 dark:text-white">Secure Transaction</p>
+                    <p className="text-xs text-zinc-500">Direct bank grade transfer</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <CheckCircle className="text-pfcu-primary shrink-0" />
+                  <div>
+                    <p className="font-bold text-sm text-zinc-900 dark:text-white">Tax Deductible</p>
+                    <p className="text-xs text-zinc-500">Receipts upon request</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cash Option */}
+              <div className="bg-white dark:bg-zinc-900 rounded-2xl p-6 border border-zinc-200 dark:border-zinc-800 flex items-start gap-4">
+                <div className="p-3 bg-zinc-100 dark:bg-zinc-800 rounded-xl text-zinc-600 dark:text-zinc-400">
+                  <Banknote size={24} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-zinc-900 dark:text-white mb-1">Cash & Check</h3>
+                  <p className="text-sm text-zinc-500 leading-relaxed">{siteSettings.cashInstructions}</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Right Column: Interaction Area */}
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <AnimatePresence mode="wait">
+                {!showForm ? (
+                  <motion.div
+                    key="cta"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                    className="bg-white dark:bg-zinc-900 rounded-3xl p-8 md:p-12 border border-zinc-200 dark:border-zinc-800 shadow-xl text-center space-y-6"
+                  >
+                    <div className="w-20 h-20 bg-pfcu-primary/10 rounded-full flex items-center justify-center mx-auto text-pfcu-primary">
+                      <Sparkles size={32} />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white mb-3">Have you led the transfer?</h2>
+                      <p className="text-zinc-500">Help us track your seed by notifying the finance team. It only takes a minute.</p>
+                    </div>
+                    <Button
+                      onClick={() => setShowForm(true)}
+                      size="lg"
+                      className="w-full h-14 text-lg rounded-xl bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-all font-bold"
+                    >
+                      Notify Us Now
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="form"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="bg-white dark:bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-xl"
+                  >
+                    <div className="bg-zinc-50 dark:bg-zinc-800/50 p-6 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
+                      <h3 className="font-bold text-lg">Transfer Details</h3>
+                      <Button variant="ghost" size="sm" onClick={() => setShowForm(false)} className="text-zinc-400 hover:text-zinc-900">Cancel</Button>
+                    </div>
+                    <div className="p-6 md:p-8">
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                           <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Full Name</FormLabel>
+                                <FormLabel className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Full Name</FormLabel>
                                 <FormControl>
-                                  <Input placeholder="John Doe" {...field} />
+                                  <Input placeholder="Your Name" {...field} className="h-12 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700" />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                          <div className="grid grid-cols-2 gap-4">
+
+                          <FormField
+                            control={form.control}
+                            name="email"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Email Address</FormLabel>
+                                <FormControl>
+                                  <Input placeholder="you@example.com" type="email" {...field} className="h-12 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700" />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+
+                          <div className="grid grid-cols-2 gap-5">
                             <FormField
                               control={form.control}
                               name="amount"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Amount (₦)</FormLabel>
+                                  <FormLabel className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Amount (₦)</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="1000" type="number" {...field} />
+                                    <Input placeholder="5000" type="number" {...field} className="h-12 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700 font-mono" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
@@ -336,94 +386,62 @@ const Giving = () => {
                               name="phoneNumber"
                               render={({ field }) => (
                                 <FormItem>
-                                  <FormLabel>Phone</FormLabel>
+                                  <FormLabel className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Phone</FormLabel>
                                   <FormControl>
-                                    <Input placeholder="+234..." {...field} />
+                                    <Input placeholder="080..." {...field} className="h-12 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700" />
                                   </FormControl>
                                   <FormMessage />
                                 </FormItem>
                               )}
                             />
                           </div>
+
                           <FormField
                             control={form.control}
                             name="purpose"
                             render={({ field }) => (
                               <FormItem>
-                                <FormLabel>Purpose</FormLabel>
-                                <FormControl>
-                                  <select
-                                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
-                                    {...field}
-                                  >
-                                    {givingOptions.map((option) => (
-                                      <option key={option.id} value={option.title}>{option.title}</option>
-                                    ))}
-                                  </select>
-                                </FormControl>
+                                <FormLabel className="text-zinc-500 text-xs uppercase tracking-wider font-semibold">Purpose</FormLabel>
+                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                  <FormControl>
+                                    <SelectTrigger className="h-12 bg-zinc-50 dark:bg-zinc-800/50 border-zinc-200 dark:border-zinc-700">
+                                      <SelectValue placeholder="Select purpose" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value="General Offering">General Offering</SelectItem>
+                                    <SelectItem value="Campus Outreach">Campus Outreach</SelectItem>
+                                    <SelectItem value="Community Service">Community Service</SelectItem>
+                                    <SelectItem value="Tithe">Tithe</SelectItem>
+                                    <SelectItem value="Building Fund">Building Fund</SelectItem>
+                                  </SelectContent>
+                                </Select>
                                 <FormMessage />
                               </FormItem>
                             )}
                           />
-                        </div>
 
-                        <Button
-                          type="submit"
-                          className="w-full bg-pfcu-primary hover:bg-pfcu-primary/90 mt-2"
-                          disabled={isProcessing}
-                        >
-                          {isProcessing ? "Processing..." : "I've Made My Transfer"}
-                        </Button>
-                      </form>
-                    </Form>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            {/* Right Column: Cash Giving (Sticky if needed) */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              {/* Cash / Check Card */}
-              <Card className="shadow-lg border-zinc-200 dark:border-zinc-800 bg-amber-50/50 dark:bg-amber-950/10">
-                <CardHeader>
-                  <div className="flex items-center gap-3 mb-2">
-                    <div className="p-2 bg-amber-100 text-amber-700 rounded-lg">
-                      <Banknote size={24} />
+                          <Button
+                            type="submit"
+                            className="w-full h-12 bg-pfcu-primary hover:bg-pfcu-primary/90 text-white font-bold rounded-xl shadow-lg shadow-pfcu-primary/25 mt-4"
+                            disabled={isProcessing}
+                          >
+                            {isProcessing ? (
+                              <span className="flex items-center gap-2">
+                                <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
+                                Processing...
+                              </span>
+                            ) : "Confirm Transfer"}
+                          </Button>
+                        </form>
+                      </Form>
                     </div>
-                    <CardTitle className="text-2xl font-heading font-bold text-amber-900 dark:text-amber-100">Cash & Offering Box</CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="prose dark:prose-invert max-w-none text-zinc-600 dark:text-zinc-300 leading-relaxed">
-                    <p className="whitespace-pre-wrap text-lg">{siteSettings.cashInstructions}</p>
-                  </div>
-                  <div className="mt-6 flex items-center gap-3 text-sm text-amber-800 dark:text-amber-200 bg-amber-100/50 dark:bg-amber-900/30 p-4 rounded-xl">
-                    <Clock size={18} className="shrink-0" />
-                    <span>Available during all weekly services and fellowship gatherings.</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Security / Trust Badge */}
-              <Card className="bg-zinc-50 dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800">
-                <CardContent className="p-6 text-center">
-                  <div className="bg-green-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-4 text-green-600">
-                    <CheckCircle size={24} />
-                  </div>
-                  <h3 className="font-bold text-lg mb-2">Secure & Transparent</h3>
-                  <p className="text-sm text-zinc-500">
-                    All financial contributions are handled with integrity and used strictly for fellowship purposes and outreach.
-                  </p>
-                </CardContent>
-              </Card>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           </div>
-        </div>
+        </section>
       </div>
     </MainLayout>
   );

@@ -1,7 +1,4 @@
-
-import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, User, PlayCircle, Download, Headphones } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Clock, Play, Pause } from "lucide-react";
 
 interface Sermon {
   id: string;
@@ -17,100 +14,100 @@ interface Sermon {
 interface SermonListProps {
   sermons: Sermon[];
   selectedSermonId?: string;
+  playingSermonId?: string;
   onSelectSermon: (sermon: Sermon) => void;
+  onPlaySermon?: (sermon: Sermon) => void;
   formatSermonDate: (dateStr: string) => string;
 }
 
 const SermonList = ({
   sermons,
   selectedSermonId,
+  playingSermonId,
   onSelectSermon,
+  onPlaySermon,
   formatSermonDate
 }: SermonListProps) => {
 
-  const handleDownload = (e: React.MouseEvent<HTMLButtonElement>, sermon: Sermon) => {
+  const handlePlayClick = (e: React.MouseEvent, sermon: Sermon) => {
     e.stopPropagation();
-    if (sermon.audio_url) {
-      const link = document.createElement('a');
-      link.href = sermon.audio_url;
-      link.download = `${sermon.title} by ${sermon.preacher}.mp3`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    if (onPlaySermon) {
+      onPlaySermon(sermon);
+    } else {
+      onSelectSermon(sermon);
     }
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="space-y-2">
       {sermons.map((sermon) => {
         const isSelected = selectedSermonId === sermon.id;
+        const isPlaying = playingSermonId === sermon.id;
 
         return (
           <div
             key={sermon.id}
             onClick={() => onSelectSermon(sermon)}
             className={`
-              group relative flex flex-col sm:flex-row items-center gap-6 p-5 rounded-3xl cursor-pointer transition-all duration-300 border
+              group flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all
               ${isSelected
-                ? "bg-white dark:bg-zinc-800 border-pfcu-primary/40 shadow-xl scale-[1.02] z-10"
-                : "bg-white/80 dark:bg-zinc-900/40 border-zinc-100 dark:border-zinc-800 hover:bg-white dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 hover:shadow-lg hover:-translate-y-1"
+                ? "bg-pfcu-primary/5 border border-pfcu-primary/20"
+                : "bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700"
               }
             `}
           >
-            {/* Play Indicator / Cover Thumb */}
-            <div className={`relative shrink-0 w-full sm:w-20 h-20 rounded-2xl overflow-hidden bg-zinc-100 dark:bg-zinc-900 shadow-inner hidden sm:block transition-all duration-300 ${isSelected ? 'ring-2 ring-pfcu-primary ring-offset-2 dark:ring-offset-zinc-900' : ''}`}>
-              {sermon.cover_image ? (
-                <img src={sermon.cover_image} alt={sermon.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-zinc-300 dark:text-zinc-700 bg-zinc-50 dark:bg-zinc-900/50">
-                  <Headphones size={28} />
-                </div>
-              )}
-              {/* Overlay Icon */}
-              <div className={`absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] transition-all duration-300 ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
-                <PlayCircle className="text-white w-10 h-10 drop-shadow-lg" fill="currentColor" stroke="none" />
+            {/* Cover with play overlay */}
+            <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800 shrink-0">
+              <img
+                src={sermon.cover_image || "https://images.unsplash.com/photo-1478147427282-58a87a120781?q=80&w=200&auto=format&fit=crop"}
+                alt={sermon.title}
+                className="w-full h-full object-cover"
+              />
+              {/* Hover overlay */}
+              <div className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                <Play size={18} fill="white" className="text-white" style={{ marginLeft: '2px' }} />
               </div>
             </div>
 
-            {/* Info Content */}
-            <div className="flex-1 min-w-0 w-full text-center sm:text-left space-y-1">
-              <h4 className={`text-lg font-bold leading-tight transition-colors ${isSelected ? 'text-pfcu-primary' : 'text-zinc-900 dark:text-zinc-100 group-hover:text-pfcu-primary'}`}>
+            {/* Content */}
+            <div className="flex-1 min-w-0">
+              <h3 className={`font-semibold text-sm leading-tight mb-0.5 line-clamp-1 ${isSelected ? 'text-pfcu-primary' : 'text-zinc-900 dark:text-white'}`}>
                 {sermon.title}
-              </h4>
-
-              <div className="flex items-center justify-center sm:justify-start gap-2 text-sm text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
-                <User size={14} />
-                <span className="font-medium">{sermon.preacher}</span>
-              </div>
-
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-x-3 gap-y-1 pt-2">
-                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider bg-zinc-100 dark:bg-zinc-800/50 px-2.5 py-1 rounded-md">
-                  <Calendar size={12} />
-                  {formatSermonDate(sermon.sermon_date)}
-                </span>
+              </h3>
+              <p className="text-xs text-zinc-500 mb-0.5">{sermon.preacher}</p>
+              <div className="flex items-center gap-2 text-[11px] text-zinc-400">
+                <span>{formatSermonDate(sermon.sermon_date)}</span>
                 {sermon.duration && (
-                  <span className="flex items-center gap-1.5 text-xs text-zinc-400 font-medium">
-                    <Clock size={12} />
-                    {sermon.duration}
-                  </span>
+                  <>
+                    <span className="w-0.5 h-0.5 rounded-full bg-zinc-300" />
+                    <span className="flex items-center gap-1">
+                      <Clock size={9} />
+                      {sermon.duration}
+                    </span>
+                  </>
                 )}
               </div>
             </div>
 
-            {/* Actions */}
-            <div className="flex items-center gap-2 shrink-0">
-              {sermon.audio_url && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-10 w-10 text-zinc-400 hover:text-pfcu-primary hover:bg-pfcu-primary/5 rounded-full transition-all"
-                  onClick={(e) => handleDownload(e, sermon)}
-                  title="Download MP3"
-                >
-                  <Download size={18} />
-                </Button>
+            {/* Play/Pause Button */}
+            <button
+              onClick={(e) => handlePlayClick(e, sermon)}
+              className={`
+                w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all
+                ${isPlaying
+                  ? "bg-pfcu-primary text-white"
+                  : isSelected
+                    ? "bg-pfcu-primary text-white"
+                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-pfcu-primary hover:text-white"
+                }
+              `}
+            >
+              {isPlaying ? (
+                <Pause size={16} fill="currentColor" />
+              ) : (
+                <Play size={16} fill="currentColor" style={{ marginLeft: '2px' }} />
               )}
-            </div>
+            </button>
           </div>
         );
       })}
