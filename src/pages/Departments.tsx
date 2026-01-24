@@ -134,7 +134,7 @@ const Departments = () => {
         </section>
 
         {/* --- FILTER & SEARCH --- */}
-        <section className="sticky top-20 z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 py-4">
+        <section className="top-20 z-40 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border-b border-zinc-200 dark:border-zinc-800 py-4">
           <div className="container mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-4">
 
             {/* Categories */}

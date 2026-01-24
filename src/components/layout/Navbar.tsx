@@ -53,7 +53,7 @@ const Navbar = () => {
     return location.pathname.startsWith(path);
   };
 
-  const isLightPage = ['/about', '/contact', '/admin/login', '/admin/setup', '/departments', '/sermons', '/giving'].includes(location.pathname) || location.pathname.startsWith('/event/');
+  const isLightPage = ['/about', '/contact', '/admin/login', '/admin/setup', '/departments', '/sermons', '/giving', '/events'].includes(location.pathname) || location.pathname.startsWith('/event/');
   const textColor = scrolled || !isLightPage ? 'text-white' : 'text-zinc-900';
   const navTextColor = scrolled || !isLightPage ? 'text-zinc-400 hover:text-white' : 'text-zinc-600 hover:text-pfcu-primary';
   const activeNavStyle = scrolled || !isLightPage

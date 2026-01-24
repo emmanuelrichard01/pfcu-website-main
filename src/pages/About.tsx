@@ -409,12 +409,12 @@ const About = () => {
         </div>
 
         <div className="container mx-auto px-6 relative z-10">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
-            <div>
+          <div className="flex flex-col md:flex-row justify-between items-start mb-16 gap-8">
+            <div className="text-left">
               <span className="text-pfcu-secondary font-bold tracking-widest uppercase text-xs">Our Legacy</span>
               <h2 className="text-4xl md:text-5xl font-heading font-bold mt-2">Alumni Network</h2>
             </div>
-            <p className="text-zinc-400 max-w-md text-right md:text-left">
+            <p className="text-zinc-400 max-w-md text-left md:text-left">
               Our graduates are making waves across the globe, carrying the torch of excellence and faith in their respective fields.
             </p>
           </div>
