@@ -19,9 +19,9 @@ const AdminUsersHeader = ({ onAddAdmin }: AdminUsersHeaderProps) => {
           <p className="text-gray-600">Manage admin access to the PFCU panel</p>
         </div>
       </div>
-      
-      <Button 
-        className="bg-pfcu-purple hover:bg-pfcu-dark"
+
+      <Button
+        className="bg-pfcu-primary hover:bg-pfcu-primary/90 text-white shadow-sm font-semibold transition-all hover:scale-[1.02]"
         onClick={onAddAdmin}
       >
         <UserPlus className="mr-2 h-4 w-4" />

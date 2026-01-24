@@ -84,7 +84,7 @@ const AdminLayout = () => {
     <div className="min-h-screen flex bg-zinc-50 dark:bg-zinc-950 font-sans">
 
       {/* Mobile Toggle */}
-      <div className={`lg:hidden fixed left-4 top-4 z-50`}>
+      <div className={`lg:hidden fixed right-4 top-4 z-50`}>
         <Button
           variant="outline"
           size="icon"
