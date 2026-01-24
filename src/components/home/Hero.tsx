@@ -96,7 +96,7 @@ const Hero = () => {
           >
             <Link to="/departments" className="w-full sm:w-auto">
               <Button size="lg" className="w-full h-12 sm:h-14 px-6 sm:px-10 rounded-full bg-white text-zinc-950 hover:bg-zinc-200 font-bold text-base sm:text-lg hover:scale-105 transition-transform duration-300 shadow-xl shadow-white/10">
-                Join a Unit
+                Join a Department
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
             </Link>

@@ -10,7 +10,8 @@ import {
   Globe,
   Zap,
   BookOpen,
-  Filter
+  Filter,
+  X
 } from "lucide-react";
 import MainLayout from "../components/layout/MainLayout";
 import { useUnitsData, UnitData } from "../components/units/useUnitsData";
@@ -255,6 +256,15 @@ const Departments = () => {
                       {selectedDept.name.replace(" Department", "")}
                     </h2>
                   </div>
+
+                  {/* Close Button */}
+                  <button
+                    onClick={() => setSelectedDept(null)}
+                    className="absolute top-4 right-4 z-50 p-2 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all duration-300 hover:scale-110 active:scale-95"
+                    aria-label="Close modal"
+                  >
+                    <X size={20} />
+                  </button>
                 </div>
 
                 <div className="p-6 md:p-8 max-h-[70vh] overflow-y-auto">
@@ -333,7 +343,7 @@ const Departments = () => {
           departmentName={joinDeptName}
         />
       </div>
-    </MainLayout>
+    </MainLayout >
   );
 };
 
